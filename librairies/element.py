@@ -220,10 +220,13 @@ class Element:
     
   def fabriqueTriangle(self, p1, p2, p3, forceCouleur=None):
     """Fabrique la géométrie de la face triangulaire définie par p1, p2 et p3"""
+    
+    #Prepare la création du triangle
     if general.TEXTURES:
-      format = GeomVertexFormat.getV3n3t2()
+      format = GeomVertexFormat.getV3n3t2() #On donne les vectrices, les normales et les textures
     else:
-      format = GeomVertexFormat.getV3n3c4()
+      format = GeomVertexFormat.getV3n3c4() #On donne les vectrices, les normales et les couleurs
+      
     vdata = GeomVertexData('TriangleVertices',format,Geom.UHStatic)
 
     vWriter = GeomVertexWriter(vdata, 'vertex')
@@ -233,23 +236,26 @@ class Element:
     else:
       cWriter = GeomVertexWriter(vdata, 'color')
     
+    #On attrape les couleurs pour chaque sommet
     if forceCouleur==None:
-      c1,t1=self.couleurSommet(p1)#couleur#[random.random(),random.random(),random.random(),1.0]
-      c2,t2=self.couleurSommet(p2)#couleur#[random.random(),random.random(),random.random(),1.0]
-      c3,t3=self.couleurSommet(p3)#couleur#.random(),random.random(),random.random(),1.0]
+      c1,t1=self.couleurSommet(p1)
+      c2,t2=self.couleurSommet(p2)
+      c3,t3=self.couleurSommet(p3)
     else:
-      c1 = forceCouleur
-      c2 = forceCouleur
-      c3 = forceCouleur
+      c1,t1 = forceCouleur
+      c2,t2 = forceCouleur
+      c3,t3 = forceCouleur
 
+    #On calcule les normales à chaque sommet
     n1=self.calculNormale(p1)
     n2=self.calculNormale(p2)
     n3=self.calculNormale(p3)
     
-    #self.dessineLigne((1.0,0.0,0.0,1.0), p1, general.sommeVecteurs(p1, n1))
-    #self.dessineLigne((0.0,1.0,0.0,1.0), p2, general.sommeVecteurs(p1, n2))
-    #self.dessineLigne((0.0,0.0,1.0,1.0), p3, general.sommeVecteurs(p1, n3))
-    
+    #On écrit le modèle dans cet ordre :
+    #-vectrice
+    #-normale
+    #-texture | couleur
+    #3 fois
     vWriter.addData3f(*p1)
     nWriter.addData3f(*n1)
     if general.TEXTURES:
@@ -269,6 +275,7 @@ class Element:
     else:
       cWriter.addData4f(*c3)
 
+    #On fabrique la géométrie
     prim = GeomTriangles(Geom.UHStatic)
     prim.addVertex(0)
     prim.addVertex(1)
@@ -281,6 +288,8 @@ class Element:
     node = GeomNode('gnode')
     node.addGeom(geom)
     nd = NodePath(node)
+    
+    #On applique la texture
     tex = loader.loadTexture(t1)
     nd.setTexture(tex)
 

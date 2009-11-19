@@ -394,24 +394,13 @@ class Planete:
     self.modeleCiel.reparentTo(self.racine)
     self.niveauCiel = 1.0+self.delta*1.25+0.0001
     
-    #Nuages
-    #nuages = loader.loadModel("data/modeles/sphere.egg")
-    #nuages.setTransparency(TransparencyAttrib.MDual )
-    #tex = loader.loadTexture('data/textures/clouds.png')
-    #nuages.setTexture(tex, 1)
-    #ts = TextureStage('ts')
-    #ts.setMode(TextureStage.MNormal)
-    #nuages.setTexture(ts, tex)
-    #nuages.setTwoSided(True)
-    #nuages.setScale(self.niveauCiel)
-    #nuages.reparentTo(self.modeleCiel)
     nuages = NodePath("nuage")
     for i in range(0, 30):
       a = Nuage(self)
       a.fabriqueModel().reparentTo(nuages)
     nuages.reparentTo(self.modeleCiel)
       
-    
+    #Fabrique une lumière ambiante pour que la nuit soit moins noire
     alight = AmbientLight('alight')
     alight.setColor(VBase4(0.2, 0.2, 0.275, 1))
     alnp = render.attachNewNode(alight)
@@ -425,6 +414,7 @@ class Planete:
     azure.setScale((self.niveauCiel+0.001+0.0001))
     azure.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullCounterClockwise))
     azure.reparentTo(self.modeleCiel)
+    #L'azure n'est pas affectée par la lumière ambiante
     azure.setLightOff(alnp)
     
     #Ciel orange

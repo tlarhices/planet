@@ -33,6 +33,9 @@ class Sprite:
   bouge = None #Si True, alors l'objet peut bouger (personnage, véhicule, ...) sinon il est statique (arbre, bâtiment, ...)
   zoneContact = None #Les coordonnées de la zone de contact
   
+  rac = None #Ce qui fait que le sprite garde les pieds en bas
+  racine = None #Ce qui fait que le sprite garde la tête en haut
+  
   def __init__(self, id, position, modele, symbole, planete):
     """
     Fabrique un nouvel objet
@@ -53,13 +56,16 @@ class Sprite:
     
   def pointeRacineSol(self):
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""
+    #Positionne le modèle et le fait pointer vers le centre de la planète (Z pointant sur la planète)
     self.rac.reparentTo(self.planete.racine)
     self.rac.setPos(*self.position)
     self.rac.lookAt(self.planete.racine,0,0,0)
+    #Tourne le modèle pour que sa tête soit en "haut" (Y pointant vers l'extérieur de la planète)
     self.racine.reparentTo(self.rac)
     self.racine.setP(90)
     self.racine.setScale(0.01)
     
+    #Affiche le racine devant tout pour le debug
     #self.rac.setBin('fixed', -1)
     #self.rac.setDepthTest(False)
     #self.rac.setDepthWrite(False)
@@ -79,12 +85,14 @@ class Sprite:
       #Si on est au dessus, on tombe sur la surface
       self.miseAJourPosition((self.position[0]-seuil*temps, self.position[1]-seuil*temps, self.position[2]-seuil*temps))
       
+    #Fait marcher
     if self.marcheVersTab != None:
       if len(self.marcheVersTab) > 0:
         self.deplace(self.marcheVersTab[0], temps)
         if general.distanceCarree(self.position, self.versCoord(self.marcheVersTab[0])) < 0.002:
           self.marcheVersTab.pop(0)
 
+    #Recalcule la verticale du modèle
     self.MAJSymbole()
     
   def versCoord(self, cible):
@@ -220,10 +228,9 @@ class Sprite:
     #Fait une mise à l'échelle
     card1.setScale(taille, taille, taille)
     
+    #On fait tourner la carte pour quelle pointe toujours vers la caméra
+    #Elle rotationne autour d'un axe uniquement (garde ses pieds vers le sol)
     card1.setBillboardAxis()
-    
-      #racine.setPos(0,2,0)
-    racine.flattenStrong()
     
     #Les lignes suivantes font dessiner le sprite au dessus de tout le reste
     #Utile pour débugger
