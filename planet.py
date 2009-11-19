@@ -76,6 +76,7 @@ class Start:
     general.DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION = general.configuration.getConfiguration("general", "debug_ai_graphe_deplacement_construction","0")=="1"
     general.DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE = general.configuration.getConfiguration("general", "debug_ai_graphe_deplacement_promenade","0")=="1"
     general.WIREFRAME = general.configuration.getConfiguration("affichage", "wireframe","0")=="1"
+    general.TEXTURES = general.configuration.getConfiguration("affichage", "utilise-textures","1")=="1"
     general.DEBUG_PANDAUI_GUI = general.configuration.getConfiguration("general", "DEBUG_PANDAUI_GUI","0")=="1"
     general.DEBUG_PANDAUI_CLIC = general.configuration.getConfiguration("general", "DEBUG_PANDAUI_CLIC","0")=="1"
     general.DEBUG_PANDAUI_PURGE = general.configuration.getConfiguration("general", "DEBUG_PANDAUI_PURGE","0")=="1"

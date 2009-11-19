@@ -40,7 +40,6 @@ class Sprite:
     modele : le nom du fichier 3D à charger
     planete : la planète de laquelle cet objet dépend
     """
-    print "nv sprite", id
     self.planete = planete
     self.modele = None
     self.fichierModele = modele
@@ -49,18 +48,28 @@ class Sprite:
     self.marcheVersTab = []
     self.bouge = True
     self.id = id
-    self.racine=NodePath("racine-sprite")
+    self.rac = NodePath("racine-sprite")
+    self.racine = NodePath("racine-sprite")
     
   def pointeRacineSol(self):
-    """"""
-    pass
+    """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""
+    self.rac.reparentTo(self.planete.racine)
+    self.rac.setPos(*self.position)
+    self.rac.lookAt(self.planete.racine,0,0,0)
+    self.racine.reparentTo(self.rac)
+    self.racine.setP(90)
+    self.racine.setScale(0.01)
+    
+    #self.rac.setBin('fixed', -1)
+    #self.rac.setDepthTest(False)
+    #self.rac.setDepthWrite(False)
+    #self.rac.setLightOff()
     
   def ping(self, temps):
     """
     Appelé à chaque image, met à jour l'état de l'objet
     temps : le nombre de secondes depuis la dernière mise à jour
     """
-    return
     altitudeCible = self.planete.altitude(self.position)
     seuil = 0.01
     if self.alt < altitudeCible or (self.alt > altitudeCible and not self.bouge):
@@ -116,8 +125,7 @@ class Sprite:
     self.position = position
     self.alt = general.normeVecteur(self.position)
     if self.modele != None:
-      self.modele.setPos(*self.position)
-      self.modele.lookAt((0,0,0))
+      self.pointeRacineSol()
     
   def sauvegarde(self):
     """Retoune une chaine qui représente l'objet"""
@@ -146,7 +154,6 @@ class Sprite:
       return
     if self.fichierModele.endswith(".png"):
       tmp = self.fabriqueSprite(self.fichierModele)
-      tmp.setScale(tmp.getScale()*0.1)
     else:
       tmp = loader.loadModel(self.fichierModele)
     tmp.reparentTo(self.modele)
@@ -154,26 +161,29 @@ class Sprite:
     
     symbole = self.fabriqueSymbole(self.fichierSymbole)
     symbole.reparentTo(self.modele)
-    symbole.setScale(symbole.getScale()*0.1)
+    
     self.modele.node().addSwitch(9999999, 3.0) 
-    self.modele.setPos(*self.position)
-    self.modele.lookAt((0,0,0))
-    self.modele.reparentTo(self.racine)
-    self.racine.reparentTo(self.planete.racine)
+    
     self.modele.setPythonTag("type","sprite")
     self.modele.setPythonTag("id",self.id)
     self.modele.setPythonTag("instance",self)
+    self.modele.reparentTo(self.racine)
+    self.pointeRacineSol()
     return self.modele
     
   def fabriqueSymbole(self, fichierSymbole):
     """Affiche une icône dont la taille ne change pas avec la distance à la caméra"""
+    
+    if fichierSymbole=="none":
+      self.symbole=NodePath("pas de symbole")
+      return self.symbole
     #On calcule la distance à la caméra pour avoir le facteur de corection d'échelle
     taille = general.normeVecteur(base.camera.getPos(self.modele))
     #On construit l'objet
     self.symbole = self.fabriqueSprite(fichierSprite = fichierSymbole, taille = taille)
     #On lui dit de ne pas être dérangé par les sources lumineuses
     self.symbole.setLightOff()
-
+    
     #Permet de l'afficher devant toute géométrie
     #self.symbole.setBin('fixed', -1)
     #self.symbole.setDepthTest(False)
@@ -187,10 +197,10 @@ class Sprite:
       #On calcule la distance à la caméra pour avoir le facteur de corection d'échelle
       taille = general.normeVecteur(base.camera.getPos(self.modele))
       #On change l'échelle
-      self.symbole.setScale(taille*0.01, taille*0.01, taille*0.01)
+      self.symbole.setScale(taille*0.005, taille*0.005, taille*0.005)
     
     
-  def fabriqueSprite(self, fichierSprite, taille=1.0, plan=False):
+  def fabriqueSprite(self, fichierSprite, taille=1.0):
     """Construit un nouveau sprite"""
     
     racine = NodePath("sprite")
@@ -200,31 +210,17 @@ class Sprite:
     cardMaker.setFrame(-0.5, 0.5, 0.0, 1.0)
     cardMaker.setHasNormals(True)
     
-    #Construit 2 cartes (plans) en croix
+    #Construit une carte (un plan)
     card1 = racine.attachNewNode(cardMaker.generate())
-    if not plan:
-      card2 = racine.attachNewNode(cardMaker.generate())
     #Applique la texture dessus (des 2 cotés)
     tex = loader.loadTexture(fichierSprite)
     card1.setTexture(tex)
-    if not plan:
-      card1.setTwoSided(True)
-      card2.setTexture(tex)
-      card2.setTwoSided(True)
     #Active la transprence
     card1.setTransparency(TransparencyAttrib.MDual)
-    if not plan:
-      card2.setTransparency(TransparencyAttrib.MDual)
     #Fait une mise à l'échelle
     card1.setScale(taille, taille, taille)
-    if not plan:
-      card2.setScale(taille, taille, taille)
-    #Tourne les cartes
-    if not plan:
-      card1.setH(90)
-      card1.setP(0)
-      card1.setR(90)
-      card2.setP(-90)
+    
+    card1.setBillboardAxis()
     
       #racine.setPos(0,2,0)
     racine.flattenStrong()
@@ -234,15 +230,6 @@ class Sprite:
     #card1.setBin('fixed', -1)
     #card1.setDepthTest(False)
     #card1.setDepthWrite(False)
-    #card2.setBin('fixed', -1)
-    #card2.setDepthTest(False)
-    #card2.setDepthWrite(False)
-    #card1.setLightOff()
-    #card2.setLightOff()
-    #Dessine le trièdre au pied des cartes
-    #racine.attachNewNode(self.dessineLigne((1.0, 0.0, 0.0, 1.0), (0.0, 0.0, 0.0), (2.0, 0.0, 0.0)))
-    #racine.attachNewNode(self.dessineLigne((0.0, 1.0, 0.0, 1.0), (0.0, 0.0, 0.0), (0.0, 2.0, 0.0)))
-    #racine.attachNewNode(self.dessineLigne((0.0, 0.0, 1.0, 1.0), (0.0, 0.0, 0.0), (0.0, 0.0, 2.0)))
     return racine
     
   def dessineLigne(self, couleur, depart, arrivee):
@@ -282,7 +269,7 @@ class Nuage(Sprite):
     #Ajoute les prouts nuageux un par un
     for i in range(0, taille):
       #Fabrique un nouveau prout
-      nuage = self.fabriqueSprite("./data/textures/cloud2.png", taille=1, plan=True)
+      nuage = self.fabriqueSprite("./data/textures/cloud2.png", taille=1)
       nuage.setBillboardPointWorld()
       
       #On le décale par rapport au "centre"

@@ -19,6 +19,8 @@ DEBUG_PANDAUI_PURGE = False #Donne des infos sur la gestion de la suppression de
 DEBUG_USE_STAT = True
 
 WIREFRAME = False
+TEXTURES = True
+
 if WIREFRAME:
   print "DANGER :: HACK :: UTILISATION DU MODE FILAIRE [general.py]"
     

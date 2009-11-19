@@ -161,10 +161,10 @@ class Element:
         mdl.reparentTo(self.modele)
       if self.profondeur == 0:
         if optimise:
-          #On dit que la couleur proviens des vectrices et qu'il faut pas le perdre
-          self.modele.setAttrib(ColorAttrib.makeVertex()) 
+          ##On dit que la couleur proviens des vectrices et qu'il faut pas le perdre
+          #self.modele.setAttrib(ColorAttrib.makeVertex()) 
           #Optimise le modèle
-          ###self.modele.flattenStrong()
+          self.modele.flattenStrong()
           self.besoinOptimise = False
         else:
           self.besoinOptimise = True
@@ -220,13 +220,18 @@ class Element:
     
   def fabriqueTriangle(self, p1, p2, p3, forceCouleur=None):
     """Fabrique la géométrie de la face triangulaire définie par p1, p2 et p3"""
-    format = GeomVertexFormat.getV3n3c4t2()
+    if general.TEXTURES:
+      format = GeomVertexFormat.getV3n3t2()
+    else:
+      format = GeomVertexFormat.getV3n3c4()
     vdata = GeomVertexData('TriangleVertices',format,Geom.UHStatic)
 
     vWriter = GeomVertexWriter(vdata, 'vertex')
-    cWriter = GeomVertexWriter(vdata, 'color')
     nWriter = GeomVertexWriter(vdata, 'normal')
-    tWriter = GeomVertexWriter(vdata, 'texcoord')
+    if general.TEXTURES:
+      tWriter = GeomVertexWriter(vdata, 'texcoord')
+    else:
+      cWriter = GeomVertexWriter(vdata, 'color')
     
     if forceCouleur==None:
       c1,t1=self.couleurSommet(p1)#couleur#[random.random(),random.random(),random.random(),1.0]
@@ -247,16 +252,22 @@ class Element:
     
     vWriter.addData3f(*p1)
     nWriter.addData3f(*n1)
-    cWriter.addData4f(*c1)
-    tWriter.addData2f(0,0)
+    if general.TEXTURES:
+      tWriter.addData2f(0,0)
+    else:
+      cWriter.addData4f(*c1)
     vWriter.addData3f(*p2)
     nWriter.addData3f(*n2)
-    cWriter.addData4f(*c2)
-    tWriter.addData2f(0,1)
+    if general.TEXTURES:
+      tWriter.addData2f(0,1)
+    else:
+      cWriter.addData4f(*c2)
     vWriter.addData3f(*p3)
     nWriter.addData3f(*n3)
-    cWriter.addData4f(*c3)
-    tWriter.addData2f(1,0)
+    if general.TEXTURES:
+      tWriter.addData2f(1,0)
+    else:
+      cWriter.addData4f(*c3)
 
     prim = GeomTriangles(Geom.UHStatic)
     prim.addVertex(0)
