@@ -412,6 +412,11 @@ class Planete:
     nuages.reparentTo(self.modeleCiel)
       
     
+    alight = AmbientLight('alight')
+    alight.setColor(VBase4(0.2, 0.2, 0.275, 1))
+    alnp = render.attachNewNode(alight)
+    render.setLight(alnp)
+    
     #Ciel bleu
     azure = loader.loadModel("data/modeles/sphere.egg")
     azure.setTransparency(TransparencyAttrib.MDual )
@@ -420,6 +425,7 @@ class Planete:
     azure.setScale((self.niveauCiel+0.001+0.0001))
     azure.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullCounterClockwise))
     azure.reparentTo(self.modeleCiel)
+    azure.setLightOff(alnp)
     
     #Ciel orange
     #couchant = loader.loadModel("data/modeles/sphere.egg")
