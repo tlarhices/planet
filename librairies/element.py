@@ -164,7 +164,7 @@ class Element:
           #On dit que la couleur proviens des vectrices et qu'il faut pas le perdre
           self.modele.setAttrib(ColorAttrib.makeVertex()) 
           #Optimise le modèle
-          self.modele.flattenStrong()
+          ###self.modele.flattenStrong()
           self.besoinOptimise = False
         else:
           self.besoinOptimise = True
@@ -176,7 +176,7 @@ class Element:
     
     if not general.WIREFRAME:
       nd = self.fabriqueTriangle(p1, p2, p3, forceCouleur)
-      self.modele.attachNewNode(nd)
+      nd.reparentTo(self.modele)
     else:
       nd = self.dessineLigne(couleur, p1, p2)
       self.modele.attachNewNode(nd)
@@ -189,24 +189,24 @@ class Element:
     return self.modele
     
   def couleurSommet(self, sommet):
-    """Retourne une couleur suivant l'altitude du sommet"""
+    """Retourne une couleur et une texture suivant l'altitude du sommet"""
     minAlt = (1.0-self.planete.delta)*(1.0-self.planete.delta)
     maxAlt = (1.0+self.planete.delta)*(1.0+self.planete.delta)
     altitude = general.normeVecteurCarre(sommet)
     prct = (altitude-minAlt)/(maxAlt-minAlt)*100
     
     if prct < -10:
-      return self.subSubAquatique #Eau super profonde
+      return self.subSubAquatique, "data/textures/subsubaquatique.jpg" #Eau super profonde
     elif prct < 0:
-      return self.subAquatique #Eau
+      return self.subAquatique, "data/textures/subaquatique.jpg" #Eau
     elif prct < 10:
-      return self.sable #Plage
+      return self.sable, "data/textures/sable.jpg" #Plage
     elif prct < 50:
-      return self.herbe #Sol normal
+      return self.herbe, "data/textures/herbe.jpg" #Sol normal
     elif prct < 90:
-      return self.terre #Montagne
+      return self.terre, "data/textures/terre.jpg" #Montagne
     else:
-      return self.neige #Haute montagne
+      return self.neige, "data/textures/neige.jpg" #Haute montagne
     
   def dessineLigne(self, couleur, depart, arrivee):
     """Dessine une ligne de depart vers arrivée et ne fait pas de doublons"""
@@ -220,17 +220,18 @@ class Element:
     
   def fabriqueTriangle(self, p1, p2, p3, forceCouleur=None):
     """Fabrique la géométrie de la face triangulaire définie par p1, p2 et p3"""
-    format = GeomVertexFormat.getV3n3c4()
+    format = GeomVertexFormat.getV3n3c4t2()
     vdata = GeomVertexData('TriangleVertices',format,Geom.UHStatic)
 
     vWriter = GeomVertexWriter(vdata, 'vertex')
     cWriter = GeomVertexWriter(vdata, 'color')
     nWriter = GeomVertexWriter(vdata, 'normal')
+    tWriter = GeomVertexWriter(vdata, 'texcoord')
     
     if forceCouleur==None:
-      c1=self.couleurSommet(p1)#couleur#[random.random(),random.random(),random.random(),1.0]
-      c2=self.couleurSommet(p2)#couleur#[random.random(),random.random(),random.random(),1.0]
-      c3=self.couleurSommet(p3)#couleur#.random(),random.random(),random.random(),1.0]
+      c1,t1=self.couleurSommet(p1)#couleur#[random.random(),random.random(),random.random(),1.0]
+      c2,t2=self.couleurSommet(p2)#couleur#[random.random(),random.random(),random.random(),1.0]
+      c3,t3=self.couleurSommet(p3)#couleur#.random(),random.random(),random.random(),1.0]
     else:
       c1 = forceCouleur
       c2 = forceCouleur
@@ -247,12 +248,15 @@ class Element:
     vWriter.addData3f(*p1)
     nWriter.addData3f(*n1)
     cWriter.addData4f(*c1)
+    tWriter.addData2f(0,0)
     vWriter.addData3f(*p2)
     nWriter.addData3f(*n2)
     cWriter.addData4f(*c2)
+    tWriter.addData2f(0,1)
     vWriter.addData3f(*p3)
     nWriter.addData3f(*n3)
     cWriter.addData4f(*c3)
+    tWriter.addData2f(1,0)
 
     prim = GeomTriangles(Geom.UHStatic)
     prim.addVertex(0)
@@ -265,7 +269,11 @@ class Element:
 
     node = GeomNode('gnode')
     node.addGeom(geom)
-    return node
+    nd = NodePath(node)
+    tex = loader.loadTexture(t1)
+    nd.setTexture(tex)
+
+    return nd
     
   def calculNormale(self, point=None):
     """

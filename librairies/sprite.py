@@ -40,6 +40,7 @@ class Sprite:
     modele : le nom du fichier 3D à charger
     planete : la planète de laquelle cet objet dépend
     """
+    print "nv sprite", id
     self.planete = planete
     self.modele = None
     self.fichierModele = modele
@@ -48,12 +49,18 @@ class Sprite:
     self.marcheVersTab = []
     self.bouge = True
     self.id = id
+    self.racine=NodePath("racine-sprite")
+    
+  def pointeRacineSol(self):
+    """"""
+    pass
     
   def ping(self, temps):
     """
     Appelé à chaque image, met à jour l'état de l'objet
     temps : le nombre de secondes depuis la dernière mise à jour
     """
+    return
     altitudeCible = self.planete.altitude(self.position)
     seuil = 0.01
     if self.alt < altitudeCible or (self.alt > altitudeCible and not self.bouge):
@@ -151,7 +158,8 @@ class Sprite:
     self.modele.node().addSwitch(9999999, 3.0) 
     self.modele.setPos(*self.position)
     self.modele.lookAt((0,0,0))
-    self.modele.reparentTo(self.planete.racine)
+    self.modele.reparentTo(self.racine)
+    self.racine.reparentTo(self.planete.racine)
     self.modele.setPythonTag("type","sprite")
     self.modele.setPythonTag("id",self.id)
     self.modele.setPythonTag("instance",self)
