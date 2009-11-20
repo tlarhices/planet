@@ -165,7 +165,7 @@ class Sprite:
       
   def tue(self, type):
     """Gère la mort du sprite"""
-    print self.id, "mort par", type
+    general.gui.afficheTexte(self.id+" est mort par "+type)
     self.vie = 0
     self.rac.detachNode()
     self.rac.removeNode()

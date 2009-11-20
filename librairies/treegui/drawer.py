@@ -168,7 +168,11 @@ class Drawer:
                     u,v,w,h,e = self.atlas.getChar(name + str(77))
                     x += e[0]
                     continue
-                u,v,w,h,e = self.atlas.getChar(name + str(code))
+                try:
+                  u,v,w,h,e = self.atlas.getChar(name + str(code))
+                except KeyError:
+                  u,v,w,h,e = self.atlas.getChar(name + str(ord("?")))
+                  
                 build.append((x,y+e[1],u,v,w,h))
                 x += e[0]
                 maxh = max(maxh,h-e[1])

@@ -15,6 +15,8 @@ import general
 from planete import *
 from configuration import *
 from joueur import *
+from gui import *
+
 try:
     import psyco
     psyco.full()
@@ -80,6 +82,8 @@ class Start:
     general.DEBUG_PANDAUI_GUI = general.configuration.getConfiguration("general", "DEBUG_PANDAUI_GUI","0")=="1"
     general.DEBUG_PANDAUI_CLIC = general.configuration.getConfiguration("general", "DEBUG_PANDAUI_CLIC","0")=="1"
     general.DEBUG_PANDAUI_PURGE = general.configuration.getConfiguration("general", "DEBUG_PANDAUI_PURGE","0")=="1"
+    
+    general.gui = Interface()
     
     self.distanceSoleil = float(general.configuration.getConfiguration("generationPlanete", "distanceSoleil","10.0"))
     self.vitesseSoleil = float(general.configuration.getConfiguration("generationPlanete", "vitesseSoleil","1.0"))

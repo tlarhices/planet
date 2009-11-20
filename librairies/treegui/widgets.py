@@ -341,7 +341,8 @@ class PictureRadio(Check):
     style = "RADIOOFF"
     value = False
             
-    def __init__(self, picOn, picOff, **placement):
+    def __init__(self, picOn, picOff, text="", **placement):
+        self.text = "   "+text
         self.doPlacement(placement)    
         self.icon = picOff
         self.picOff = picOff

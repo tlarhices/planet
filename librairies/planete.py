@@ -14,8 +14,6 @@ import os
 
 from element import *
 from ai import *
-from pandaui import *
-from i18n import *
 from sprite import *
 
 #from pandac.PandaModules import *
@@ -53,7 +51,6 @@ class Planete:
     self.voisinage = {} #Pas de sommet, donc pas de voisinage
     self.sommetDansFace = {} #Pas de faces, donc pas d'association
     self.survol = None #Le curseur n'est au dessus de rien par défaut
-    self.gui = GUI(i18n(None, "fr"), "./data/gui")
     
   def fabriqueVoisinage(self):
     """
@@ -105,14 +102,8 @@ class Planete:
     
   def afficheTexte(self, texte):
     """Affiche le texte sur l'écran, si texte==None, alors efface le dernier texte affiché"""
-    self.gui.purge(section="afficheTexte")
     if texte!=None:
-      print texte
-      self.gui.ajouteComposant(Titre(gui=self.gui, texte=texte), section="afficheTexte")
-    else:
-      print "Fin"
-    base.graphicsEngine.renderFrame()
-    base.graphicsEngine.renderFrame()
+      general.gui.afficheTexte(texte, True)
     
   # Constructions géométriques -----------------------------------------
   def fabriqueNouvellePlanete(self, tesselation, delta):
@@ -566,7 +557,6 @@ class Planete:
     #Met à jour les états des sprites
     for sprite in self.sprites[:]:
       if not sprite.ping(temps):
-        print "Main :: "+sprite.id+" est mort"
         sprite.joueur.spriteMort(sprite)
         self.sprites.remove(sprite)
     general.stopChrono("Planete::ping")
@@ -757,6 +747,6 @@ class Planete:
     general.stopChrono("Planete::elevePoint")
     
   def ajouteJoueur(self, joueur):
-    print joueur.nom,"est entré dans la partie"
+    general.gui.afficheTexte(joueur.nom+" est entré dans la partie")
     self.joueurs.append(joueur)
   # Fin Fonctions diverses ---------------------------------------------

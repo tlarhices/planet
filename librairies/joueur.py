@@ -17,8 +17,9 @@ class Joueur:
   couleur = None #La couleur du joueur
   sprites = None #La liste des sprites que ce joueur possède
   ressources = None #Les ressources que le joueur possède
+  gui = None
   
-  def __init__(self, nom, couleur, planetePrincipale):
+  def __init__(self, nom, couleur, besoinGUI, planetePrincipale):
     """
     Gère un nouveau joueur
     nom : nom unique du joueur
@@ -40,6 +41,9 @@ class Joueur:
     self.sprites = []
     
     self.ressources = {}
+    
+    if besoinGUI:
+      general.gui.ajouteJoueur(self)
 
   def ping(self, temps):
     #Calcul la zone en vue du joueur
@@ -69,7 +73,7 @@ class Joueur:
     sprite.fabriqueModel()
     
   def spriteMort(self, sprite):
-    print "Joueur",self.nom,"dit : :'( :'( pauvre sprite",sprite.id
+    general.gui.afficheTexte("Joueur "+self.nom+" dit : :'( :'( pauvre "+sprite.id)
     self.sprites.remove(sprite)
     
   def detruit(self):
@@ -80,14 +84,14 @@ class Joueur:
 class JoueurLocal(Joueur):
   """Le joueur devant le clavier"""
   def __init__(self, nom, couleur, planetePrincipale):
-    Joueur.__init__(self, nom, couleur, planetePrincipale)
+    Joueur.__init__(self, nom, couleur, True, planetePrincipale)
 
 class JoueurDistant(Joueur):
   """Un joueur qui provient du réseau, peut-être humain ou une IA qui est sur une autre machine"""
   def __init__(self, nom, couleur, planetePrincipale):
-    Joueur.__init__(self, nom, couleur, planetePrincipale)
+    Joueur.__init__(self, nom, couleur, False, planetePrincipale)
 
 class JoueurIA(Joueur):
   """Une IA contrôlée sur cette machine"""
   def __init__(self, nom, couleur, planetePrincipale):
-    Joueur.__init__(self, nom, couleur, planetePrincipale)
+    Joueur.__init__(self, nom, couleur, False, planetePrincipale)
