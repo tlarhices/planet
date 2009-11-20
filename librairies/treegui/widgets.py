@@ -365,3 +365,7 @@ class PictureRadio(Check):
             self.icon = self.picOn
         else:
             self.icon = self.picOff  
+        self.callback(self.text.strip(), self.value)
+            
+    def callback(self, text, value):
+      pass

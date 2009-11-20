@@ -102,6 +102,13 @@ class Start:
     self.touches = []
     self.configClavier = general.configuration.getConfigurationClavier()
     
+    general.zoomPlus = self.zoomPlus
+    general.zoomMoins = self.zoomMoins
+    general.deplaceHaut = self.deplaceHaut
+    general.deplaceGauche = self.deplaceGauche
+    general.deplaceDroite = self.deplaceDroite
+    general.deplaceBas = self.deplaceBas
+    
     #On place la caméra dans un noeud facile à secouer
     self.camera = NodePath("cam")
     self.camera.reparentTo(render)
@@ -403,6 +410,15 @@ class Start:
     """Tourne la caméra autour de la planète"""
     self.camera.setPos(self.camera, anglex*self.cameraRayon, 0, angley*self.cameraRayon)
     self.positionneCamera()
+    
+  def deplaceHaut(self):
+    self.tourneCamera(0.0,-self.cameraPasRotation)
+  def deplaceGauche(self):
+    self.tourneCamera(self.cameraPasRotation,0.0)
+  def deplaceDroite(self):
+    self.tourneCamera(-self.cameraPasRotation,0.0)
+  def deplaceBas(self):
+    self.tourneCamera(0.0,self.cameraPasRotation)
   ### Fin Gestion de la caméra -----------------------------------------
     
   ### Gestion du clavier/souris ----------------------------------------
