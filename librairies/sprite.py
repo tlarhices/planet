@@ -13,13 +13,13 @@ from pandac.PandaModules import *
 
 class Sprite:
   """Un objet du monde"""
-  
+  id = None
   planete = None #La planète sur laquelle l'objet se trouve
   position = None #La position dans l'espace de cet objet
   modele = None #Le modèle 3D de l'objet
   fichierModele = None #Le nom du fichier du modèle 3D (utilisé pour la sauvegarde)
   fichierSymbole = None
-  alt = None #L'altitude de cet objet
+  altCarre = None #L'altitude de cet objet
   symbole=None
   
   vitesse = 0.01 #(en unité/s)
@@ -31,12 +31,13 @@ class Sprite:
   vie = None #L'état dans lequel se trouve l'objet
   
   bouge = None #Si True, alors l'objet peut bouger (personnage, véhicule, ...) sinon il est statique (arbre, bâtiment, ...)
+  aquatique = None #Si True, alors l'objet peut aller dans l'eau, sinon il est détruit
   zoneContact = None #Les coordonnées de la zone de contact
   
   rac = None #Ce qui fait que le sprite garde les pieds en bas
   racine = None #Ce qui fait que le sprite garde la tête en haut
   
-  def __init__(self, id, position, modele, symbole, planete):
+  def __init__(self, id, position, modele, symbole, planete, joueur):
     """
     Fabrique un nouvel objet
     position : là où l'objet se trouve
@@ -44,15 +45,18 @@ class Sprite:
     planete : la planète de laquelle cet objet dépend
     """
     self.planete = planete
+    self.joueur = joueur
     self.modele = None
     self.fichierModele = modele
     self.fichierSymbole = symbole
-    self.miseAJourPosition(position)
     self.marcheVersTab = []
     self.bouge = True
+    self.aquatique = False
     self.id = id
+    self.vie=100
     self.rac = NodePath("racine-sprite")
     self.racine = NodePath("racine-sprite")
+    self.miseAJourPosition(position)
     
   def pointeRacineSol(self):
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""
@@ -76,14 +80,8 @@ class Sprite:
     Appelé à chaque image, met à jour l'état de l'objet
     temps : le nombre de secondes depuis la dernière mise à jour
     """
-    altitudeCible = self.planete.altitude(self.position)
-    seuil = 0.01
-    if self.alt < altitudeCible or (self.alt > altitudeCible and not self.bouge):
-      #Si on est dans le sol, on se place sur le sol d'un seul coup
-      self.miseAJourPosition(general.multiplieVecteur(general.normaliseVecteur(self.position), math.sqrt(altitudeCible)))
-    elif self.alt > altitudeCible+seuil:
-      #Si on est au dessus, on tombe sur la surface
-      self.miseAJourPosition((self.position[0]-seuil*temps, self.position[1]-seuil*temps, self.position[2]-seuil*temps))
+    if self.vie<=0:
+      return False
       
     #Fait marcher
     if self.marcheVersTab != None:
@@ -92,8 +90,31 @@ class Sprite:
         if general.distanceCarree(self.position, self.versCoord(self.marcheVersTab[0])) < 0.002:
           self.marcheVersTab.pop(0)
 
+    #Fait tomber
+    self.appliqueGravite(temps)
+
+    if self.vie<=0:
+      return False
+      
     #Recalcule la verticale du modèle
     self.MAJSymbole()
+
+    return True
+    
+  def appliqueGravite(self, temps):
+    """Fait tomber les objets sur le sol"""
+    altitudeCible = self.planete.altitudeCarre(self.position)
+    seuil = 0.01
+    
+    if self.altCarre < altitudeCible or (self.altCarre > altitudeCible and not self.bouge):
+      #Si on est dans le sol, on se place sur le sol d'un seul coup
+      self.miseAJourPosition(general.multiplieVecteur(general.normaliseVecteur(self.position), math.sqrt(altitudeCible)))
+    elif self.altCarre > altitudeCible+seuil:
+      #Si on est au dessus, on tombe sur la surface
+      #On calcul le vecteur -planete-sprite> et on lui donne comme longueur le déplacement que l'on veut faire
+      haut = general.multiplieVecteur(general.normaliseVecteur(self.position), seuil*temps)
+      #On retire ce vecteur à la position (fait un vecteur -sprite-planete>)
+      self.miseAJourPosition((self.position[0]-haut[0], self.position[1]-haut[1], self.position[2]-haut[2]))
     
   def versCoord(self, cible):
     """Si cible est une coordonnée, retourne cette dernière, sinon extrait les coordonnées"""
@@ -131,9 +152,27 @@ class Sprite:
   def miseAJourPosition(self, position):
     """Change la position de l'objet"""
     self.position = position
-    self.alt = general.normeVecteur(self.position)
+    self.altCarre = general.normeVecteurCarre(self.position)
+    if self.altCarre < self.planete.niveauEau*self.planete.niveauEau:
+      if self.aquatique:
+        #Nage
+        pass
+      else:
+        #Se noie
+        self.tue("noyade")
     if self.modele != None:
       self.pointeRacineSol()
+      
+  def tue(self, type):
+    """Gère la mort du sprite"""
+    print self.id, "mort par", type
+    self.vie = 0
+    self.rac.detachNode()
+    self.rac.removeNode()
+    self.rac = None
+    self.racine = None
+    self.modele = None
+    self.symbole = None
     
   def sauvegarde(self):
     """Retoune une chaine qui représente l'objet"""
@@ -155,6 +194,9 @@ class Sprite:
     
   def fabriqueModel(self):
     """Produit le modèle ou le sprite"""
+    if self.vie <=0:
+      return None
+      
     self.modele = NodePath(FadeLODNode('lod'))
     
     if self.fichierModele == None:
@@ -201,9 +243,9 @@ class Sprite:
     
   def MAJSymbole(self):
     """Change l'échelle du symbole pour le garder toujours à la même taille"""
-    if self.symbole!=None:
+    if self.symbole!=None and self.racine!=None:
       #On calcule la distance à la caméra pour avoir le facteur de corection d'échelle
-      taille = general.normeVecteur(base.camera.getPos(self.modele))
+      taille = general.normeVecteur(base.camera.getPos(self.racine))
       #On change l'échelle
       self.symbole.setScale(taille*0.005, taille*0.005, taille*0.005)
     
@@ -250,12 +292,28 @@ class Sprite:
 
 class Nuage(Sprite):
   """Génère un nuage aléatoirement"""
+  
   def __init__(self, planete):
+    Sprite.__init__(self, "nuage", (10000,10000,10000), "none", "none", planete, None)
     self.planete = planete
+    
+  def tue(self, type):
+    return
     
   def ping(self, temps):
     """Non utilisé mais protège du risque d'appel à ping() de Sprite"""
-    pass
+    self.deplace(temps)
+    return True
+    
+  def deplace(self, temps):
+    f = random.random()*2.0-1.0
+    self.modele.setH(self.modele.getH()+random.random()*temps*f)
+    self.modele.setP(self.modele.getP()+random.random()*temps*f)
+    self.modele.setR(self.modele.getR()+random.random()*temps*f)
+    f=1
+    self.racine.setH(self.racine.getH()+random.random()*temps*f)
+    self.racine.setP(self.racine.getP()+random.random()*temps*f)
+    self.racine.setR(self.racine.getR()+random.random()*temps*f)
     
   def fabriqueModel(self):
     """Construit le nuage"""
@@ -269,14 +327,25 @@ class Nuage(Sprite):
     dx, dy, dz = 1.2,1.2,1.2
     fact = general.normeVecteur((dx, dy, dz))
         
+    distanceSoleil = float(general.configuration.getConfiguration("generationPlanete", "distanceSoleil","10.0"))
+        
     #Place le "centre" du nuage
     self.modele = NodePath("nuage")#NodePath(FadeLODNode('nuage'))
     self.modele.setPos(*general.multiplieVecteur(general.normaliseVecteur(centre), self.planete.niveauCiel-0.01))
-    
+    self.racine = NodePath("nuage-elem")
     #Ajoute les prouts nuageux un par un
     for i in range(0, taille):
       #Fabrique un nouveau prout
-      nuage = self.fabriqueSprite("./data/textures/cloud2.png", taille=1)
+      if False:#i < taille/3:
+        nuage = self.fabriqueSprite("./data/textures/cloud2.png", taille=1)
+      else:
+        nuage = NodePath(FadeLODNode('lod'))
+        self.fabriqueSprite("./data/textures/cloud2.png", taille=1).reparentTo(nuage)
+        if i==0:
+          nuage.node().addSwitch(99999, 0) 
+        else:
+          nuage.node().addSwitch(float(i)/float(taille)*distanceSoleil, 0) 
+        
       nuage.setBillboardPointWorld()
       
       #On le décale par rapport au "centre"
@@ -295,13 +364,13 @@ class Nuage(Sprite):
       nuage.setScale(max((fact-general.normeVecteur(r)), 0.001*fact)/fact)
       #On diminue l'opacité du prout s'il est loin du centre
       nuage.setAlphaScale(max((fact-general.normeVecteur(r)), 0.001*fact)/fact)
-      nuage.reparentTo(self.modele)
+      nuage.reparentTo(self.racine)
       #self.modele.node().addSwitch(9999999, 0.1) 
-      
+    self.racine.reparentTo(self.modele)
     #On redimentionne le bestiau
     self.modele.setScale(0.2)
     #On optimise les envois à la carte graphique
-    self.modele.flattenStrong()
+    self.racine.flattenStrong()
     self.modele.reparentTo(self.planete.racine)
     #self.modele.setBin('fixed', -1)
     #self.modele.setDepthTest(False)

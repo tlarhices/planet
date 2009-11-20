@@ -62,16 +62,20 @@ class Joueur:
       raw_input()
       return
     
-    id = "["+self.nom+"]"+id
-    sprite = Sprite(id=id, position=position, modele=modele, symbole=symbole, planete=self.planetePrincipale)
+    id = "["+self.nom+"]"+id+"-"+str(len(self.sprites)+1)
+    sprite = Sprite(id=id, position=position, modele=modele, symbole=symbole, planete=self.planetePrincipale, joueur=self)
     self.planetePrincipale.sprites.append(sprite)
     self.sprites.append(sprite)
     sprite.fabriqueModel()
     
+  def spriteMort(self, sprite):
+    print "Joueur",self.nom,"dit : :'( :'( pauvre sprite",sprite.id
+    self.sprites.remove(sprite)
+    
   def detruit(self):
     """Supprime le joueur et tout ce qui lui est associé"""
     for sprite in self.sprites:
-      sprite.detruit()
+      sprite.tue("destruction du joueur")
       
 class JoueurLocal(Joueur):
   """Le joueur devant le clavier"""

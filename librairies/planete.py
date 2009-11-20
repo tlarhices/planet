@@ -398,6 +398,7 @@ class Planete:
     for i in range(0, 30):
       a = Nuage(self)
       a.fabriqueModel().reparentTo(nuages)
+      self.sprites.append(a)
     nuages.reparentTo(self.modeleCiel)
       
     #Fabrique une lumière ambiante pour que la nuit soit moins noire
@@ -563,8 +564,11 @@ class Planete:
       joueur.ping(temps)
       
     #Met à jour les états des sprites
-    for sprite in self.sprites:
-      sprite.ping(temps)
+    for sprite in self.sprites[:]:
+      if not sprite.ping(temps):
+        print "Main :: "+sprite.id+" est mort"
+        sprite.joueur.spriteMort(sprite)
+        self.sprites.remove(sprite)
     general.stopChrono("Planete::ping")
   # Fin Mise à jour ----------------------------------------------------
         
@@ -674,7 +678,7 @@ class Planete:
     return None
     ## ------------ Version avec testIntersectionTriangleDroite
     
-  def altitude(self, point):
+  def altitudeCarre(self, point):
     """Retourne l'altitude (rayon) à laquelle le point devrait se trouver pour être juste sur la face en dessous (au dessus) de lui (coord cartésiennes)"""
     general.startChrono("Planete::altitude")
     #Cherche la face dans laquelle se trouve le point
@@ -703,6 +707,9 @@ class Planete:
     #Calcule l'altitude moyenne pondérée
     return r1*d1+r2*d2+r3*d3
     
+  def altitude(self, point):
+    return math.sqrt(self.altitudeCarre(point))
+
   def placeSurSol(self, point):
     """Déplace le point pour qu'il soit juste sur la surface de la facette (coord cartésiennes)"""
     return general.multiplieVecteur(general.normaliseVecteur(point), self.altitude(point))
