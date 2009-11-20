@@ -69,6 +69,16 @@ class Element:
     self.planete.sommetDansFace[p2].append(self)
     self.planete.sommetDansFace[p3].append(self)
     
+    if general.DEBUG_CONSTRUCTION_SPHERE:
+      self.modele = NodePath(self.id)
+      self.modele.reparentTo(self.planete.racine)
+      nd = self.dessineLigne((1.0,0.0,0.0,1.0), self.planete.sommets[p1], self.planete.sommets[p2])
+      self.modele.attachNewNode(nd)
+      nd = self.dessineLigne((0.0,1.0,0.0,1.0), self.planete.sommets[p2], self.planete.sommets[p3])
+      self.modele.attachNewNode(nd)
+      nd = self.dessineLigne((0.0,0.0,1.0,1.0), self.planete.sommets[p3], self.planete.sommets[p1])
+      self.modele.attachNewNode(nd)
+    
   def detruit(self):
     """Détruit la géométrie"""
     if self.enfants != None:
@@ -118,13 +128,15 @@ class Element:
     self.enfants.append(Element(self.id+"["+str(len(self.enfants))+"]", self.planete.sommets.index(c2), self.planete.sommets.index(p2), self.planete.sommets.index(c3), self.planete, self.profondeur+1, self.parent))
     self.enfants.append(Element(self.id+"["+str(len(self.enfants))+"]", self.planete.sommets.index(c1), self.planete.sommets.index(c2), self.planete.sommets.index(c3), self.planete, self.profondeur+1, self.parent))
     self.enfants.append(Element(self.id+"["+str(len(self.enfants))+"]", self.planete.sommets.index(c1), self.planete.sommets.index(c3), self.planete.sommets.index(p3), self.planete, self.profondeur+1, self.parent))
+    
 
   def fabriqueModel(self, forceCouleur=None, optimise=True):
     """
     Fabrique le modèle 3D
     Si forceCouleur est different de None, alors sa valeur sera utilisée comme couleur pour la facette
     """
-    
+    if general.DEBUG_CONSTRUCTION_SPHERE:
+      return self.modele
     #Si on recalcule le modele, on met a jour le temps depuis la derniere modification
     self.parent.pileOptimise = 0.0
     

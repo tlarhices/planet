@@ -342,6 +342,10 @@ class Planete:
 
   def fabriqueEau(self):
     """Ajoute une sphère qui représente l'eau"""
+    
+    if general.DEBUG_CONSTRUCTION_SPHERE:
+      return
+      
     general.startChrono("Planete::fabriqueEau")
     
     #Crée le modèle de l'eau
@@ -364,6 +368,10 @@ class Planete:
       
   def fabriqueCiel(self):
     """Ajoute une sphère qui représente l'eau"""
+    
+    if general.DEBUG_CONSTRUCTION_SPHERE:
+      return
+      
     general.startChrono("Planete::fabriqueCiel")
     
     #Crée le modèle du ciel
@@ -378,12 +386,6 @@ class Planete:
       self.sprites.append(a)
     nuages.reparentTo(self.modeleCiel)
       
-    #Fabrique une lumière ambiante pour que la nuit soit moins noire
-    alight = AmbientLight('alight')
-    alight.setColor(VBase4(0.2, 0.2, 0.275, 1))
-    alnp = render.attachNewNode(alight)
-    render.setLight(alnp)
-    
     #Ciel bleu
     azure = loader.loadModel("data/modeles/sphere.egg")
     azure.setTransparency(TransparencyAttrib.MDual )
@@ -392,8 +394,15 @@ class Planete:
     azure.setScale((self.niveauCiel+0.001+0.0001))
     azure.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullCounterClockwise))
     azure.reparentTo(self.modeleCiel)
-    #L'azure n'est pas affectée par la lumière ambiante
-    azure.setLightOff(alnp)
+
+    #Fabrique une lumière ambiante pour que la nuit soit moins noire
+    if general.configuration.getConfiguration("affichage", "typeEclairage","shader")!="none":
+      alight = AmbientLight('alight')
+      alight.setColor(VBase4(0.2, 0.2, 0.275, 1))
+      alnp = render.attachNewNode(alight)
+      render.setLight(alnp)
+      #L'azure n'est pas affectée par la lumière ambiante
+      azure.setLightOff(alnp)
     
     #Ciel orange
     #couchant = loader.loadModel("data/modeles/sphere.egg")
