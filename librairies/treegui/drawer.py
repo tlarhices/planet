@@ -121,7 +121,7 @@ class Drawer:
         if thing.text:
             # draw text stuff
             self.color = Vec4(0,0,0,1)
-            if thing.editsText:
+            if thing.editsText and gui.keys.focus == thing:
                 self.drawEditText(
                     gui.theme.defineFont(thing.font),
                     thing.text,

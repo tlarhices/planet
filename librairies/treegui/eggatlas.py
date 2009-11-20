@@ -9,6 +9,7 @@ import math
 import os
 import sha
 from imagetable import ImageTable
+import re
 
 def getAllType(eggNode,eggType):
     """ find all type in egg """
@@ -106,12 +107,15 @@ class EggAtlas():
         image = self.images[name]
         return image.x,image.y,image.w,image.h,image.extend
     
-
+def extensionOneOf(path,l):
+  os.path.splitext
+  
 def walkdir(dir):
     """ walks a dir and returns file names """
     for path, dirs, files in os.walk(dir):
         for file in files:
-            yield  path+"/"+file
+            if not re.match(".*?(\..*?)/.*",path+"/"+file):
+              yield  path+"/"+file
 
 
 def getAllType(eggNode,eggType):
