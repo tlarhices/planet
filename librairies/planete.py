@@ -103,7 +103,7 @@ class Planete:
   def afficheTexte(self, texte):
     """Affiche le texte sur l'écran, si texte==None, alors efface le dernier texte affiché"""
     if texte!=None:
-      general.gui.afficheTexte(texte, True)
+      general.gui.afficheTexte(texte, None, True)
     
   # Constructions géométriques -----------------------------------------
   def fabriqueNouvellePlanete(self, tesselation, delta):

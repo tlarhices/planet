@@ -94,18 +94,33 @@ class BasGauche(Form):
 class BasDroite(Form):
   """Boite de message"""
   style = "default"
+  lignes = None
+  position = None
   
   def __init__(self, gui):
     self.gui = gui
     Form.__init__(self)
+    self.lignes = []
+    self.position = 0
     
     #On garde 6 lignes de texte
-    self.l1 = self.add(Label("", y=0))
-    self.l2 = self.add(Label("", y=10))
-    self.l3 = self.add(Label("", y=20))
-    self.l4 = self.add(Label("", y=30))
-    self.l5 = self.add(Label("", y=40))
-    self.l6 = self.add(Label("", y=50))
+    self.l1 = self.add(Label("", x=20, y=0))
+    self.i1 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=0))
+    self.i1.visable = False
+    self.l2 = self.add(Label("", x=20, y=15))
+    self.i2 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=15))
+    self.i2.visable = False
+    self.l3 = self.add(Label("", x=20, y=30))
+    self.i3 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=30))
+    self.i3.visable = False
+    self.l4 = self.add(Label("", x=20, y=45))
+    self.i4 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=45))
+    self.i4.visable = False
+    self.plus = self.add(Icon("rtheme/twotone/arrow-up.png", x="left", y="top"))
+    self.plus.onClick = self.logHaut
+    self.plus = self.add(Icon("rtheme/twotone/arrow-down.png", x="left", y="bottom"))
+    self.plus.onClick = self.logBas
+    self.curseur = self.add(Icon("rtheme/twotone/blank.png", x="left", y=15))
     
     #On positionne la Form
     self.x = "left" 
@@ -113,15 +128,81 @@ class BasDroite(Form):
     self.width = "100%"
     self.height = "100%"
     
-  def ajouteTexte(self, texte):
-    """Ajoute une ligne dans le log"""
-    self.l6.text=self.l5.text
-    self.l5.text=self.l4.text
-    self.l4.text=self.l3.text
-    self.l3.text=self.l2.text
-    self.l2.text=self.l1.text
-    self.l1.text=texte
+  def logHaut(self):
+    self.position-=1
+    if self.position < 0:
+      self.position = 0
+    self.refresh()
     
+  def logBas(self):
+    self.position+=1
+    if self.position >= len(self.lignes)-6:
+      self.position = len(self.lignes)-7
+    self.refresh()
+    
+  def ajouteTexte(self, icone, texte):
+    """Ajoute une ligne dans le log"""
+    
+    #Si on est pas à la tête du log, on laisse la boite sur le texte en cours bien qu'on ajoute une nouvelle ligne
+    #Sinon on fait scroller le texte automatiquement
+    if self.position !=0:
+      self.position+=1
+      
+    #Si on a une icone, on pousse le texte un peu
+    if icone != None:
+      texte="   "+texte
+
+    self.lignes.insert(0,(icone, texte))
+    self.refresh()
+    
+  def refresh(self):
+    lignes = self.lignes[self.position:self.position+4]
+    prct = float(self.position)/float(len(self.lignes))*10
+    self.curseur.y = 15 + int(prct)
+    
+    if len(lignes) >= 1:
+      if lignes[0][0] != None:
+        self.i1.visable = True
+        self.i1.icon = lignes[0][0]
+      else:
+        self.i1.visable = False
+      self.l1.text = lignes[0][1]
+    else:
+      self.i1.visable = False
+      self.l1.text = ""
+      
+    if len(lignes) >= 2:
+      if lignes[1][0] != None:
+        self.i2.visable = True
+        self.i2.icon = lignes[1][0]
+      else:
+        self.i2.visable = False
+      self.l2.text = lignes[1][1]
+    else:
+      self.i2.visable = False
+      self.l2.text = ""
+      
+    if len(lignes) >= 3:
+      if lignes[2][0] != None:
+        self.i3.visable = True
+        self.i3.icon = lignes[2][0]
+      else:
+        self.i3.visable = False
+      self.l3.text = lignes[2][1]
+    else:
+      self.i3.visable = False
+      self.l3.text = ""
+      
+    if len(lignes) >= 4:
+      if lignes[3][0] != None:
+        self.i4.visable = True
+        self.i4.icon = lignes[3][0]
+      else:
+        self.i4.visable = False
+      self.l4.text = lignes[3][1]
+    else:
+      self.i4.visable = False
+      self.l4.text = ""
 
 class Bas(Form):
   """
@@ -170,12 +251,12 @@ class Interface:
     self.quit.onClick = sys.exit
     
     
-  def afficheTexte(self, texte, forceRefresh=False):
+  def afficheTexte(self, texte, icone=None, forceRefresh=False):
     """Affiche le texte sur l'écran, si texte==None, alors efface le dernier texte affiché"""
     if texte!=None:
       #On affiche une ligne dans le log
       print texte
-      self.bas.droite.ajouteTexte(texte)
+      self.bas.droite.ajouteTexte(icone, texte)
         
     if forceRefresh:
       #On force le recalcul du GUI
