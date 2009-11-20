@@ -6,6 +6,7 @@
 #See the license file in the docs folder for more details
 
 import sys
+import shutil
 import getopt
 import os
 sys.path.append(os.path.join(".", "librairies"))
@@ -648,10 +649,17 @@ for o, a in opts:
     
 if fichierConfig==None:
   fichierConfig="config.cfg"
+fichierConfigDefaut = os.path.join(".","data","configuration","config-defaut.cfg")
 
 #On charge le fichier de config
 general.configuration = Configuration()
+if not os.path.exists(fichierConfig):
+  print "Fichier de configuration",fichierConfig,"non trouvé, création d'un nouveau."
+  shutil.copy(fichierConfigDefaut, fichierConfig)
 general.configuration.charge(fichierConfig)
+
+general.configurationSprite = Configuration()
+general.configurationSprite.charge(os.path.join(".","data","configuration","sprites.cfg"))
 
 from pandac.PandaModules import *
 

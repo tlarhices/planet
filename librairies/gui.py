@@ -32,11 +32,7 @@ class Gauche(Form):
     #On place les boutons d'achat de gugusse
     self.boutons = []
     i=1
-    liste=[]
-    liste.append(("gugusse 1",0,10,"rtheme/twotone/user-over.png", "rtheme/twotone/user.png"))
-    liste.append(("gugusse 2",0,30,"rtheme/twotone/user-over.png", "rtheme/twotone/user.png"))
-    liste.append(("gugusse 3",10,50,"rtheme/twotone/user-over.png", "rtheme/twotone/user.png"))
-    liste.sort()
+    liste=general.configurationSprite.getConfigurationSprite()
     for elem in liste:
       check = self.add(PictureRadio(elem[3], elem[4], elem[0].capitalize(), x=3, y = 17*i))
       check.callback = self.clic

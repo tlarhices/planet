@@ -52,6 +52,24 @@ class Configuration:
     """Retourne la configuration du clavier"""
     return self.configuration["clavier"]
     
+  def getConfigurationSprite(self):
+    liste=[]
+    noms = []
+    for section in self.configuration.keys():
+      if section.startswith("sprite-"):
+        if self.getConfiguration(section, "constructible", "0")=="1":
+          nom = self.getConfiguration(section, "nom", section[7:])
+          if nom not in noms:
+            noms.append(nom)
+          liste.append((nom,int(self.getConfiguration(section, "constr", "-1")),int(self.getConfiguration(section, "nourr", "-1")),self.getConfiguration(section, "icone-actif", "rtheme/twotone/q-over.png"), self.getConfiguration(section, "icone-inactif", "rtheme/twotone/q.png")))
+    noms.sort()
+    liste2 = []
+    for nom in noms:
+      for element in liste:
+        if element[0]==nom:
+          liste2.append(element)
+    return liste2
+    
   def getConfiguration(self, section, champ, defaut):
     """Retourne une valeur de configuration"""
     section=str(section).lower()
