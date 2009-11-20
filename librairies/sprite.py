@@ -298,6 +298,7 @@ class Nuage(Sprite):
     self.planete = planete
     
   def tue(self, type):
+    """Un nuage ne peut pas mourrir"""
     return
     
   def ping(self, temps):
@@ -306,10 +307,13 @@ class Nuage(Sprite):
     return True
     
   def deplace(self, temps):
+    """Promène le nuage sur l'écran"""
+    #Modele est centré sur la planète, donc les rotations le promènent un peu tout autour
     f = random.random()*2.0-1.0
     self.modele.setH(self.modele.getH()+random.random()*temps*f)
     self.modele.setP(self.modele.getP()+random.random()*temps*f)
     self.modele.setR(self.modele.getR()+random.random()*temps*f)
+    #Faire tourner la racine change le profile du nuage présenté à la caméra et donc sa forme pour donner l'impression qu'il évolue
     f=1
     self.racine.setH(self.racine.getH()+random.random()*temps*f)
     self.racine.setP(self.racine.getP()+random.random()*temps*f)
@@ -319,7 +323,7 @@ class Nuage(Sprite):
     """Construit le nuage"""
     
     #Choisit un nombre de prout nuageux aléatoirement
-    taille = (int)(random.random()*20)+4
+    taille = (int)(random.random()*15)+4
     #Choisit une position du nuage selon un sommet aléatoire
     centre = random.choice(self.planete.sommets)
     
@@ -342,7 +346,6 @@ class Nuage(Sprite):
       #Fabrique un nouveau prout
       nuage = NodePath(FadeLODNode('lod'))
       tex="./data/textures/nuages/"+random.choice(textures)
-      print tex
       self.fabriqueSprite(tex, taille=1).reparentTo(nuage)
       if i==0:
         nuage.node().addSwitch(99999, 0) 
