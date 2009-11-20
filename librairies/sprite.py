@@ -333,18 +333,21 @@ class Nuage(Sprite):
     self.modele = NodePath("nuage")#NodePath(FadeLODNode('nuage'))
     self.modele.setPos(*general.multiplieVecteur(general.normaliseVecteur(centre), self.planete.niveauCiel-0.01))
     self.racine = NodePath("nuage-elem")
+    
+    import os
+    textures = os.listdir(os.path.join(".","data","textures","nuages"))
+    
     #Ajoute les prouts nuageux un par un
     for i in range(0, taille):
       #Fabrique un nouveau prout
-      if False:#i < taille/3:
-        nuage = self.fabriqueSprite("./data/textures/cloud2.png", taille=1)
+      nuage = NodePath(FadeLODNode('lod'))
+      tex="./data/textures/nuages/"+random.choice(textures)
+      print tex
+      self.fabriqueSprite(tex, taille=1).reparentTo(nuage)
+      if i==0:
+        nuage.node().addSwitch(99999, 0) 
       else:
-        nuage = NodePath(FadeLODNode('lod'))
-        self.fabriqueSprite("./data/textures/cloud2.png", taille=1).reparentTo(nuage)
-        if i==0:
-          nuage.node().addSwitch(99999, 0) 
-        else:
-          nuage.node().addSwitch(float(i)/float(taille)*distanceSoleil, 0) 
+        nuage.node().addSwitch(float(i)/float(taille)*distanceSoleil, 0) 
         
       nuage.setBillboardPointWorld()
       
