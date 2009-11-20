@@ -99,10 +99,13 @@ class BasDroite(Form):
     self.gui = gui
     Form.__init__(self)
     
-    #On garde 3 lignes de texte
-    self.haut = self.add(Label("", y="top"))
-    self.centre = self.add(Label("", y="center"))
-    self.bas = self.add(Label("", y="bottom"))
+    #On garde 6 lignes de texte
+    self.l1 = self.add(Label("", y=0))
+    self.l2 = self.add(Label("", y=10))
+    self.l3 = self.add(Label("", y=20))
+    self.l4 = self.add(Label("", y=30))
+    self.l5 = self.add(Label("", y=40))
+    self.l6 = self.add(Label("", y=50))
     
     #On positionne la Form
     self.x = "left" 
@@ -112,9 +115,12 @@ class BasDroite(Form):
     
   def ajouteTexte(self, texte):
     """Ajoute une ligne dans le log"""
-    self.haut.text=self.centre.text
-    self.centre.text=self.bas.text
-    self.bas.text=texte
+    self.l6.text=self.l5.text
+    self.l5.text=self.l4.text
+    self.l4.text=self.l3.text
+    self.l3.text=self.l2.text
+    self.l2.text=self.l1.text
+    self.l1.text=texte
     
 
 class Bas(Form):
