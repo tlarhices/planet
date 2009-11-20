@@ -104,9 +104,9 @@ class BasDroite(Form):
     self.position = 0
     
     #On garde 6 lignes de texte
-    self.l1 = self.add(Label("", x=20, y=0))
-    self.i1 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=0))
-    self.i1.visable = False
+    self.l1 = self.add(Label("", x=20, y=0)) #Texte
+    self.i1 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=0)) #Icone
+    self.i1.visable = False #On cache l'icone
     self.l2 = self.add(Label("", x=20, y=15))
     self.i2 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=15))
     self.i2.visable = False
@@ -116,6 +116,8 @@ class BasDroite(Form):
     self.l4 = self.add(Label("", x=20, y=45))
     self.i4 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=45))
     self.i4.visable = False
+    
+    #Bare de défilement
     self.plus = self.add(Icon("rtheme/twotone/arrow-up.png", x="left", y="top"))
     self.plus.onClick = self.logHaut
     self.plus = self.add(Icon("rtheme/twotone/arrow-down.png", x="left", y="bottom"))
@@ -129,12 +131,14 @@ class BasDroite(Form):
     self.height = "100%"
     
   def logHaut(self):
+    """Fait défiler le log vers le haut"""
     self.position-=1
     if self.position < 0:
       self.position = 0
     self.refresh()
     
   def logBas(self):
+    """Fait défiler le log vers le bas"""
     self.position+=1
     if self.position >= len(self.lignes)-6:
       self.position = len(self.lignes)-7
@@ -148,62 +152,74 @@ class BasDroite(Form):
     if self.position !=0:
       self.position+=1
       
-    #Si on a une icone, on pousse le texte un peu
-    if icone != None:
-      texte="   "+texte
-
     self.lignes.insert(0,(icone, texte))
     self.refresh()
     
   def refresh(self):
+    """Met à jour le texte dans la zone d'affichage"""
+    #On extrait les 4 que l'on veut afficher
     lignes = self.lignes[self.position:self.position+4]
+    
+    #On calcule la position du curseur de la barre de défilement
     prct = float(self.position)/float(len(self.lignes))*10
     self.curseur.y = 15 + int(prct)
     
     if len(lignes) >= 1:
-      if lignes[0][0] != None:
-        self.i1.visable = True
-        self.i1.icon = lignes[0][0]
-      else:
-        self.i1.visable = False
-      self.l1.text = lignes[0][1]
+      self.MAJObjet(self.i1, self.l1, lignes[0][0], lignes[0][1])
     else:
-      self.i1.visable = False
-      self.l1.text = ""
+      self.MAJObjet(self.i1, self.l1, None, None)
       
     if len(lignes) >= 2:
-      if lignes[1][0] != None:
-        self.i2.visable = True
-        self.i2.icon = lignes[1][0]
-      else:
-        self.i2.visable = False
-      self.l2.text = lignes[1][1]
+      self.MAJObjet(self.i2, self.l2, lignes[1][0], lignes[1][1])
     else:
-      self.i2.visable = False
-      self.l2.text = ""
-      
-    if len(lignes) >= 3:
-      if lignes[2][0] != None:
-        self.i3.visable = True
-        self.i3.icon = lignes[2][0]
-      else:
-        self.i3.visable = False
-      self.l3.text = lignes[2][1]
-    else:
-      self.i3.visable = False
-      self.l3.text = ""
-      
-    if len(lignes) >= 4:
-      if lignes[3][0] != None:
-        self.i4.visable = True
-        self.i4.icon = lignes[3][0]
-      else:
-        self.i4.visable = False
-      self.l4.text = lignes[3][1]
-    else:
-      self.i4.visable = False
-      self.l4.text = ""
+      self.MAJObjet(self.i2, self.l2, None, None)
 
+    if len(lignes) >= 3:
+      self.MAJObjet(self.i3, self.l3, lignes[2][0], lignes[2][1])
+    else:
+      self.MAJObjet(self.i3, self.l3, None, None)
+
+    if len(lignes) >= 4:
+      self.MAJObjet(self.i4, self.l4, lignes[3][0], lignes[3][1])
+    else:
+      self.MAJObjet(self.i4, self.l4, None, None)
+
+    
+  icones = {
+  "inconnu":"rtheme/twotone/q.png",
+  "mort":"rtheme/twotone/skull.png",
+  "chat":"rtheme/twotone/phone.png",
+  "info":"rtheme/twotone/info.png",
+  "avertissement":"rtheme/twotone/caution.png"
+  }
+    
+  def MAJObjet(self, objeti, objett, type, texte):
+    #On met à jour le contenu
+      
+    if texte!=None:
+      
+      if type==None:
+        icone = None
+      elif type in self.icones.keys():
+        icone = self.icones[type]
+      else:
+        icone = self.icones["inconnu"]
+      
+      #Si on a une icone, on pousse le texte un peu
+      if icone != None:
+        texte="   "+texte
+
+      if icone != None:
+        objeti.visable = True #On affiche l'icone si on doit en afficher une
+        objeti.icon = icone #On change l'icone
+      else:
+        objeti.visable = False #On cache l'icone s'il n'y en a pas à afficher
+      objett.text = texte #On change le texte
+    else:
+      #Il n'y a pas de texte, ni d'icone
+      objeti.visable = False
+      objett.text = ""
+      
 class Bas(Form):
   """
   Cadre qui contient les élément de la barre du bas
@@ -251,12 +267,15 @@ class Interface:
     self.quit.onClick = sys.exit
     
     
-  def afficheTexte(self, texte, icone=None, forceRefresh=False):
+  def afficheTexte(self, texte, type="normal", forceRefresh=False):
     """Affiche le texte sur l'écran, si texte==None, alors efface le dernier texte affiché"""
     if texte!=None:
       #On affiche une ligne dans le log
-      print texte
-      self.bas.droite.ajouteTexte(icone, texte)
+      if type == None:
+        print texte
+      else:
+        print "["+str(type)+"]",texte
+      self.bas.droite.ajouteTexte(type, texte)
         
     if forceRefresh:
       #On force le recalcul du GUI

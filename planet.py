@@ -237,7 +237,6 @@ class Start:
     """Construit une nouvelle planète via les gentils algos"""
     self.detruit()
     self.planete = Planete()
-    self.actions["clear"] = (self.planete.afficheTexte,None)
     self.planete.fabriqueNouvellePlanete(tesselation=int(general.configuration.getConfiguration("generationPlanete", "tesselation", "4")), delta=float(general.configuration.getConfiguration("generationPlanete", "delta", "0.2")))
     self.camera.reparentTo(self.planete.racine)
     
@@ -510,12 +509,12 @@ class Start:
             idsommet = self.planete.trouveSommet(coord)
             self.planete.survol = idsommet
         elif objet.getPythonTag('type') == "sprite":
-            self.planete.afficheTexte("Clic sur le sprite : "+str(objet.getPythonTag('id')+" cliquez sur le sol où vous voulez qu'il aille"))
+            general.gui.afficheTexte("Clic sur le sprite : "+str(objet.getPythonTag('id'))+" cliquez sur le sol où vous voulez qu'il aille", "info")
             self.select = objet.getPythonTag('instance')
         elif objet.getPythonTag('type') == "eau":
             print "clic dans l'eau"
         else:
-          print "Clic sur un objet au tag inconnu : ", objet.getPythonTag('type')
+          general.gui.afficheTexte("Clic sur un objet au tag inconnu : "+str(objet.getPythonTag('type')), "info")
           
         #On demande aux facettes de se redessiner
         #for element in self.planete.sommetDansFace[idsommet]:

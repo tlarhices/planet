@@ -54,8 +54,6 @@ class AINavigation:
       for voisin in self.planete.voisinage[source]:
         self.ajouteNoeud(source, voisin)
       cpt+=1.0
-    if general.DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION:
-      self.planete.afficheTexte(None)
     general.stopChrono("AINavigation::grapheDeplacement")
     #test=None
     #a=None
@@ -160,7 +158,7 @@ class AINavigation:
             h[y] = general.distanceCarree(self.planete.sommets[y], self.planete.sommets[fin])
             f[y] = g[y] + h[y]
             
-    self.planete.afficheTexte("Impossible de trouver une trajectoire pour aller de "+str(deb)+" à "+str(fin))
+    general.gui.afficheTexte("Impossible de trouver une trajectoire pour aller de "+str(deb)+" à "+str(fin), "avertissement")
     general.stopChrono("AINavigation::aStar")
     #On a rien trouvé
     return None

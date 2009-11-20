@@ -73,7 +73,7 @@ class Joueur:
     sprite.fabriqueModel()
     
   def spriteMort(self, sprite):
-    general.gui.afficheTexte("Joueur "+self.nom+" dit : :'( :'( pauvre "+sprite.id, "rtheme/twotone/phone.png")
+    general.gui.afficheTexte("Joueur "+self.nom+" dit : :'( :'( pauvre "+sprite.id, "chat")
     self.sprites.remove(sprite)
     
   def detruit(self):

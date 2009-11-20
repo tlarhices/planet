@@ -70,8 +70,6 @@ class Planete:
         self.ajouteNoeud(sommet, face.sommets[0])
         self.ajouteNoeud(sommet, face.sommets[1])
         self.ajouteNoeud(sommet, face.sommets[2])
-    if general.DEBUG_GENERE_PLANETE:
-      self.afficheTexte(None)
     general.stopChrono("Planete::fabriqueVoisinage")
         
   def ajouteNoeud(self, pt1, pt2):
@@ -102,8 +100,7 @@ class Planete:
     
   def afficheTexte(self, texte):
     """Affiche le texte sur l'écran, si texte==None, alors efface le dernier texte affiché"""
-    if texte!=None:
-      general.gui.afficheTexte(texte, None, True)
+    general.gui.afficheTexte(texte, None, True)
     
   # Constructions géométriques -----------------------------------------
   def fabriqueNouvellePlanete(self, tesselation, delta):
@@ -156,8 +153,6 @@ class Planete:
           element.tesselate()
         #On sauvegarde la tesselation courante pour gagner du temps pour les prochains chargements
         self.sauvegarde(os.path.join(".","data","pre-tesselate",str(i+1)), i+1)
-      if general.DEBUG_GENERE_PLANETE:
-        self.afficheTexte(None)
         
     self.fabriqueVoisinage()
         
@@ -178,8 +173,6 @@ class Planete:
     self.aiNavigation.grapheDeplacement()
     
     sommet = random.choice(self.sommets)
-    
-    self.afficheTexte(None)
     
     general.stopChrono("Planete::fabriqueNouvellePlanete")
     
@@ -249,8 +242,6 @@ class Planete:
       #donc pas besoin de tenter de deviner ce qui doit être recalculé
       self.sommets[i] = general.multiplieVecteur(self.sommets[i], rn)
         
-    if general.DEBUG_GENERE_PLANETE:
-      self.afficheTexte(None)
     general.stopChrono("Planete::fabriqueSol")
       
   def normaliseSol(self):
@@ -315,8 +306,6 @@ class Planete:
         tot += general.normeVecteur(self.sommets[id])
       tot = tot / (len(voisins)+4)
       self.sommets[sommet] = general.multiplieVecteur(general.normaliseVecteur(self.sommets[sommet]),tot)
-    if general.DEBUG_GENERE_PLANETE:
-      self.afficheTexte(None)
     general.stopChrono("Planete::flouifieSol")
       
   def fabriqueModel(self):
@@ -349,9 +338,6 @@ class Planete:
     #On ajoute le ciel
     self.fabriqueCiel()
 
-    if general.DEBUG_GENERE_PLANETE:
-      self.afficheTexte(None)
-      
     general.stopChrono("Planete::fabriqueModel")
 
   def fabriqueEau(self):
@@ -524,8 +510,6 @@ class Planete:
         
     if general.DEBUG_CHARGE_PLANETE:
       self.afficheTexte("Chargement des sommets... %i sommets chargés" %(len(self.sommets)))
-    if general.DEBUG_CHARGE_PLANETE:
-      self.afficheTexte(None)
     fichier.close()
     
     if not simple:
@@ -747,6 +731,6 @@ class Planete:
     general.stopChrono("Planete::elevePoint")
     
   def ajouteJoueur(self, joueur):
-    general.gui.afficheTexte(joueur.nom+" est entré dans la partie")
+    general.gui.afficheTexte(joueur.nom+" est entré dans la partie", "info")
     self.joueurs.append(joueur)
   # Fin Fonctions diverses ---------------------------------------------
