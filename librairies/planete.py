@@ -380,7 +380,7 @@ class Planete:
     self.niveauCiel = 1.0+self.delta*1.25+0.0001
     
     nuages = NodePath("nuage")
-    for i in range(0, 40):
+    for i in range(0, 80):
       a = Nuage(self)
       a.fabriqueModel().reparentTo(nuages)
       self.sprites.append(a)

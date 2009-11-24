@@ -256,8 +256,8 @@ class Interface:
     
     #On ajoute les composants manquants
     self.droite = Droite(self)
-    self.gui.add(self.droite)
     self.gauche = Gauche(self)
+    self.gui.add(self.droite)
     self.gui.add(self.gauche)
     #On insère la zone d'infos dans la barre du bas
     self.bas.gauche = self.bas.add(BasGauche(self))

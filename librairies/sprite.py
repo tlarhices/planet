@@ -267,6 +267,36 @@ class Sprite:
       self.symbole.setScale(taille*0.005, taille*0.005, taille*0.005)
     
     
+  def makeDot(self):
+    gvf = GeomVertexFormat.getV3cp()
+
+    # Create the vetex data container.
+    vertexData = GeomVertexData('SpriteVertices',gvf,Geom.UHStatic)
+
+    # Create writers
+    vtxWriter = GeomVertexWriter(vertexData,'vertex')
+    clrWriter = GeomVertexWriter(vertexData,'color') 
+    vtxWriter.addData3f(0.0,0.0,0.0)
+    clrWriter.addData3f(1,1,1) 
+       
+    # Create a GeomPrimitive object and fill with the vertices.
+    geom = Geom(vertexData)
+    points = GeomPoints(Geom.UHStatic)
+    points.setIndexType(Geom.NTUint32)
+    points.addVertex(0)
+
+    points.closePrimitive()
+    geom.addPrimitive(points)
+    geomNode = GeomNode('Sprites')
+    geomNode.addGeom(geom)
+    cloud = NodePath(geomNode)
+    cloud.setRenderModePerspective(True)
+    #cloud.setRenderModeThickness(1.0)
+    TS = TextureStage.getDefault()
+    cloud.setTexGen(TS, TexGenAttrib.MPointSprite)
+    cloud.setTexScale(TS,-1,1) 
+    return cloud
+    
   def fabriqueSprite(self, fichierSprite, taille=1.0):
     """Construit un nouveau sprite"""
     
@@ -278,18 +308,19 @@ class Sprite:
     cardMaker.setHasNormals(True)
     
     #Construit une carte (un plan)
-    card1 = racine.attachNewNode(cardMaker.generate())
+    #card1 = racine.attachNewNode(cardMaker.generate())
     #Applique la texture dessus (des 2 cotés)
+    card1 = self.makeDot()
+    card1.reparentTo(racine)
     tex = loader.loadTexture(fichierSprite)
     card1.setTexture(tex)
     #Active la transprence
     card1.setTransparency(TransparencyAttrib.MDual)
     #Fait une mise à l'échelle
     card1.setScale(taille, taille, taille)
-    
     #On fait tourner la carte pour quelle pointe toujours vers la caméra
     #Elle rotationne autour d'un axe uniquement (garde ses pieds vers le sol)
-    card1.setBillboardAxis()
+    #card1.setBillboardAxis()
     
     #Les lignes suivantes font dessiner le sprite au dessus de tout le reste
     #Utile pour débugger
@@ -392,7 +423,7 @@ class Nuage(Sprite):
       else:
         nuage.node().addSwitch(float(i)/float(taille)*distanceSoleil, 0) 
         
-      nuage.setBillboardPointWorld()
+      #nuage.setBillboardPointWorld()
       
       #On le décale par rapport au "centre"
       if i!=0:
@@ -411,7 +442,6 @@ class Nuage(Sprite):
       #On diminue l'opacité du prout s'il est loin du centre
       nuage.setAlphaScale(max((fact-general.normeVecteur(r)), 0.001*fact)/fact)
       nuage.reparentTo(self.racine)
-      #self.modele.node().addSwitch(9999999, 0.1) 
     self.racine.reparentTo(self.modele)
     #On redimentionne le bestiau
     self.modele.setScale(0.2)

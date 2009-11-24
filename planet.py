@@ -70,7 +70,7 @@ class Start:
   ### Initialisation ---------------------------------------------------
   def __init__(self):
     
-    render.setShaderAuto()
+    #render.setShaderAuto()
     
     #Configuration de DEBUG
     general.DEBUG_GENERE_PLANETE = general.configuration.getConfiguration("general", "debug_genere_planete","0")=="1"
@@ -676,6 +676,7 @@ from pandac.PandaModules import *
 
 #Change le titre de la fenêtre
 loadPrcFileData("",u"window-title Planète".encode("iso8859"))
+loadPrcFileData("","hardware-point-sprites 0")
 #Change la résolution de la fenêtre
 resolution = general.configuration.getConfiguration("affichage", "resolution","640 480")
 if resolution == "0 0":
