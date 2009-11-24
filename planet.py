@@ -676,7 +676,7 @@ from pandac.PandaModules import *
 
 #Change le titre de la fenêtre
 loadPrcFileData("",u"window-title Planète".encode("iso8859"))
-loadPrcFileData("","hardware-point-sprites 0")
+#loadPrcFileData("","hardware-point-sprites 0")
 #Change la résolution de la fenêtre
 resolution = general.configuration.getConfiguration("affichage", "resolution","640 480")
 if resolution == "0 0":

@@ -294,7 +294,7 @@ class Sprite:
     #cloud.setRenderModeThickness(1.0)
     TS = TextureStage.getDefault()
     cloud.setTexGen(TS, TexGenAttrib.MPointSprite)
-    cloud.setTexScale(TS,-1,1) 
+    #cloud.setTexScale(TS,-1,1) 
     return cloud
     
   def fabriqueSprite(self, fichierSprite, taille=1.0):

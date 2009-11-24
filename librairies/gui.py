@@ -241,6 +241,27 @@ class Bas(Form):
     self.y = "bottom" 
     self.width = "80%"
     self.height = "60px"
+    
+class Chargement(Form):
+  """
+  Cadre qui contient les élément de la barre du bas
+  s'il n'y a pas de joueur la structure est ainsi :
+  [[zone de textes informatifs]]
+  s'il y a un joueur :
+  [[détails du joueur][zone de textes informatifs]]
+  """
+  style = "default"
+  
+  def __init__(self):
+    Form.__init__(self)
+    
+    self.lable = self.add(Label("Chargement en cours...", x="left", y="4px"))
+    
+    #On positionne la Form
+    self.x = "center" 
+    self.y = "center" 
+    self.width = "80%"
+    self.height = "20px"
 
 class Interface:
   joueur = None
@@ -249,6 +270,7 @@ class Interface:
     self.gui = Gui(theme = rtheme.RTheme())
     self.bas = Bas(self)
     self.gui.add(self.bas)
+    self.chargement = self.gui.add(Chargement())
     
   def ajouteJoueur(self, joueur):
     """Indique qu'on passe du mode chargement au mode joueur"""
@@ -265,6 +287,8 @@ class Interface:
     #On place un bouton quitter en haut à droite de l'écran
     self.quit = self.gui.add(Icon("rtheme/twotone/x.png", x="right", y="top"))
     self.quit.onClick = sys.exit
+    self.gui.remove(self.chargement)
+    self.chargement = None
     
     
   def afficheTexte(self, texte, type="normal", forceRefresh=False):
