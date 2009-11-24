@@ -600,7 +600,7 @@ class Planete:
         d1, d2, d3 = da, db, dc
         f = face
     general.stopChrono("Planete::trouveFace")
-    return f.sommets
+    return f
     ## ------------ Version avec self.sommetDansFace
         
     ## ------------ Version avec self.elements
@@ -632,7 +632,7 @@ class Planete:
       general.stopChrono("Planete::trouveFace")
       return self.trouveFace(point, f.enfants)
     general.stopChrono("Planete::trouveFace")
-    return f.sommets
+    return f
     ## ------------ Version avec self.elements
     
     ## ------------ Version avec testIntersectionTriangleDroite
@@ -656,7 +656,7 @@ class Planete:
           return self.trouveFace(point, tria.enfants)
         else:
           general.stopChrono("Planete::trouveFace")
-          return tri
+          return tria
     general.stopChrono("Planete::trouveFace")
     return None
     ## ------------ Version avec testIntersectionTriangleDroite
@@ -665,7 +665,7 @@ class Planete:
     """Retourne l'altitude (rayon) à laquelle le point devrait se trouver pour être juste sur la face en dessous (au dessus) de lui (coord cartésiennes)"""
     general.startChrono("Planete::altitude")
     #Cherche la face dans laquelle se trouve le point
-    face = self.trouveFace(point)
+    face = self.trouveFace(point).sommets
     if face==None:
       #La droite passant par un point quelconque et le centre de la sphère coupe obligatoirement la dite sphère en un point
       #Ne pas avoir de résultat dit que ça bug

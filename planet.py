@@ -84,7 +84,15 @@ class Start:
     general.DEBUG_PANDAUI_CLIC = general.configuration.getConfiguration("general", "DEBUG_PANDAUI_CLIC","0")=="1"
     general.DEBUG_PANDAUI_PURGE = general.configuration.getConfiguration("general", "DEBUG_PANDAUI_PURGE","0")=="1"
     
-    general.gui = Interface()
+    if base.camLens != None:
+      general.gui = Interface()
+    else:
+      class DUMMY:
+        def afficheTexte(self, texte, type="normal", forceRefresh=False):
+          print "[",type,"]",texte
+        def ajouteJoueur(self, joueur):
+          pass
+      general.gui = DUMMY()
     
     self.distanceSoleil = float(general.configuration.getConfiguration("generationPlanete", "distanceSoleil","10.0"))
     self.vitesseSoleil = float(general.configuration.getConfiguration("generationPlanete", "vitesseSoleil","1.0"))
@@ -113,7 +121,8 @@ class Start:
     #On place la caméra dans un noeud facile à secouer
     self.camera = NodePath("cam")
     self.camera.reparentTo(render)
-    base.camera.reparentTo(self.camera)
+    if base.camera != None:
+      base.camera.reparentTo(self.camera)
     
   def start(self):
     """Lance le rendu et la boucle de jeu"""
@@ -130,25 +139,26 @@ class Start:
     
     #Normalement panda envoie des evenements du type "arrow_left"
     #ou "alt_arrow_left", avec ça il envoie "alt" et "arow_left" tout seul
-    base.mouseWatcherNode.setModifierButtons(ModifierButtons())
-    base.buttonThrowers[0].node().setModifierButtons(ModifierButtons())
-    #On redirige toutes les événements de touches vers 2 fonctions magiques
-    base.accept('wheel_up', self.presseTouche, ['wheel_up'])
-    base.accept('wheel_down', self.presseTouche, ['wheel_down'])
-    base.buttonThrowers[0].node().setButtonDownEvent('presseTouche')
-    base.buttonThrowers[0].node().setButtonUpEvent('relacheTouche')
-    base.accept('presseTouche', self.presseTouche)
-    base.accept('relacheTouche', self.relacheTouche)
-    
-    #Ajout du rayon magique de la souris
-    base.cTrav = CollisionTraverser()
-    self.myHandler = CollisionHandlerQueue()
-    self.pickerNode=CollisionNode('mouseRay')
-    self.pickerNP=camera.attachNewNode(self.pickerNode)
-    self.pickerNode.setFromCollideMask(GeomNode.getDefaultCollideMask())
-    self.pickerRay=CollisionRay()
-    self.pickerNode.addSolid(self.pickerRay)
-    base.cTrav.addCollider(self.pickerNP, self.myHandler)
+    if base.mouseWatcherNode != None:
+      base.mouseWatcherNode.setModifierButtons(ModifierButtons())
+      base.buttonThrowers[0].node().setModifierButtons(ModifierButtons())
+      #On redirige toutes les événements de touches vers 2 fonctions magiques
+      base.accept('wheel_up', self.presseTouche, ['wheel_up'])
+      base.accept('wheel_down', self.presseTouche, ['wheel_down'])
+      base.buttonThrowers[0].node().setButtonDownEvent('presseTouche')
+      base.buttonThrowers[0].node().setButtonUpEvent('relacheTouche')
+      base.accept('presseTouche', self.presseTouche)
+      base.accept('relacheTouche', self.relacheTouche)
+      
+      #Ajout du rayon magique de la souris
+      base.cTrav = CollisionTraverser()
+      self.myHandler = CollisionHandlerQueue()
+      self.pickerNode=CollisionNode('mouseRay')
+      self.pickerNP=camera.attachNewNode(self.pickerNode)
+      self.pickerNode.setFromCollideMask(GeomNode.getDefaultCollideMask())
+      self.pickerRay=CollisionRay()
+      self.pickerNode.addSolid(self.pickerRay)
+      base.cTrav.addCollider(self.pickerNP, self.myHandler)
     
     #On construit le modèle 3D de la planète
     self.planete.fabriqueModel()
@@ -200,21 +210,22 @@ class Start:
       deltaT = task.time
     self.preImage = task.time
     
-    #Teste de la position de la souris
-    if base.mouseWatcherNode.hasMouse():
-      mpos=base.mouseWatcherNode.getMouse()
-      x=mpos.getX()
-      y=mpos.getY()
-      seuil = 0.8
-      #Regarde si la caméra est proche d'un bord et fait tourner la planète le cas échéant
-      if x<-seuil:
-        self.tourneCamera(self.cameraPasRotation*(x+seuil)/(1.0-seuil), 0.0)
-      if x>seuil:
-        self.tourneCamera(self.cameraPasRotation*(x-seuil)/(1.0-seuil), 0.0)
-      if y<-seuil:
-        self.tourneCamera(0.0, self.cameraPasRotation*(y+seuil)/(1.0-seuil))
-      if y>seuil:
-        self.tourneCamera(0.0, self.cameraPasRotation*(y-seuil)/(1.0-seuil))
+    if base.mouseWatcherNode !=None:
+      #Teste de la position de la souris
+      if base.mouseWatcherNode.hasMouse():
+        mpos=base.mouseWatcherNode.getMouse()
+        x=mpos.getX()
+        y=mpos.getY()
+        seuil = 0.8
+        #Regarde si la caméra est proche d'un bord et fait tourner la planète le cas échéant
+        if x<-seuil:
+          self.tourneCamera(self.cameraPasRotation*(x+seuil)/(1.0-seuil), 0.0)
+        if x>seuil:
+          self.tourneCamera(self.cameraPasRotation*(x-seuil)/(1.0-seuil), 0.0)
+        if y<-seuil:
+          self.tourneCamera(0.0, self.cameraPasRotation*(y+seuil)/(1.0-seuil))
+        if y>seuil:
+          self.tourneCamera(0.0, self.cameraPasRotation*(y-seuil)/(1.0-seuil))
       
     #Clavier
     self.gereTouche()
@@ -391,7 +402,8 @@ class Start:
     self.camera.lookAt(Point3(0,0,0), self.planete.racine.getRelativeVector(self.camera, Vec3(0,0,1)))
     angle = self.cameraAngleSurface-self.cameraAngleSurface*(-0.5+(self.cameraRayon-1.0)/(2*float(general.configuration.getConfiguration("generationPlanete", "delta", "0.2"))))
     angle = max(0.0, angle)
-    base.camera.setP(angle)
+    if base.camera != None:
+      base.camera.setP(angle)
 
   def zoomPlus(self):
     """Approche la caméra de la planète"""
@@ -665,14 +677,20 @@ from pandac.PandaModules import *
 #Change le titre de la fenêtre
 loadPrcFileData("",u"window-title Planète".encode("iso8859"))
 #Change la résolution de la fenêtre
-loadPrcFileData("",u"win-size "+general.configuration.getConfiguration("affichage", "resolution","640 480"))
+resolution = general.configuration.getConfiguration("affichage", "resolution","640 480")
+if resolution == "0 0":
+  print "Avertissement :: resolution de 0, démarrage sans fenêtre"
+  loadPrcFileData("",u"window-type none")
+else:
+  loadPrcFileData("",u"win-size "+resolution)
 #Kicke la synchro avec VSynch pour pouvoir dépasser les 60 FPS
 loadPrcFileData("",u"sync-video #f")
 
 import direct.directbase.DirectStart
 from direct.task import Task
 
-base.camLens.setNear(0.001)
+if base.camLens!=None:
+  base.camLens.setNear(0.001)
 
 if not profile:
   deb()

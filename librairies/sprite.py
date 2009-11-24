@@ -105,8 +105,11 @@ class Sprite:
     return True
   
   def testeSol(self):
-    print general.normaliseVecteur(self.position)
-    print self.planete.altitudeCarre(self.position)
+    """Regarde l'angle entre la normale de la face et le sprite qui s'y tient"""
+    sp = general.normaliseVecteur(self.position)
+    fc = self.planete.trouveFace(self.position).calculNormale()
+    dp = sp[0]*fc[0]+sp[1]*fc[1]+sp[2]*fc[2]
+    angle = math.acos(dp)/math.pi*180
     
   def appliqueGravite(self, temps):
     """Fait tomber les objets sur le sol"""
@@ -236,7 +239,10 @@ class Sprite:
       self.symbole=NodePath("pas de symbole")
       return self.symbole
     #On calcule la distance à la caméra pour avoir le facteur de corection d'échelle
-    taille = general.normeVecteur(base.camera.getPos(self.modele))
+    if base.camera != None:
+      taille = general.normeVecteur(base.camera.getPos(self.modele))
+    else:
+      taille = 1.0
     #On construit l'objet
     self.symbole = self.fabriqueSprite(fichierSprite = fichierSymbole, taille = taille)
     #On lui dit de ne pas être dérangé par les sources lumineuses
@@ -253,7 +259,10 @@ class Sprite:
     """Change l'échelle du symbole pour le garder toujours à la même taille"""
     if self.symbole!=None and self.racine!=None:
       #On calcule la distance à la caméra pour avoir le facteur de corection d'échelle
-      taille = general.normeVecteur(base.camera.getPos(self.racine))
+      if base.camera != None:
+        taille = general.normeVecteur(base.camera.getPos(self.racine))
+      else:
+        taille = 1.0
       #On change l'échelle
       self.symbole.setScale(taille*0.005, taille*0.005, taille*0.005)
     
