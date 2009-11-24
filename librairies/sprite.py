@@ -104,6 +104,10 @@ class Sprite:
 
     return True
   
+  def testeSol(self):
+    print general.normaliseVecteur(self.position)
+    print self.planete.altitudeCarre(self.position)
+    
   def appliqueGravite(self, temps):
     """Fait tomber les objets sur le sol"""
     altitudeCible = self.planete.altitudeCarre(self.position)
@@ -293,6 +297,29 @@ class Sprite:
     ls.moveTo(*depart)
     ls.drawTo(*arrivee)
     return ls.create()
+
+class SpritePlan(Sprite):
+  """Support d'objets non ponctuels"""
+  point1 = None
+  point2 = None
+  
+  def __init__(self, id, point1, point2, modele, symbole, planete, joueur):
+    self.point1, self.point2, position = self.preparePoints(point1, point2)
+    
+    Sprite.__init__(self, id, position, modele, symbole, planete, joueur)
+
+  def preparePoints(self, point1, point2):
+    point1 = (min(point1[0], point2[0]), min(point1[1], point2[1]), min(point1[2], point2[2]))
+    point2 = (max(point1[0], point2[0]), max(point1[1], point2[1]), max(point1[2], point2[2]))
+    position = (point1[0]+point2[0])/2.0, (point1[1]+point2[1])/2.0, (point1[2]+point2[2])/2.0
+    return point1, point2, position
+
+  def miseAJourPosition(self, point1, point2):
+    self.point1, self.point2, position = self.preparePoints(point1, point2)
+    Sprite.miseAJourPosition(self, position)
+    
+  def testeSol(self):
+    Sprite.testeSol(self)
 
 class Nuage(Sprite):
   """Génère un nuage aléatoirement"""
