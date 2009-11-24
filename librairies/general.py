@@ -15,7 +15,7 @@ DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE = True #Donne des infos de debug sur les t
 DEBUG_PANDAUI_GUI = False #Donne des infos sur la gestion de l'UI
 DEBUG_PANDAUI_CLIC = False #Donne des infos sur la gestion des clics dans l'UI
 DEBUG_PANDAUI_PURGE = False #Donne des infos sur la gestion de la suppression des composants dans l'UI
-DEBUG_CONSTRUCTION_SPHERE = False
+DEBUG_CONSTRUCTION_SPHERE = True
 
 DEBUG_USE_STAT = True
 

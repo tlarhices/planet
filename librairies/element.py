@@ -70,13 +70,31 @@ class Element:
     self.planete.sommetDansFace[p3].append(self)
     
     if general.DEBUG_CONSTRUCTION_SPHERE:
+      delta = (random.random()-0.5)/10 +1.0
       self.modele = NodePath(self.id)
       self.modele.reparentTo(self.planete.racine)
-      nd = self.dessineLigne((1.0,0.0,0.0,1.0), self.planete.sommets[p1], self.planete.sommets[p2])
+      p1 = general.multiplieVecteur(self.planete.sommets[p1], delta)
+      p2 = general.multiplieVecteur(self.planete.sommets[p2], delta)
+      p3 = general.multiplieVecteur(self.planete.sommets[p3], delta)
+      
+      
+      A=general.crossProduct((p2[0]-p1[0],p2[1]-p1[1],p2[2]-p1[2]), (p3[0]-p2[0],p3[1]-p2[1],p3[2]-p2[2]))
+      B=general.crossProduct((p3[0]-p2[0],p3[1]-p2[1],p3[2]-p2[2]), (p1[0]-p3[0],p1[1]-p3[1],p1[2]-p3[2]))
+      C=general.crossProduct((p1[0]-p3[0],p1[1]-p3[1],p1[2]-p3[2]), (p2[0]-p1[0],p2[1]-p1[1],p2[2]-p1[2]))
+      if general.distance(A, B)>0.00001:
+        print A,B,C
+        print A[0]-B[0], A[1]-B[1], A[2]-B[2]
+        raw_input("Erreur tournicotte")
+      if general.distance(C, B)>0.00001:
+        print A,B,C
+        print B[0]-C[0], B[1]-C[1], B[2]-C[2]
+        raw_input("Erreur tournicotte")
+      
+      nd = self.dessineLigne((1.0,0.0,0.0,1.0), p1, p2)
       self.modele.attachNewNode(nd)
-      nd = self.dessineLigne((0.0,1.0,0.0,1.0), self.planete.sommets[p2], self.planete.sommets[p3])
+      nd = self.dessineLigne((0.0,1.0,0.0,1.0), p2, p3)
       self.modele.attachNewNode(nd)
-      nd = self.dessineLigne((0.0,0.0,1.0,1.0), self.planete.sommets[p3], self.planete.sommets[p1])
+      nd = self.dessineLigne((0.0,0.0,1.0,1.0), p3, p1)
       self.modele.attachNewNode(nd)
     
   def detruit(self):
@@ -101,6 +119,7 @@ class Element:
       /__\/__\
     p3   c3   p2
     """
+    return 
     #Si on a déjà subdivisé le niveau courant, on saute directement sur les enfants
     if self.enfants != None:
       for enfant in self.enfants:

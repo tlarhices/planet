@@ -83,6 +83,9 @@ class Sprite:
     if self.vie<=0:
       return False
       
+    #Teste le sol sous les pieds
+    self.testeSol()
+      
     #Fait marcher
     if self.marcheVersTab != None:
       if len(self.marcheVersTab) > 0:
@@ -100,7 +103,7 @@ class Sprite:
     self.MAJSymbole()
 
     return True
-    
+  
   def appliqueGravite(self, temps):
     """Fait tomber les objets sur le sol"""
     altitudeCible = self.planete.altitudeCarre(self.position)
@@ -148,6 +151,7 @@ class Sprite:
     
     self.position = (self.position[0] + vecteurDeplacement[0], self.position[1] + vecteurDeplacement[1], self.position[2] + vecteurDeplacement[2])
     #self.planete.afficheTexte(self.id+" marche vers "+str(cible))
+    self.miseAJourPosition(self.position)
       
   def miseAJourPosition(self, position):
     """Change la position de l'objet"""
