@@ -118,8 +118,13 @@ class Start:
     #On place la caméra dans un noeud facile à secouer
     self.camera = NodePath("cam")
     self.camera.reparentTo(render)
-    if base.camera != None:
-      base.camera.reparentTo(self.camera)
+    base.camera.reparentTo(self.camera)
+    
+    #Désactive la gestion par défaut de la souris
+    base.disableMouse() 
+    #Place la caméra à sa position
+    self.camera.setPos(self.cameraRayon,0,0)
+    self.positionneCamera()
     
   def start(self):
     """Lance le rendu et la boucle de jeu"""
@@ -128,11 +133,6 @@ class Start:
       print "Vous devez créer une planète avant !"
       return
       
-    #Désactive la gestion par défaut de la souris
-    base.disableMouse() 
-    #Place la caméra à sa position
-    self.camera.setPos(self.cameraRayon,0,0)
-    self.positionneCamera()
     
     #Normalement panda envoie des evenements du type "arrow_left"
     #ou "alt_arrow_left", avec ça il envoie "alt" et "arow_left" tout seul
@@ -398,20 +398,23 @@ class Start:
   ### Gestion de la caméra ---------------------------------------------
   def positionneCamera(self):
     """Place la caméra dans l'univers"""
+    
     if self.planete == None:
       return
       
+    self.camera.reparentTo(self.planete.racine)
+    
     #La position de la caméra est gérée en coordonnées sphériques
     if general.normaliseVecteurCarre(self.camera.getPos())!=self.cameraRayon*self.cameraRayon:
       coord = general.multiplieVecteur(general.normaliseVecteur(self.camera.getPos()), self.cameraRayon)
     
     self.camera.setPos(coord[0], coord[1], coord[2])
+    
     #La caméra regarde toujours le centre de la planète
     self.camera.lookAt(Point3(0,0,0), self.planete.racine.getRelativeVector(self.camera, Vec3(0,0,1)))
     angle = self.cameraAngleSurface-self.cameraAngleSurface*(-0.5+(self.cameraRayon-1.0)/(2*self.planete.delta))
     angle = max(0.0, angle)
-    if base.camera != None:
-      base.camera.setP(angle)
+    base.camera.setP(angle)
 
   def zoomPlus(self):
     """Approche la caméra de la planète"""
@@ -698,8 +701,7 @@ if __name__=="__main__":
   import direct.directbase.DirectStart
   from direct.task import Task
 
-  if base.camLens!=None:
-    base.camLens.setNear(0.001)
+  base.camLens.setNear(0.001)
 
   if not profile:
     deb()

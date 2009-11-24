@@ -259,10 +259,7 @@ class Sprite:
     """Change l'échelle du symbole pour le garder toujours à la même taille"""
     if self.symbole!=None and self.racine!=None:
       #On calcule la distance à la caméra pour avoir le facteur de corection d'échelle
-      if base.camera != None:
-        taille = general.normeVecteur(base.camera.getPos(self.racine))
-      else:
-        taille = 1.0
+      taille = general.normeVecteur(base.camera.getPos(self.racine))
       #On change l'échelle
       self.symbole.setScale(taille*0.005, taille*0.005, taille*0.005)
     

@@ -6,7 +6,7 @@ import sys
 import general
 
 import treegui
-from treegui.components import Form,Widget,ScrollPane
+from treegui.components import Form,Widget,ScrollPane, Pane
 from treegui.widgets import *
 from treegui.core import Gui
 import rtheme
@@ -22,7 +22,7 @@ class Gauche(Form):
     bouton : le texte du bouton
     etat : si True alors le bouton est actif (ce devrait toujours être le cas de figure)
     """
-    print bouton.lower, etat
+    print bouton.lower(), etat
   
   def __init__(self, gui):
     self.gui=gui
@@ -274,7 +274,7 @@ class EcranTitre(Form):
     self.y = "center" 
     self.width = "80%"
     self.height = "20px"
-    taskMgr.doMethodLater(2.0, self.gui.effaceEcranTitre, 'effaceEcranTitre')
+    taskMgr.doMethodLater(0.5, self.gui.effaceEcranTitre, 'effaceEcranTitre')
     
 class MenuPrincipal(Form):
   """Le menu principal"""
@@ -284,9 +284,53 @@ class MenuPrincipal(Form):
     Form.__init__(self)
     self.gui = gui
     
-    self.label = self.add(Button(u"Nouvelle planète", self.gui.nouvellePlanete, x="center", y="4px", width="190px"))
-    self.label = self.add(Button(u"Utiliser un planète vierge", self.gui.planeteVierge, x="center", y="34px", width="190px"))
-    self.label = self.add(Button(u"Charger une partie", self.gui.chargerPartie, x="center", y="64px", width="190px"))
+    self.boutonNouveau = self.add(Button(u"Nouvelle planète", self.gui.nouvellePlanete, x="center", y="4px", width="190px"))
+    cpt = 0
+    for fich in os.listdir(os.path.join(".", "data", "planetes")):
+      if fich.endswith(".pln"):
+        cpt+=1
+    if cpt==0:
+      self.boutonVierge = self.add(Label(u"Utiliser un planète vierge", x="center", y="34px", width="190px"))
+    else:
+      self.boutonVierge = self.add(Button(u"Utiliser un planète vierge", self.gui.planeteVierge, x="center", y="34px", width="190px"))
+    
+    cpt = 0
+    for fich in os.listdir(os.path.join(".", "sauvegardes")):
+      if fich.endswith(".pln"):
+        cpt+=1
+    if cpt==0:
+      self.boutonCharger = self.add(Label(u"Charger une partie", x="center", y="64px", width="190px"))
+    else:
+      self.boutonCharger = self.add(Button(u"Charger une partie", self.gui.chargerPartie, x="center", y="64px", width="190px"))
+
+    self.boutonNouveau = self.add(Button(u"Configuration", self.gui.configurer, x="center", y="94px", width="190px"))
+    
+    #On positionne la Form
+    self.x = "center" 
+    self.y = "center" 
+    self.width = "80%"
+    self.height = "124px"
+    
+  def back(self):
+    self.gui.changeMenuVers(MenuPrincipal)
+    
+class MenuConfiguration(Form):
+  """Le menu principal"""
+  style = "default"
+  
+  def __init__(self, gui):
+    Form.__init__(self)
+    self.gui = gui
+    
+    self.colonneGauche = self.add(Pane(x="left", y="4px", width="30%", height="100%"))
+    self.colonneDroite = self.add(Pane(x="right", y="4px", width="70%", height="100%"))
+    
+    self.colonneGauche.add(PictureRadio("rtheme/twotone/gear-over.png", "rtheme/twotone/gear.png", u"Affichage", x="left", y=4)).callback = self.clic
+    self.colonneGauche.add(PictureRadio("rtheme/twotone/move-over.png", "rtheme/twotone/move.png", u"Contrôles", x="left", y=20)).callback = self.clic
+    self.colonneGauche.add(PictureRadio("rtheme/twotone/radio-off-over.png", "rtheme/twotone/radio-off.png", u"Planètes", x="left", y=36)).callback = self.clic
+    self.colonneGauche.add(PictureRadio("rtheme/twotone/target-over.png", "rtheme/twotone/target.png", u"Debug", x="left", y=52)).callback = self.clic
+
+    self.add(Icon("rtheme/twotone/rotate_node.png", x="right", y="bottom")).onClick = self.back
     
     #On positionne la Form
     self.x = "center" 
@@ -294,49 +338,187 @@ class MenuPrincipal(Form):
     self.width = "80%"
     self.height = "88px"
     
+  def clic(self, bouton, etat):
+    """
+    On a cliqué sur un bouton de changement de panneau de configuration
+    bouton : le texte du bouton
+    etat : si True alors le bouton est actif (ce devrait toujours être le cas de figure)
+    """
+    self.remove(self.colonneDroite)
+    self.colonneDroite = self.add(Pane(x="right", y="4px", width="70%", height="100%"))
+    if bouton.lower() == "affichage":
+      self.colonneDroite.add(Label(u"Résolution : "+general.configuration.getConfiguration("affichage-general", "resolution","640 480"), x=4, y=4))
+      tmp = self.colonneDroite.add(Check(u"Bloom", x=4, y=20))
+      if general.configuration.getConfiguration("affichage-effets", "utiliseBloom","0")=="1":
+        tmp.onClick()
+    elif bouton.lower() == u"contrôles":
+      self.remove(self.colonneDroite)
+      self.colonneDroite = self.add(ScrollPane(x="right", y="4px", width="70%", height="100%"))
+      y=4
+      touches = general.configuration.getConfigurationClavier()
+      for element in touches.keys():
+        self.colonneDroite.add(Label(touches[element]+u" : "+element, x=4, y=y))
+        y+=16
+    elif bouton.lower() == u"planètes":
+      self.colonneDroite.add(Label(u"Résolution : "+general.configuration.getConfiguration("affichage-general", "resolution","640 480"), x=4, y=4))
+      tmp = self.colonneDroite.add(Check(u"Bloom", x=4, y=20))
+      if general.configuration.getConfiguration("affichage-effets", "utiliseBloom","0")=="1":
+        tmp.onClick()
+    elif bouton.lower() == u"debug":
+      self.colonneDroite.add(Label(u"Résolution : "+general.configuration.getConfiguration("affichage-general", "resolution","640 480"), x=4, y=4))
+      tmp = self.colonneDroite.add(Check(u"Bloom", x=4, y=20))
+      if general.configuration.getConfiguration("affichage-effets", "utiliseBloom","0")=="1":
+        tmp.onClick()
+      
+      
+    
+    
+  def back(self):
+    self.gui.changeMenuVers(MenuPrincipal)
+    
+    
+class MenuVierge(Form):
+  """Contient la liste des planètes vierges que l'on peut charger"""
+  style = "default"
+  
+  def clic(self, bouton, etat):
+    """
+    On a cliqué sur un bouton de construction d'unité
+    bouton : le texte du bouton
+    etat : si True alors le bouton est actif (ce devrait toujours être le cas de figure)
+    """
+    for element in self.liste:
+      if element[0].lower() == bouton.lower():
+        self.gui.planeteVierge2(element[1])
+  
+  def __init__(self, gui):
+    self.gui=gui
+    Form.__init__(self)
+    #On met un titre au menu
+    self.add(Label(u"Planètes :", x=3, y = 0))
+    
+    #On place les boutons d'achat de gugusse
+    self.boutons = []
+    i=1
+    self.liste=[]
+    for element in os.listdir(os.path.join(".", "data", "planetes")):
+      if element.endswith(".pln"):
+        self.liste.append((element.lower(), element))
+    for elem in self.liste:
+      check = self.add(PictureRadio("rtheme/twotone/news-over.png", "rtheme/twotone/news.png", elem[0].capitalize(), x=3, y = 17*i))
+      check.callback = self.clic
+      self.boutons.append(check)
+      i+=1
+      
+    self.add(Icon("rtheme/twotone/rotate_node.png", x="right", y="bottom")).onClick = self.back
+    
+    #On positionne la Form
+    self.x = "center" 
+    self.y = "center" 
+    self.width = "80%"
+    self.height = "80%"
+    
+  def back(self):
+    self.gui.changeMenuVers(MenuPrincipal)
+    
+class MenuCharge(Form):
+  """Contient la liste des planètes vierges que l'on peut charger"""
+  style = "default"
+  
+  def clic(self, bouton, etat):
+    """
+    On a cliqué sur un bouton de construction d'unité
+    bouton : le texte du bouton
+    etat : si True alors le bouton est actif (ce devrait toujours être le cas de figure)
+    """
+    for element in self.liste:
+      if element[0].lower() == bouton.lower():
+        self.gui.planeteVierge2(element[1])
+  
+  def __init__(self, gui):
+    self.gui=gui
+    Form.__init__(self)
+    #On met un titre au menu
+    self.add(Label(u"Planètes :", x=3, y = 0))
+    
+    #On place les boutons d'achat de gugusse
+    self.boutons = []
+    i=1
+    self.liste=[]
+    for element in os.listdir(os.path.join(".", "sauvegardes")):
+      if element.endswith(".pln"):
+        self.liste.append((element.lower(), element))
+    for elem in self.liste:
+      check = self.add(PictureRadio("rtheme/twotone/diskette-over.png", "rtheme/twotone/diskette.png", elem[0].capitalize(), x=3, y = 17*i))
+      check.callback = self.clic
+      self.boutons.append(check)
+      i+=1
+      
+    self.add(Icon("rtheme/twotone/rotate_node.png", x="right", y="bottom")).onClick = self.back
+    
+    #On positionne la Form
+    self.x = "center" 
+    self.y = "center" 
+    self.width = "80%"
+    self.height = "80%"
+    
+  def back(self):
+    self.gui.changeMenuVers(MenuPrincipal)
+    
 class Interface:
   joueur = None
+  menuCourant = None
+  
   def __init__(self, start):
     #Fabrique le GUI de base
     self.start = start
     self.gui = Gui(theme = rtheme.RTheme())
     #On affiche l'écran de titre
-    self.titre = self.gui.add(EcranTitre(self))
+    self.menuCourant = self.gui.add(EcranTitre(self))
     
+  def changeMenuVers(self, classe):
+    if self.menuCourant != None:
+      self.gui.remove(self.menuCourant)
+      if classe != None:
+        self.menuCourant = self.gui.add(classe(self))
+      else:
+        self.menuCourant = None
+      
   def effaceEcranTitre(self, task):
     #Supprime l'écran de titre, charge le menu principal
-    if self.titre != None:
-      self.gui.remove(self.titre)
-      self.titre = None
-      self.menuPrincipal = self.gui.add(MenuPrincipal(self))
+    self.changeMenuVers(MenuPrincipal)
     return task.done
       
   def nouvellePlanete(self):
     #Construit une nouvelle planète aléatoirement
-    self.gui.remove(self.menuPrincipal)
-    self.menuPrincipal = None
     self.makeMain()
     self.start.fabriquePlanete(os.path.join(".", "configuration", "planete.cfg"))
     self.start.start()
     
   def makeMain(self):
     #Construit les éléments principaux de l'interface
+    self.changeMenuVers(None)
     self.bas = Bas(self)
     self.gui.add(self.bas)
     self.chargement = self.gui.add(Chargement())
     
+  def configurer(self):
+    self.changeMenuVers(MenuConfiguration)
+    
   def planeteVierge(self):
+    self.changeMenuVers(MenuVierge)
+    
+  def planeteVierge2(self, fichier):
     #Charge un prototype de planète pré-construit
-    self.gui.remove(self.menuPrincipal)
-    self.menuPrincipal = None
     self.makeMain()
-    self.start.chargePlanete(os.path.join(".", "data", "planetes", "1.pln"))
+    self.start.chargePlanete(os.path.join(".", "data", "planetes", fichier))
     self.start.start()
     
   def chargerPartie(self):
+    self.changeMenuVers(MenuCharge)
+    
+  def chargerPartie2(self):
     #Charge une partie en cours
-    self.gui.remove(self.menuPrincipal)
-    self.menuPrincipal = None
     self.makeMain()
     self.start.chargePlanete(os.path.join(".", "sauvegardes", "1.pln"))
     self.start.start()
