@@ -78,14 +78,11 @@ class Start:
     general.DEBUG_CHARGE_PLANETE_VERBOSE = general.configuration.getConfiguration("general", "debug_charge_planete_verbose","0")=="1"
     general.DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION = general.configuration.getConfiguration("general", "debug_ai_graphe_deplacement_construction","0")=="1"
     general.DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE = general.configuration.getConfiguration("general", "debug_ai_graphe_deplacement_promenade","0")=="1"
-    general.WIREFRAME = general.configuration.getConfiguration("affichage", "wireframe","0")=="1"
-    general.TEXTURES = general.configuration.getConfiguration("affichage", "utilise-textures","1")=="1"
-    general.DEBUG_PANDAUI_GUI = general.configuration.getConfiguration("general", "DEBUG_PANDAUI_GUI","0")=="1"
-    general.DEBUG_PANDAUI_CLIC = general.configuration.getConfiguration("general", "DEBUG_PANDAUI_CLIC","0")=="1"
-    general.DEBUG_PANDAUI_PURGE = general.configuration.getConfiguration("general", "DEBUG_PANDAUI_PURGE","0")=="1"
+    general.WIREFRAME = general.configuration.getConfiguration("affichage-general", "fildefer","0")=="1"
+    general.TEXTURES = general.configuration.getConfiguration("affichage-general", "utilise-textures","1")=="1"
     
     if base.camLens != None:
-      general.gui = Interface()
+      general.gui = Interface(self)
     else:
       class DUMMY:
         def afficheTexte(self, texte, type="normal", forceRefresh=False):
@@ -94,14 +91,14 @@ class Start:
           pass
       general.gui = DUMMY()
     
-    self.distanceSoleil = float(general.configuration.getConfiguration("generationPlanete", "distanceSoleil","10.0"))
-    self.vitesseSoleil = float(general.configuration.getConfiguration("generationPlanete", "vitesseSoleil","1.0"))
+    self.distanceSoleil = float(general.configuration.getConfiguration("planete-Univers", "distanceSoleil","10.0"))
+    self.vitesseSoleil = float(general.configuration.getConfiguration("planete-Univers", "vitesseSoleil","1.0"))
     
     if general.configuration.getConfiguration("general", "DEBUG_PANDA_VIA_PSTATS","0")=="1":
       #Profile du code via PStat
       PStatClient.connect()
 
-    if general.configuration.getConfiguration("affichage", "afficheFPS","0")=="1":
+    if general.configuration.getConfiguration("affichage-general", "afficheFPS","0")=="1":
       base.setFrameRateMeter(True)
     
     #On donne des alias à certaines fonctions
@@ -165,7 +162,7 @@ class Start:
     
     #Préparation des shaders
     print " - Ajout de la projection d'ombre..."
-    eclairage = general.configuration.getConfiguration("affichage", "typeEclairage","shader")
+    eclairage = general.configuration.getConfiguration("affichage-effets", "typeEclairage","shader")
     if eclairage == "flat":
       self.hackNoShadow()
     elif eclairage == "none":
@@ -190,12 +187,6 @@ class Start:
     j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
     j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
     j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    
-    #On va faire exécuter self.ping a chaque image
-    taskMgr.add(self.ping, "BouclePrincipale")
-
-    #On lance la boucle magique de panda
-    run()
 
   def afficheStat(self):
     general.afficheStatChrono()
@@ -231,7 +222,8 @@ class Start:
     self.gereTouche()
     
     #On ping la planète
-    self.planete.ping(deltaT)
+    if self.planete!=None:
+      self.planete.ping(deltaT)
     
     #Fait tourner le soleil
     theta = task.time / math.pi * self.vitesseSoleil
@@ -244,11 +236,24 @@ class Start:
   ### Fin initialisation -----------------------------------------------
       
   ### Gestion de la planète --------------------------------------------
-  def fabriquePlanete(self):
+  def fabriquePlanete(self, fichierPlanete):
     """Construit une nouvelle planète via les gentils algos"""
     self.detruit()
     self.planete = Planete()
-    self.planete.fabriqueNouvellePlanete(tesselation=int(general.configuration.getConfiguration("generationPlanete", "tesselation", "4")), delta=float(general.configuration.getConfiguration("generationPlanete", "delta", "0.2")))
+    general.configuration.effacePlanete()
+    general.configuration.charge(fichierPlanete)
+    tesselation = int(general.configuration.getConfiguration("generation", "tesselation", "4"))
+    delta = float(general.configuration.getConfiguration("generation", "delta", "0.2"))
+    distanceSoleil = float(general.configuration.getConfiguration("univers", "distanceSoleil", "0.2"))
+    self.planete.fabriqueNouvellePlanete(tesselation=tesselation, delta=delta, distanceSoleil=distanceSoleil)
+    self.camera.reparentTo(self.planete.racine)
+    
+  def chargePlanete(self, fichierPlanete):
+    """Construit une nouvelle planète via les gentils algos"""
+    self.detruit()
+    self.planete = Planete()
+    general.configuration.effacePlanete()
+    self.planete.charge(fichier=fichierPlanete)
     self.camera.reparentTo(self.planete.racine)
     
   def detruit(self):
@@ -352,7 +357,7 @@ class Start:
       print ":)"
       
     #applique un bloom
-    if general.configuration.getConfiguration("general", "utiliseBloom","0")=="1":
+    if general.configuration.getConfiguration("affichage-effets", "utiliseBloom","0")=="1":
       from direct.filter.CommonFilters import CommonFilters
       self.filters = CommonFilters(base.win, base.cam)
       filterok = True
@@ -393,6 +398,9 @@ class Start:
   ### Gestion de la caméra ---------------------------------------------
   def positionneCamera(self):
     """Place la caméra dans l'univers"""
+    if self.planete == None:
+      return
+      
     #La position de la caméra est gérée en coordonnées sphériques
     if general.normaliseVecteurCarre(self.camera.getPos())!=self.cameraRayon*self.cameraRayon:
       coord = general.multiplieVecteur(general.normaliseVecteur(self.camera.getPos()), self.cameraRayon)
@@ -400,7 +408,7 @@ class Start:
     self.camera.setPos(coord[0], coord[1], coord[2])
     #La caméra regarde toujours le centre de la planète
     self.camera.lookAt(Point3(0,0,0), self.planete.racine.getRelativeVector(self.camera, Vec3(0,0,1)))
-    angle = self.cameraAngleSurface-self.cameraAngleSurface*(-0.5+(self.cameraRayon-1.0)/(2*float(general.configuration.getConfiguration("generationPlanete", "delta", "0.2"))))
+    angle = self.cameraAngleSurface-self.cameraAngleSurface*(-0.5+(self.cameraRayon-1.0)/(2*self.planete.delta))
     angle = max(0.0, angle)
     if base.camera != None:
       base.camera.setP(angle)
@@ -408,7 +416,7 @@ class Start:
   def zoomPlus(self):
     """Approche la caméra de la planète"""
     self.cameraRayon -= self.cameraRayon*self.cameraPasZoom
-    self.cameraRayon = max(self.cameraRayon, 1.0 + float(general.configuration.getConfiguration("generationPlanete", "delta", "0.2")) + 0.001)
+    self.cameraRayon = max(self.cameraRayon, 1.0 + self.planete.delta + 0.001)
     self.positionneCamera()
 
   def zoomMoins(self):
@@ -626,74 +634,74 @@ def deb():
   start = Start()
   #Construction de la planète
   print " - Création d'une nouvelle planète..."
-  start.fabriquePlanete()
+  #start.fabriquePlanete()
   print " - Création d'une nouvelle planète terminée"
   #Lancement du jeu
   print "Initialisation terminée"
   print "Lancement..."
-  start.start()
+#  start.start()
+  #On va faire exécuter self.ping a chaque image
+  taskMgr.add(start.ping, "BouclePrincipale")
 
+  #On lance la boucle magique de panda
+  run()
 
-fichierConfig = None
-profile = False
-besoinDetails = False
-for o, a in opts:
-  if o in ("-h", "--help"):
-    aideCommande()
-    sys.exit()
-  elif o in ("-c", "--config"):
-    fichierConfig = a
-  elif o =="-b":
-    getBug(False)
-    raw_input()
-  elif o =="--bug":
-    getBug(True)
-    raw_input()
-  elif o in ("-p", "--profiler"):
-    try:
-      import cProfile
-      profile = True
-    except:
-      pass
+if __name__=="__main__":
+
+  fichierConfig = None
+  profile = False
+  besoinDetails = False
+  for o, a in opts:
+    if o in ("-h", "--help"):
+      aideCommande()
+      sys.exit()
+    elif o in ("-c", "--config"):
+      fichierConfig = a
+    elif o =="-b":
+      getBug(False)
+      raw_input()
+    elif o =="--bug":
+      getBug(True)
+      raw_input()
+    elif o in ("-p", "--profiler"):
+      try:
+        import cProfile
+        profile = True
+      except:
+        pass
+    else:
+      assert False, "Paramètre inconnu"
+      
+
+  general.configuration = Configuration()
+  general.configuration.charge(os.path.join(".","configuration","affichage.cfg"))
+  general.configuration.charge(os.path.join(".","configuration","commandes.cfg"))
+  general.configuration.charge(os.path.join(".","configuration","debug.cfg"))
+  general.configuration.charge(os.path.join(".","configuration","planete.cfg"))
+  general.configuration.charge(os.path.join(".","configuration","sprites.cfg"))
+
+  from pandac.PandaModules import *
+
+  #Change le titre de la fenêtre
+  loadPrcFileData("",u"window-title Planète".encode("iso8859"))
+  #loadPrcFileData("","hardware-point-sprites 0")
+  #Change la résolution de la fenêtre
+  resolution = general.configuration.getConfiguration("affichage-general", "resolution","640 480")
+  if resolution == "0 0":
+    print "Avertissement :: resolution de 0, démarrage sans fenêtre"
+    loadPrcFileData("",u"window-type none")
   else:
-    assert False, "Paramètre inconnu"
-    
-if fichierConfig==None:
-  fichierConfig="config.cfg"
-fichierConfigDefaut = os.path.join(".","data","configuration","config-defaut.cfg")
+    loadPrcFileData("",u"win-size "+resolution)
+  #Kicke la synchro avec VSynch pour pouvoir dépasser les 60 FPS
+  loadPrcFileData("",u"sync-video #f")
 
-#On charge le fichier de config
-general.configuration = Configuration()
-if not os.path.exists(fichierConfig):
-  print "Fichier de configuration",fichierConfig,"non trouvé, création d'un nouveau."
-  shutil.copy(fichierConfigDefaut, fichierConfig)
-general.configuration.charge(fichierConfig)
+  import direct.directbase.DirectStart
+  from direct.task import Task
 
-general.configurationSprite = Configuration()
-general.configurationSprite.charge(os.path.join(".","data","configuration","sprites.cfg"))
+  if base.camLens!=None:
+    base.camLens.setNear(0.001)
 
-from pandac.PandaModules import *
-
-#Change le titre de la fenêtre
-loadPrcFileData("",u"window-title Planète".encode("iso8859"))
-#loadPrcFileData("","hardware-point-sprites 0")
-#Change la résolution de la fenêtre
-resolution = general.configuration.getConfiguration("affichage", "resolution","640 480")
-if resolution == "0 0":
-  print "Avertissement :: resolution de 0, démarrage sans fenêtre"
-  loadPrcFileData("",u"window-type none")
-else:
-  loadPrcFileData("",u"win-size "+resolution)
-#Kicke la synchro avec VSynch pour pouvoir dépasser les 60 FPS
-loadPrcFileData("",u"sync-video #f")
-
-import direct.directbase.DirectStart
-from direct.task import Task
-
-if base.camLens!=None:
-  base.camLens.setNear(0.001)
-
-if not profile:
-  deb()
-else:
-  cProfile.run('deb()', 'profiler.log')
+  if not profile:
+    deb()
+  else:
+    cProfile.run('deb()', 'profiler.log')

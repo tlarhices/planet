@@ -402,7 +402,7 @@ class Nuage(Sprite):
     dx, dy, dz = 1.2,1.2,1.2
     fact = general.normeVecteur((dx, dy, dz))
         
-    distanceSoleil = float(general.configuration.getConfiguration("generationPlanete", "distanceSoleil","10.0"))
+    distanceSoleil = self.planete.distanceSoleil
         
     #Place le "centre" du nuage
     self.modele = NodePath("nuage")#NodePath(FadeLODNode('nuage'))

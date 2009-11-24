@@ -1,0 +1,10 @@
+Generation:
+tesselation = 4
+delta = 0.3
+
+MAJ:
+duree-optimisation = 3.0
+
+Univers:
+distanceSoleil = 20.0
+vitesseSoleil = 0.1

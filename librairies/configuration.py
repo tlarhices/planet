@@ -21,6 +21,13 @@ class Configuration:
   def charge(self, fichier):
     """Charge un fichier de configuration"""
     section = None
+    prefixe = fichier.split("/")[-1].split("\\")[-1][:-4]
+    
+    if not os.path.exists(fichier):
+      print "CONFIGURATION :: ERREUR :"
+      raw_input("Le fichier de configuration '"+fichier+"' n'existe pas.")
+      return
+    
     self.fichierConfig = fichier
     fichier = open(fichier, "r")
     for ligne in fichier:
@@ -35,9 +42,9 @@ class Configuration:
             a,b = ligne.split("=")
             a = a.strip()
             b = b.strip()
-            if not section in self.configuration.keys():
-              self.configuration[section]={}
-            self.configuration[section][a]=b
+            if not prefixe+"-"+section in self.configuration.keys():
+              self.configuration[prefixe+"-"+section]={}
+            self.configuration[prefixe+"-"+section][a]=b
     
   def sauve(self, fichier):
     """Sauvegarde un fichier de configuration (ne garde pas les commentaires)"""
@@ -50,13 +57,18 @@ class Configuration:
     
   def getConfigurationClavier(self):
     """Retourne la configuration du clavier"""
-    return self.configuration["clavier"]
+    out = {}
+    for clef in self.configuration["commandes-clavier"]:
+      out[clef]=self.configuration["commandes-clavier"][clef]
+    for clef in self.configuration["commandes-souris"]:
+      out[clef]=self.configuration["commandes-souris"][clef]
+    return out
     
   def getConfigurationSprite(self):
     liste=[]
     noms = []
     for section in self.configuration.keys():
-      if section.startswith("sprite-"):
+      if section.startswith("sprites-"):
         if self.getConfiguration(section, "constructible", "0")=="1":
           nom = self.getConfiguration(section, "nom", section[7:])
           if nom not in noms:
@@ -70,16 +82,30 @@ class Configuration:
           liste2.append(element)
     return liste2
     
+  def effacePlanete(self):
+    return
+    for clef in self.configuration.keys()[:]:
+      del self.configuration[clef]
+    
   def getConfiguration(self, section, champ, defaut):
     """Retourne une valeur de configuration"""
     section=str(section).lower()
     champ=str(champ).lower()
     
+    sect = section
+    for sectionDico in self.configuration.keys():
+      if "-".join(sectionDico.split("-")[1:])==section:
+        sect=sectionDico
+    section = sect
     if section not in self.configuration.keys():
+      print self.configuration.keys()
       print "Section pas dans le fichier de configuration",section
+      raw_input("---")
       return defaut
     if champ not in self.configuration[section].keys():
       print "Section::champ pas dans le fichier de configuration",section,champ
+      raw_input("---")
       return defaut
+      
       
     return self.configuration[section][champ]

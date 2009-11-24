@@ -58,8 +58,8 @@ class Joueur:
     position : sa position sur le terrain
     type : le type de sprite à créer
     """
-    modele=general.configurationSprite.getConfiguration("sprite-"+type.strip().lower(), "modele",None)
-    symbole=general.configurationSprite.getConfiguration("sprite-"+type.strip().lower(), "symbole",None)
+    modele=general.configuration.getConfiguration("sprites-"+type.strip().lower(), "modele",None)
+    symbole=general.configuration.getConfiguration("sprites-"+type.strip().lower(), "symbole",None)
     
     if modele==None or symbole==None:
       print "Joueur::ajouteSprite - type inconnu", type

@@ -10,6 +10,7 @@ from treegui.components import Form,Widget,ScrollPane
 from treegui.widgets import *
 from treegui.core import Gui
 import rtheme
+import os
 
 class Gauche(Form):
   """Contient la liste des unitées que l'on peut construire"""
@@ -27,12 +28,12 @@ class Gauche(Form):
     self.gui=gui
     Form.__init__(self)
     #On met un titre au menu
-    self.add(Label("Unitées :".decode("utf-8"), x=3, y = 0))
+    self.add(Label(u"Unitées :", x=3, y = 0))
     
     #On place les boutons d'achat de gugusse
     self.boutons = []
     i=1
-    liste=general.configurationSprite.getConfigurationSprite()
+    liste=general.configuration.getConfigurationSprite()
     for elem in liste:
       check = self.add(PictureRadio(elem[3], elem[4], elem[0].capitalize(), x=3, y = 17*i))
       check.callback = self.clic
@@ -244,33 +245,101 @@ class Bas(Form):
     
 class Chargement(Form):
   """
-  Cadre qui contient les élément de la barre du bas
-  s'il n'y a pas de joueur la structure est ainsi :
-  [[zone de textes informatifs]]
-  s'il y a un joueur :
-  [[détails du joueur][zone de textes informatifs]]
+  Bandeau qui dit "chargement..."
   """
   style = "default"
   
   def __init__(self):
     Form.__init__(self)
     
-    self.lable = self.add(Label("Chargement en cours...", x="left", y="4px"))
+    self.label = self.add(Label("Chargement en cours...", x="left", y="4px"))
     
     #On positionne la Form
     self.x = "center" 
     self.y = "center" 
     self.width = "80%"
     self.height = "20px"
-
+    
+class EcranTitre(Form):
+  """Le menu principal"""
+  style = "default"
+  
+  def __init__(self, gui):
+    Form.__init__(self)
+    self.gui = gui
+    self.label = self.add(Label(u"Vertes & plaisantes contrées", x="left", y="4px"))
+    
+    #On positionne la Form
+    self.x = "center" 
+    self.y = "center" 
+    self.width = "80%"
+    self.height = "20px"
+    taskMgr.doMethodLater(2.0, self.gui.effaceEcranTitre, 'effaceEcranTitre')
+    
+class MenuPrincipal(Form):
+  """Le menu principal"""
+  style = "default"
+  
+  def __init__(self, gui):
+    Form.__init__(self)
+    self.gui = gui
+    
+    self.label = self.add(Button(u"Nouvelle planète", self.gui.nouvellePlanete, x="center", y="4px", width="190px"))
+    self.label = self.add(Button(u"Utiliser un planète vierge", self.gui.planeteVierge, x="center", y="34px", width="190px"))
+    self.label = self.add(Button(u"Charger une partie", self.gui.chargerPartie, x="center", y="64px", width="190px"))
+    
+    #On positionne la Form
+    self.x = "center" 
+    self.y = "center" 
+    self.width = "80%"
+    self.height = "88px"
+    
 class Interface:
   joueur = None
-  def __init__(self):
+  def __init__(self, start):
     #Fabrique le GUI de base
+    self.start = start
     self.gui = Gui(theme = rtheme.RTheme())
+    #On affiche l'écran de titre
+    self.titre = self.gui.add(EcranTitre(self))
+    
+  def effaceEcranTitre(self, task):
+    #Supprime l'écran de titre, charge le menu principal
+    if self.titre != None:
+      self.gui.remove(self.titre)
+      self.titre = None
+      self.menuPrincipal = self.gui.add(MenuPrincipal(self))
+    return task.done
+      
+  def nouvellePlanete(self):
+    #Construit une nouvelle planète aléatoirement
+    self.gui.remove(self.menuPrincipal)
+    self.menuPrincipal = None
+    self.makeMain()
+    self.start.fabriquePlanete(os.path.join(".", "configuration", "planete.cfg"))
+    self.start.start()
+    
+  def makeMain(self):
+    #Construit les éléments principaux de l'interface
     self.bas = Bas(self)
     self.gui.add(self.bas)
     self.chargement = self.gui.add(Chargement())
+    
+  def planeteVierge(self):
+    #Charge un prototype de planète pré-construit
+    self.gui.remove(self.menuPrincipal)
+    self.menuPrincipal = None
+    self.makeMain()
+    self.start.chargePlanete(os.path.join(".", "data", "planetes", "1.pln"))
+    self.start.start()
+    
+  def chargerPartie(self):
+    #Charge une partie en cours
+    self.gui.remove(self.menuPrincipal)
+    self.menuPrincipal = None
+    self.makeMain()
+    self.start.chargePlanete(os.path.join(".", "sauvegardes", "1.pln"))
+    self.start.start()
     
   def ajouteJoueur(self, joueur):
     """Indique qu'on passe du mode chargement au mode joueur"""

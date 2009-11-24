@@ -103,7 +103,7 @@ class Planete:
     general.gui.afficheTexte(texte, None, True)
     
   # Constructions géométriques -----------------------------------------
-  def fabriqueNouvellePlanete(self, tesselation, delta):
+  def fabriqueNouvellePlanete(self, tesselation, delta, distanceSoleil):
     """
     Construit une nouvelle planète :
     tesselation : Le nombre de subdivision que l'on souhaite faire
@@ -121,6 +121,8 @@ class Planete:
     #Permet d'être sûr que ce sont bien des valeurs valides
     self.delta = float(delta)
     self.tesselation = int(tesselation)
+    self.distanceSoleil = distanceSoleil
+    
     #On regarde si on a pas déjà calculé une sphère a ce niveau de tesselation
     if os.path.isfile(os.path.join(".","data","pre-tesselate",str(tesselation))):
       #On charge la sphere pre-tesselée
@@ -396,7 +398,7 @@ class Planete:
     azure.reparentTo(self.modeleCiel)
 
     #Fabrique une lumière ambiante pour que la nuit soit moins noire
-    if general.configuration.getConfiguration("affichage", "typeEclairage","shader")!="none":
+    if general.configuration.getConfiguration("affichage-Effets", "typeEclairage","shader")!="none":
       alight = AmbientLight('alight')
       alight.setColor(VBase4(0.2, 0.2, 0.275, 1))
       alnp = render.attachNewNode(alight)
@@ -422,7 +424,7 @@ class Planete:
     #etoiles.setTexGen(TextureStage.getDefault(), TexGenAttrib.MEyeSphereMap)
     etoiles.setTexture(tex, 1)
     etoiles.setTwoSided(False)
-    etoiles.setScale((float(general.configuration.getConfiguration("generationPlanete", "distanceSoleil","10.0"))*3.0/2.0))
+    etoiles.setScale(self.distanceSoleil*3.0/2.0)
     etoiles.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullCounterClockwise))
     etoiles.reparentTo(self.modeleCiel)    
     etoiles.setLightOff()
@@ -536,7 +538,7 @@ class Planete:
     """Fonction appelée a chaque image, temps indique le temps écoulé depuis l'image précédente"""
     
     #Regarde s'il faut optimiser le modèle 3D, passe au minimum (apr défaut) 3 secondes après la dernière modification du modèle
-    dureeOptimise = float(general.configuration.getConfiguration("generationPlanete","duree-optimisation",3.0))
+    dureeOptimise = float(general.configuration.getConfiguration("Planete-MAJ","duree-optimisation",3.0))
     for element in self.elements:
       if element.besoinOptimise:
         element.pileOptimise+=temps
