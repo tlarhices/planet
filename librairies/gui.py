@@ -131,10 +131,16 @@ class EnJeu(MenuCirculaire):
     
     liste=general.configuration.getConfigurationSprite()
     for elem in liste:
-      paneau = self.ajouteGauche(Pane(width=90))
-      check = paneau.add(PictureRadio(elem[3], elem[4], elem[0].capitalize()))
+      #paneau = self.ajouteGauche(Pane(width=90))
+      #check = paneau.add(PictureRadio(elem[3], elem[4], elem[0].capitalize()))
+      check = self.ajouteGauche(PictureRadio(elem[3], elem[4], elem[0].capitalize(), width=90))
+      check.style = "DEFAULT"
+      
       if elem[0].lower==self.select:
-        check.style = "CHECKON"
+        check.icon = check.picOn
+        check.value=True
+      else:
+        check.icon = check.picOff
         check.value=True
       check.callback = self.clic
     
