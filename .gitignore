@@ -1,3 +1,4 @@
 *.pyc
 test-*-*-*-*.jpg
 RTheme.atlas.*
+data/cache/*

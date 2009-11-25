@@ -658,6 +658,7 @@ if __name__=="__main__":
 
   #Change le titre de la fenêtre
   loadPrcFileData("",u"window-title Planète".encode("iso8859"))
+  loadPrcFileData("","model-cache-dir ./data/cache/")
   #loadPrcFileData("","hardware-point-sprites 0")
   #Change la résolution de la fenêtre
   resolution = general.configuration.getConfiguration("affichage-general", "resolution","640 480")
