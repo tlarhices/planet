@@ -125,7 +125,7 @@ class Start:
     #Place la caméra à sa position
     self.camera.setPos(self.cameraRayon,0,0)
     self.positionneCamera(render)
-    
+    raw_input("nouvsphe")
     #Place une sphère à la place de la planète pendant la construction
     self.tmp = loader.loadModel("data/modeles/sphere.egg")
     self.tmp.reparentTo(render)
@@ -411,9 +411,12 @@ class Start:
   ### Gestion de la caméra ---------------------------------------------
   def positionneCamera(self, racine=None):
     """Place la caméra dans l'univers"""
-    
+    #raw_input("positionne "+str(racine))
     if self.planete == None:
-      return
+      racine = render
+      delta = 0.1
+    else:
+      delta = self.planete.delta
       
     if racine == None:
       racine = self.planete.racine
@@ -427,7 +430,7 @@ class Start:
     
     #La caméra regarde toujours le centre de la planète
     self.camera.lookAt(Point3(0,0,0), racine.getRelativeVector(self.camera, Vec3(0,0,1)))
-    angle = self.cameraAngleSurface-self.cameraAngleSurface*(-0.5+(self.cameraRayon-1.0)/(2*self.planete.delta))
+    angle = self.cameraAngleSurface-self.cameraAngleSurface*(-0.5+(self.cameraRayon-1.0)/(2*delta))
     angle = max(0.0, angle)
     base.camera.setP(angle)
 
