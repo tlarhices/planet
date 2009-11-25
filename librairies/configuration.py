@@ -114,12 +114,10 @@ class Configuration:
     section = sect
     if section not in self.configuration.keys():
       print self.configuration.keys()
-      print "Section pas dans le fichier de configuration",section
-      raw_input("---")
+      print "Section pas dans le fichier de configuration ::",section
       return defaut
     if champ not in self.configuration[section].keys():
-      print "Section::champ pas dans le fichier de configuration",section,champ
-      raw_input("---")
+      print "Section::champ pas dans le fichier de configuration ::",section,champ
       return defaut
       
       

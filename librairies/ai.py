@@ -11,6 +11,8 @@ import math
 import random
 import sys
 
+from pandac.PandaModules import *
+
 class AINavigation:
   #Classe qui gère la navigation sur la surface de la planète
   graph = None #Le graph de navigation
@@ -33,8 +35,23 @@ class AINavigation:
     #On ne peut pas passer sous l'eau
     if general.normeVecteur(self.planete.sommets[idxSommet2]) < self.planete.niveauEau or general.normeVecteur(self.planete.sommets[idxSommet1]) < self.planete.niveauEau:
       cout = self.maxcout
+      
+    #if cout==self.maxcout:
+    #  render.attachNewNode(self.dessineLigne((1.0, 0.0, 0.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
+    #else:
+    #  render.attachNewNode(self.dessineLigne((0.0, 1.0, 0.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
+      
     general.stopChrono("AINavigation::coutPassage")
     return cout
+    
+  def dessineLigne(self, couleur, depart, arrivee):
+    """Dessine une ligne de depart vers arrivée et ne fait pas de doublons"""
+    ls = LineSegs()
+    ls.setColor(*couleur)
+    ls.setThickness(1.0)
+    ls.moveTo(*depart)
+    ls.drawTo(*arrivee)
+    return ls.create()
     
   def grapheDeplacement(self):
     """

@@ -18,16 +18,40 @@ HAUTEUR_BOUTON = 28
 HAUTEUR_CHECK = 15
 HAUTEUR_TEXTE = 15
 TAILLE_ICONE = 15
+TEMPS_ICONE = 3
 
 class MenuCirculaire():
   boutons = None
   retour = None
   besoinRetour = None
+  angleOuverture = None
+  
+  animation = None
+  exit = None
+  exiting = None
+  
+  lastDraw = None
   
   def __init__(self, gui):
     self.gui = gui
     self.purge()
     self.besoinRetour = True
+    self.angleOuverture = 120.0
+    self.animation = 120.0
+    self.exiting = False
+    
+    self.lastDraw = None
+    
+    self.status = {}
+    self.status["combat"] = 0
+    self.status["ennemi"] = 0
+    self.status["nuit"] = 0
+    self.status["besoin_ressource"] = 0
+    self.status["besoin_espace"] = 0
+    self.status["mort"] = 0
+    
+  def mort(self):
+    self.status["mort"] = TEMPS_ICONE
     
   def purge(self):
     self.boutons = [[],[]]
@@ -71,19 +95,21 @@ class MenuCirculaire():
     nbBoutonsG = len(bg)
     nbBoutonsD = len(bd)
     
-    coords = self.cercle((base.win.getXSize()/2,base.win.getYSize()/2), base.win.getYSize()/2 - HAUTEUR_BOUTON, 120.0, nbBoutonsG, nbBoutonsD)
+    coords = self.cercle((base.win.getXSize()/2,base.win.getYSize()/2), min(base.win.getXSize()/2 - 190, base.win.getYSize()/2 - HAUTEUR_BOUTON), self.angleOuverture-abs(self.animation), nbBoutonsG, nbBoutonsD)
     i=0
     for i in range(0, max(nbBoutonsG, nbBoutonsD)):
       if i<len(bg):
         bouton = bg[i]
         x, y = coords[0][i]
-        bouton.doPlacement({"x":x-bouton.width, "y":y})
+        bouton.width = 190
+        bouton.doPlacement({"x":x-bouton.width, "y":y, "width":bouton.width})
         self.gui.gui.add(bouton)
       
       if i<len(bd):
         bouton = bd[i]
         x, y = coords[1][i]
-        bouton.doPlacement({"x":x, "y":y})
+        bouton.width = 190
+        bouton.doPlacement({"x":x, "y":y, "width":bouton.width})
         self.gui.gui.add(bouton)
       i+=1
       
@@ -96,13 +122,37 @@ class MenuCirculaire():
   def back(self):
     self.gui.changeMenuVers(MenuPrincipal)
     
-  def MAJ(self):
-    tmp = self.boutons[:]
-    self.efface()
-    self.boutons = tmp
-    self.fabrique()
+  def MAJ(self, temps):
+    if self.lastDraw == None:
+      self.lastDraw = temps
+      
+    tps = temps - self.lastDraw
+    self.lastDraw = temps
     
-  def efface(self):
+    tmp = self.boutons[:]
+    if self.exit!=None:
+      self.animation += tps * 75
+    else:
+      self.animation -= tps * 75
+      
+    if self.animation<0:
+      self.animation=0.0
+
+    if self.clear():
+      self.boutons = tmp
+      self.fabrique()
+    
+  def efface(self, cible):
+    self.exiting = True
+    self.exit = cible
+    if cible==None:
+      self.animation = 120.0
+      self.clear()
+
+  def clear(self):
+    if self.animation>120.0:
+      self.animation = 120.0
+    
     for bouton in self.boutons[0]:
       self.gui.remove(bouton)
     for bouton in self.boutons[1]:
@@ -113,6 +163,14 @@ class MenuCirculaire():
       
     self.boutons = [[],[]]
     self.retour = None
+
+    if self.animation==120.0 and self.exiting:
+      if self.exit == None:
+        self.gui.menuCourant = None
+      else:
+        self.gui.menuCourant = self.exit(self.gui)
+      return False
+    return True
       
   def retour(self):
     self.gui.changeMenuVers(MenuPrincipal)
@@ -124,6 +182,7 @@ class EnJeu(MenuCirculaire):
   def __init__(self, gui):
     MenuCirculaire.__init__(self, gui)
     self.besoinRetour = False
+    self.angleOuverture = 80.0
     self.fabrique()
     
   def fabrique(self):
@@ -133,7 +192,7 @@ class EnJeu(MenuCirculaire):
     for elem in liste:
       #paneau = self.ajouteGauche(Pane(width=90))
       #check = paneau.add(PictureRadio(elem[3], elem[4], elem[0].capitalize()))
-      check = self.ajouteGauche(PictureRadio(elem[3], elem[4], elem[0].capitalize(), width=90))
+      check = self.ajouteGauche(PictureRadio(elem[3], elem[4], elem[0].capitalize(), width=20))
       check.style = "DEFAULT"
       
       if elem[0].lower==self.select:
@@ -143,8 +202,36 @@ class EnJeu(MenuCirculaire):
         check.icon = check.picOff
         check.value=True
       check.callback = self.clic
-    
+    check = self.ajouteDroite(Icon("rtheme/twotone/focus.png"))
+    if self.status["combat"]<=0:
+      check.visable=False
+    check = self.ajouteDroite(Icon("rtheme/twotone/enemy.png"))
+    if self.status["ennemi"]<=0:
+      check.visable=False
+    check = self.ajouteDroite(Icon("rtheme/twotone/bulb.png"))
+    if self.status["nuit"]<=0:
+      check.visable=False
+    check = self.ajouteDroite(Icon("rtheme/twotone/statusbar.png"))
+    if self.status["besoin_ressource"]<=0:
+      check.visable=False
+    check = self.ajouteDroite(Icon("rtheme/twotone/cart.png"))
+    if self.status["besoin_espace"]<=0:
+      check.visable=False
+    check = self.ajouteDroite(Icon("rtheme/twotone/skull.png"))
+    if self.status["mort"]<=0:
+      check.visable=False
+
     MenuCirculaire.fabrique(self)
+ 
+  def MAJ(self, temps):
+    if self.lastDraw == None:
+      self.lastDraw = temps
+      
+    tps = temps - self.lastDraw
+        
+    for clef in self.status.keys():
+      self.status[clef] = max(0.0, self.status[clef]-tps)
+    MenuCirculaire.MAJ(self, temps)
     
   def clic(self, bouton, etat):
     """
@@ -520,16 +607,16 @@ class Interface:
     
   def ping(self, task):
     if self.menuCourant!=None:
-      self.menuCourant.MAJ()
+      self.menuCourant.MAJ(task.time)
     return task.cont
     
   def changeMenuVers(self, classe):
     if self.menuCourant != None:
-      self.menuCourant.efface()
-      if classe != None:
-        self.menuCourant = classe(self)
-      else:
-        self.menuCourant = None
+      self.menuCourant.efface(classe)
+      #if classe != None:
+      #  self.menuCourant = classe(self)
+      #else:
+      #  self.menuCourant = None
       
   def effaceEcranTitre(self, task):
     #Supprime l'écran de titre, charge le menu principal

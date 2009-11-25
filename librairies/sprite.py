@@ -106,10 +106,12 @@ class Sprite:
   
   def testeSol(self):
     """Regarde l'angle entre la normale de la face et le sprite qui s'y tient"""
-    sp = general.normaliseVecteur(self.position)
-    fc = self.planete.trouveFace(self.position).calculNormale()
-    dp = sp[0]*fc[0]+sp[1]*fc[1]+sp[2]*fc[2]
-    angle = math.acos(dp)/math.pi*180
+    sp = Vec3(*general.normaliseVecteur(self.position))
+    fc = Vec3(*self.planete.trouveFace(self.position).calculNormale())
+    angle = sp.angleDeg(fc)
+    if angle > 60:
+      print angle
+      self.position = self.position[0]+fc.getX()*0.001, self.position[1]+fc.getY()*0.001, self.position[2]+fc.getZ()*0.001
     
   def appliqueGravite(self, temps):
     """Fait tomber les objets sur le sol"""
