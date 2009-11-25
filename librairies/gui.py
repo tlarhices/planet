@@ -6,11 +6,17 @@ import sys
 import general
 
 import treegui
-from treegui.components import Form,Widget,ScrollPane, Pane
+from treegui.components import *
 from treegui.widgets import *
 from treegui.core import Gui
 import rtheme
 import os
+
+PAD = 4
+HAUTEUR_BOUTON = 28
+HAUTEUR_CHECK = 15
+HAUTEUR_TEXTE = 15
+TAILLE_ICONE = 15
 
 class Gauche(Form):
   """Contient la liste des unitées que l'on peut construire"""
@@ -26,19 +32,17 @@ class Gauche(Form):
   
   def __init__(self, gui):
     self.gui=gui
-    Form.__init__(self)
-    #On met un titre au menu
-    self.add(Label(u"Unitées :", x=3, y = 0))
+    Form.__init__(self, u"Unitées")
     
     #On place les boutons d'achat de gugusse
     self.boutons = []
-    i=1
+    i=PAD+HAUTEUR_BOUTON
     liste=general.configuration.getConfigurationSprite()
     for elem in liste:
-      check = self.add(PictureRadio(elem[3], elem[4], elem[0].capitalize(), x=3, y = 17*i))
+      check = self.add(PictureRadio(elem[3], elem[4], elem[0].capitalize(), x=3, y = i))
       check.callback = self.clic
       self.boutons.append(check)
-      i+=1
+      i+=HAUTEUR_CHECK
     
     #On positionne la Form
     self.x = "left" 
@@ -46,45 +50,17 @@ class Gauche(Form):
     self.width = "110px"
     self.height = "80%"
         
-class Droite(Form):
-  """Contrôles de la caméra"""
-  style = "default"
-
-  def __init__(self, gui):
-    self.gui=gui
-    Form.__init__(self)
-    
-    self.plus = self.add(Icon("rtheme/twotone/zoom-in.png", x="left", y=0))
-    self.plus.onClick = general.zoomPlus
-    self.moins = self.add(Icon("rtheme/twotone/zoom-out.png", x="right", y=0))
-    self.plus.onClick = general.zoomMoins
-    self.haut = self.add(Icon("rtheme/twotone/arrow-up.png", x="center", y=20))
-    self.plus.onClick = general.deplaceHaut
-    self.gauche = self.add(Icon("rtheme/twotone/arrow-left.png", x="left", y=37))
-    self.plus.onClick = general.deplaceGauche
-    self.droite = self.add(Icon("rtheme/twotone/arrow-right.png", x="right", y=37))
-    self.plus.onClick = general.deplaceDroite
-    self.bas = self.add(Icon("rtheme/twotone/arrow-down.png", x="center", y=54))
-    self.plus.onClick = general.deplaceBas
-    
-    #On positionne la Form
-    self.x = "right" 
-    self.y = "34px" 
-    self.width = "54px"
-    self.height = "105px"
-
-class BasGauche(Form):
+class BasGauche(Pane):
   """Informations sur le joueur"""
   style = "default"
   
   def __init__(self, gui):
     self.gui = gui
-    Form.__init__(self)
+    Pane.__init__(self)
     
-    #Nom du joueur
-    self.haut = self.add(Label(self.gui.joueur.nom, y="top"))
+    self.haut = self.add(Label(self.gui.joueur.nom, y=0))
     #Statistiques
-    self.bas = self.add(Label("bois : 0\r\nbouffe : 0", y="center"))
+    self.bas = self.add(Label("bois : 0\r\nbouffe : 0", y=HAUTEUR_TEXTE+PAD/2))
     
     #On positionne la Form
     self.x = "left" 
@@ -92,7 +68,7 @@ class BasGauche(Form):
     self.width = "80px"
     self.height = "100%"
 
-class BasDroite(Form):
+class BasDroite(Pane):
   """Boite de message"""
   style = "default"
   lignes = None
@@ -100,22 +76,26 @@ class BasDroite(Form):
   
   def __init__(self, gui):
     self.gui = gui
-    Form.__init__(self)
+    Pane.__init__(self)
     self.lignes = []
     self.position = 0
     
+    y=0
     #On garde 6 lignes de texte
-    self.l1 = self.add(Label("", x=20, y=0)) #Texte
-    self.i1 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=0)) #Icone
+    self.l1 = self.add(Label("", x=0, y=0)) #Texte
+    self.i1 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=y)) #Icone
     self.i1.visable = False #On cache l'icone
-    self.l2 = self.add(Label("", x=20, y=15))
-    self.i2 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=15))
+    y+=HAUTEUR_TEXTE
+    self.l2 = self.add(Label("", x=20, y=y))
+    self.i2 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=y))
     self.i2.visable = False
-    self.l3 = self.add(Label("", x=20, y=30))
-    self.i3 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=30))
+    y+=HAUTEUR_TEXTE
+    self.l3 = self.add(Label("", x=20, y=y))
+    self.i3 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=y))
     self.i3.visable = False
-    self.l4 = self.add(Label("", x=20, y=45))
-    self.i4 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=45))
+    y+=HAUTEUR_TEXTE
+    self.l4 = self.add(Label("", x=20, y=y))
+    self.i4 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=y))
     self.i4.visable = False
     
     #Bare de défilement
@@ -123,7 +103,7 @@ class BasDroite(Form):
     self.plus.onClick = self.logHaut
     self.plus = self.add(Icon("rtheme/twotone/arrow-down.png", x="left", y="bottom"))
     self.plus.onClick = self.logBas
-    self.curseur = self.add(Icon("rtheme/twotone/blank.png", x="left", y=15))
+    self.curseur = self.add(Icon("rtheme/twotone/blank.png", x="left", y=HAUTEUR_TEXTE))
     
     #On positionne la Form
     self.x = "left" 
@@ -163,10 +143,11 @@ class BasDroite(Form):
     
     #On calcule la position du curseur de la barre de défilement
     prct = float(self.position)/float(len(self.lignes))*10
-    self.curseur.y = 15 + int(prct)
+    self.curseur.y = HAUTEUR_TEXTE + int(prct)
     
     if len(lignes) >= 1:
       self.MAJObjet(self.i1, self.l1, lignes[0][0], lignes[0][1])
+      print self.l1.getSize()
     else:
       self.MAJObjet(self.i1, self.l1, None, None)
       
@@ -221,7 +202,7 @@ class BasDroite(Form):
       objeti.visable = False
       objett.text = ""
       
-class Bas(Form):
+class Bas(Pane):
   """
   Cadre qui contient les élément de la barre du bas
   s'il n'y a pas de joueur la structure est ainsi :
@@ -233,7 +214,7 @@ class Bas(Form):
   
   def __init__(self, gui):
     self.gui = gui
-    Form.__init__(self)
+    Pane.__init__(self)
     
     self.droite = self.add(BasDroite(gui))
     
@@ -243,16 +224,16 @@ class Bas(Form):
     self.width = "80%"
     self.height = "60px"
     
-class Chargement(Form):
+class Chargement(Pane):
   """
   Bandeau qui dit "chargement..."
   """
   style = "default"
   
   def __init__(self):
-    Form.__init__(self)
+    Pane.__init__(self)
     
-    self.label = self.add(Label("Chargement en cours...", x="left", y="4px"))
+    self.label = self.add(Label("Chargement en cours...", x="left", y=PAD))
     
     #On positionne la Form
     self.x = "center" 
@@ -260,14 +241,14 @@ class Chargement(Form):
     self.width = "80%"
     self.height = "20px"
     
-class EcranTitre(Form):
+class EcranTitre(Pane):
   """Le menu principal"""
   style = "default"
   
   def __init__(self, gui):
-    Form.__init__(self)
+    Pane.__init__(self)
     self.gui = gui
-    self.label = self.add(Label(u"Vertes & plaisantes contrées", x="left", y="4px"))
+    self.label = self.add(Label(u"Vertes & plaisantes contrées", x="left", y=PAD))
     
     #On positionne la Form
     self.x = "center" 
@@ -281,35 +262,41 @@ class MenuPrincipal(Form):
   style = "default"
   
   def __init__(self, gui):
-    Form.__init__(self)
+    Form.__init__(self, "Menu principal")
     self.gui = gui
     
-    self.boutonNouveau = self.add(Button(u"Nouvelle planète", self.gui.nouvellePlanete, x="center", y="4px", width="190px"))
+    y=PAD + HAUTEUR_BOUTON
+    self.boutonNouveau = self.add(Button(u"Nouvelle planète", self.gui.nouvellePlanete, x="center", y=y, width="190px"))
+    
+    y+=PAD/2 + HAUTEUR_BOUTON
     cpt = 0
     for fich in os.listdir(os.path.join(".", "data", "planetes")):
       if fich.endswith(".pln"):
         cpt+=1
     if cpt==0:
-      self.boutonVierge = self.add(Label(u"Utiliser un planète vierge", x="center", y="34px", width="190px"))
+      self.boutonVierge = self.add(Label(u"Utiliser un planète vierge", x="center", y=y, width="190px"))
     else:
-      self.boutonVierge = self.add(Button(u"Utiliser un planète vierge", self.gui.planeteVierge, x="center", y="34px", width="190px"))
+      self.boutonVierge = self.add(Button(u"Utiliser un planète vierge", self.gui.planeteVierge, x="center", y=y, width="190px"))
     
+    y+=PAD/2 + HAUTEUR_BOUTON
     cpt = 0
     for fich in os.listdir(os.path.join(".", "sauvegardes")):
       if fich.endswith(".pln"):
         cpt+=1
     if cpt==0:
-      self.boutonCharger = self.add(Label(u"Charger une partie", x="center", y="64px", width="190px"))
+      self.boutonCharger = self.add(Label(u"Charger une partie", x="center", y=y, width="190px"))
     else:
-      self.boutonCharger = self.add(Button(u"Charger une partie", self.gui.chargerPartie, x="center", y="64px", width="190px"))
+      self.boutonCharger = self.add(Button(u"Charger une partie", self.gui.chargerPartie, x="center", y=y, width="190px"))
 
-    self.boutonNouveau = self.add(Button(u"Configuration", self.gui.configurer, x="center", y="94px", width="190px"))
+    y+=PAD/2 + HAUTEUR_BOUTON
+    self.boutonNouveau = self.add(Button(u"Configuration", self.gui.configurer, x="center", y=y, width="190px"))
     
+    y+=PAD/2 + HAUTEUR_BOUTON
     #On positionne la Form
     self.x = "center" 
     self.y = "center" 
     self.width = "80%"
-    self.height = "124px"
+    self.height = y
     
   def back(self):
     self.gui.changeMenuVers(MenuPrincipal)
@@ -319,16 +306,20 @@ class MenuConfiguration(Form):
   style = "default"
   
   def __init__(self, gui):
-    Form.__init__(self)
+    Form.__init__(self, "Configuration")
     self.gui = gui
     
-    self.colonneGauche = self.add(Pane(x="left", y="4px", width="30%", height="100%"))
-    self.colonneDroite = self.add(Pane(x="right", y="4px", width="70%", height="100%"))
+    self.colonneGauche = self.add(Pane(x="left", y=PAD+HAUTEUR_BOUTON, width="30%", height="100%"))
+    self.colonneDroite = self.add(Pane(x="right", y=PAD+HAUTEUR_BOUTON, width="70%", height="100%"))
     
-    self.colonneGauche.add(PictureRadio("rtheme/twotone/gear-over.png", "rtheme/twotone/gear.png", u"Affichage", x="left", y=4)).callback = self.clic
-    self.colonneGauche.add(PictureRadio("rtheme/twotone/move-over.png", "rtheme/twotone/move.png", u"Contrôles", x="left", y=20)).callback = self.clic
-    self.colonneGauche.add(PictureRadio("rtheme/twotone/radio-off-over.png", "rtheme/twotone/radio-off.png", u"Planètes", x="left", y=36)).callback = self.clic
-    self.colonneGauche.add(PictureRadio("rtheme/twotone/target-over.png", "rtheme/twotone/target.png", u"Debug", x="left", y=52)).callback = self.clic
+    y=PAD
+    self.colonneGauche.add(PictureRadio("rtheme/twotone/gear-over.png", "rtheme/twotone/gear.png", u"Affichage", x="left", y=y)).callback = self.clic
+    y+=HAUTEUR_TEXTE + PAD/2
+    self.colonneGauche.add(PictureRadio("rtheme/twotone/move-over.png", "rtheme/twotone/move.png", u"Contrôles", x="left", y=y)).callback = self.clic
+    y+=HAUTEUR_TEXTE + PAD/2
+    self.colonneGauche.add(PictureRadio("rtheme/twotone/radio-off-over.png", "rtheme/twotone/radio-off.png", u"Planètes", x="left", y=y)).callback = self.clic
+    y+=HAUTEUR_TEXTE + PAD/2
+    self.colonneGauche.add(PictureRadio("rtheme/twotone/target-over.png", "rtheme/twotone/target.png", u"Debug", x="left", y=y)).callback = self.clic
 
     self.add(Icon("rtheme/twotone/rotate_node.png", x="right", y="bottom")).onClick = self.back
     
@@ -336,7 +327,33 @@ class MenuConfiguration(Form):
     self.x = "center" 
     self.y = "center" 
     self.width = "80%"
-    self.height = "88px"
+    self.height = PAD*4+HAUTEUR_BOUTON+HAUTEUR_TEXTE*4
+    
+  resolutions = ["160 120", "320 240", "640 480", "800 600", "1024 768"]
+    
+  def resolutionPlus(self):
+    res = general.configuration.getConfiguration("affichage-general", "resolution","640 480")
+    if res in self.resolutions:
+      idx = self.resolutions.index(res)
+      idx+=1
+      while idx>=len(self.resolutions):
+        idx-= len(self.resolutions)
+    else:
+      idx=0
+    general.configuration.setConfiguration("affichage-general", "resolution", self.resolutions[idx])
+    self.clic("affichage", True)
+    
+  def resolutionMoins(self):
+    res = general.configuration.getConfiguration("affichage-general", "resolution","640 480")
+    if res in self.resolutions:
+      idx = self.resolutions.index(res)
+      idx-=1
+      while idx<0:
+        idx+= len(self.resolutions)
+    else:
+      idx=0
+    general.configuration.setConfiguration("affichage-general", "resolution", self.resolutions[idx])
+    self.clic("affichage", True)
     
   def clic(self, bouton, etat):
     """
@@ -345,15 +362,20 @@ class MenuConfiguration(Form):
     etat : si True alors le bouton est actif (ce devrait toujours être le cas de figure)
     """
     self.remove(self.colonneDroite)
-    self.colonneDroite = self.add(Pane(x="right", y="4px", width="70%", height="100%"))
+    self.colonneDroite = self.add(Pane(x="right", y=PAD+HAUTEUR_BOUTON, width="70%", height="100%"))
     if bouton.lower() == "affichage":
-      self.colonneDroite.add(Label(u"Résolution : "+general.configuration.getConfiguration("affichage-general", "resolution","640 480"), x=4, y=4))
+      w=PAD/2
+      w+= self.colonneDroite.add(Label(u"Résolution  ", x=PAD, y=PAD)).getSize()[1] + PAD / 2
+      self.colonneDroite.add(Icon("rtheme/twotone/arrow-left.png", x=w, y=PAD)).onClick = self.resolutionMoins
+      w+=TAILLE_ICONE + PAD/2
+      w += self.colonneDroite.add(Label(general.configuration.getConfiguration("affichage-general", "resolution","640 480"), x=w, y=PAD)).getSize()[1]
+      self.colonneDroite.add(Icon("rtheme/twotone/arrow-right.png", x=w, y=PAD)).onClick = self.resolutionPlus
       tmp = self.colonneDroite.add(Check(u"Bloom", x=4, y=20))
       if general.configuration.getConfiguration("affichage-effets", "utiliseBloom","0")=="1":
         tmp.onClick()
     elif bouton.lower() == u"contrôles":
       self.remove(self.colonneDroite)
-      self.colonneDroite = self.add(ScrollPane(x="right", y="4px", width="70%", height="100%"))
+      self.colonneDroite = self.add(ScrollPane(x="right", y=PAD+HAUTEUR_BOUTON, width="70%", height="100%"))
       y=4
       touches = general.configuration.getConfigurationClavier()
       for element in touches.keys():
@@ -393,13 +415,11 @@ class MenuVierge(Form):
   
   def __init__(self, gui):
     self.gui=gui
-    Form.__init__(self)
-    #On met un titre au menu
-    self.add(Label(u"Planètes :", x=3, y = 0))
+    Form.__init__(self, u"Planètes :")
     
     #On place les boutons d'achat de gugusse
     self.boutons = []
-    i=1
+    i=2
     self.liste=[]
     for element in os.listdir(os.path.join(".", "data", "planetes")):
       if element.endswith(".pln"):
@@ -437,13 +457,11 @@ class MenuCharge(Form):
   
   def __init__(self, gui):
     self.gui=gui
-    Form.__init__(self)
-    #On met un titre au menu
-    self.add(Label(u"Planètes :", x=3, y = 0))
+    Form.__init__(self, u"Sauvegardes")
     
     #On place les boutons d'achat de gugusse
     self.boutons = []
-    i=1
+    i=2
     self.liste=[]
     for element in os.listdir(os.path.join(".", "sauvegardes")):
       if element.endswith(".pln"):
@@ -528,9 +546,7 @@ class Interface:
     self.joueur = joueur
     
     #On ajoute les composants manquants
-    self.droite = Droite(self)
     self.gauche = Gauche(self)
-    self.gui.add(self.droite)
     self.gui.add(self.gauche)
     #On insère la zone d'infos dans la barre du bas
     self.bas.gauche = self.bas.add(BasGauche(self))

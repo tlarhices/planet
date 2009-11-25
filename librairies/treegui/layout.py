@@ -159,12 +159,12 @@ class Layout:
             sx = widget.width
         elif widget.width[-1] == "%":
             parentWidth = p(widget.parent)._width
-            sx = float(widget.width[0:-1])/100.*parentWidth
+            sx = float(widget.width[0:-1])/100.*parentWidth - x
         elif "%" in widget.width :
             sayWidth,sayAdjustment = widget.width.split("%")
             sayWidth,sayAdjustment = tryfloat(sayWidth),tryfloat(sayAdjustment)
             parentWidth = p(widget.parent)._width
-            sx = sayWidth/100.*parentWidth + sayAdjustment
+            sx = sayWidth/100.*parentWidth + sayAdjustment - x
         else:
             sx =  tryfloat(widget.width)
         
@@ -172,12 +172,12 @@ class Layout:
             sy = widget.height
         elif widget.height[-1] == "%":
             parentHeight = p(widget.parent)._height
-            sy = float(widget.height[0:-1])/100.*parentHeight
+            sy = float(widget.height[0:-1])/100.*parentHeight - y
         elif "%" in widget.height :
             sayHeight,sayAdjustment = widget.height.split("%")
             sayHeight,sayAdjustment = tryfloat(sayHeight),tryfloat(sayAdjustment)
             parentHeight = p(widget.parent)._height
-            sy = sayHeight/100.*parentHeight + sayAdjustment
+            sy = sayHeight/100.*parentHeight + sayAdjustment - y
         else:
             sy = tryfloat(widget.height)
         

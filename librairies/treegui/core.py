@@ -81,6 +81,7 @@ class Holder:
                     # one of the children was hit
                     return True
                 else:
+                    gui.innerX,gui.innerY = x-child._x,y-child._y
                     # none of the children got clicked
                     # will use event our self
                     if key == "mouse1" and child.onClick:

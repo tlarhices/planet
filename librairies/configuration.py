@@ -86,6 +86,21 @@ class Configuration:
     return
     for clef in self.configuration.keys()[:]:
       del self.configuration[clef]
+      
+  def setConfiguration(self, section, champ, valeur):
+    section=str(section).lower()
+    champ=str(champ).lower()
+    
+    sect = section
+    for sectionDico in self.configuration.keys():
+      if "-".join(sectionDico.split("-")[1:])==section:
+        sect=sectionDico
+    section = sect
+    
+    if not section in self.configuration.keys():
+      self.configuration[section]={}
+    self.configuration[section][champ]=valeur
+    
     
   def getConfiguration(self, section, champ, defaut):
     """Retourne une valeur de configuration"""

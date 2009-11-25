@@ -122,7 +122,7 @@ class Drawer:
             # draw text stuff
             self.color = Vec4(0,0,0,1)
             if thing.editsText and gui.keys.focus == thing:
-                self.drawEditText(
+                thing.size = self.drawEditText(
                     gui.theme.defineFont(thing.font),
                     thing.text,
                     realX,
@@ -130,7 +130,7 @@ class Drawer:
                     thing.selection,
                     thing.caret)
             else:
-                self.drawText(
+                thing.size = self.drawText(
                     gui.theme.defineFont(thing.font),
                     thing.text,
                     realX,
@@ -140,7 +140,9 @@ class Drawer:
         if thing.children:
             for child in thing.children:
                 z += 1
+                if child.anitClips: c = self.clip.pop()
                 self.drawChild(realX,realY,z,child)
+                if child.anitClips: self.clip.append(c)
                 
         if thing.clips:
             self.clip.pop()
@@ -155,12 +157,18 @@ class Drawer:
         
         name =  font.name
         ox = x
+        oy = y
         baseLetter = self.atlas.getChar(name + str(ord("T")))
         omaxh = baseLetter[3] - baseLetter[4][1]
+
+        height = 0
+        width = 0
 
         for line in text.split("\n"):
             build = []
             maxh = omaxh  
+            _height = 0
+            _width = 0
                 
             for c in line:
                 code = ord(c)            
@@ -182,6 +190,14 @@ class Drawer:
                 
             x = ox     
             y += maxh
+            if len(build)>0:
+              x,y,u,v,w,h = build[-1]
+              _width = x+w-ox
+              width = max(_width, width)
+              _height = y+maxh-oy
+              height = max(_height, height)
+            
+        return height, width
     
     def drawEditText(self, font, text, x, y, selection=(0,0), caret=-1):
         """ 
@@ -194,12 +210,18 @@ class Drawer:
         
         char_count = 0 
         ox = x
+        oy = y
         baseLetter = self.atlas.getChar(name + str(ord("T")))
         omaxh = baseLetter[3] - baseLetter[4][1]
 
+        height = 0
+        width = 0
+
         for line in text.split("\n"):
             build = []
-            maxh = omaxh  
+            maxh = omaxh
+            _height = 0
+            _width = 0
                 
             for c in line:
                 if char_count == caret:
@@ -229,8 +251,16 @@ class Drawer:
             for x,y,u,v,w,h in build:
                 self.rectStreatch((x,y+maxh-h,w,h),(u,v,w,h))
                 
-            x = ox     
-            y += maxh    
+            x = ox
+            y += maxh
+            if len(build)>0:
+              x,y,u,v,w,h = build[-1]
+              _width = x+w-ox
+              width = max(_width, width)
+              _height = y+maxh-oy
+              height = max(_height, height)
+            
+        return height, width
         
     def rect(self,(x,y,xs,ys),(u,v)):
         """ draw a rectangle """
@@ -264,7 +294,9 @@ class Drawer:
             
         elif ((x >= clipXStart or x+xs <= clipXEnd) and 
               (y >= clipYStart or y+ys <= clipYEnd)):
-            
+            if xs==0 or ys==0:
+              return
+              
             xRatio = us/xs
             yRatio = vs/ys 
             

@@ -23,6 +23,7 @@ class Widget(object):
     _y = 0
     _width = 20
     _height = 20
+    size = [-1,-1]
 
 
     text = None     
@@ -43,6 +44,7 @@ class Widget(object):
     
     # makes the widget esear to click by expanding it in all direction by set ammount
     clickExpand = 1
+    anitClips = False
     
     def __init__(self,**placement):
         self.doPlacement(placement)    
@@ -116,6 +118,27 @@ class Widget(object):
         
     def fix(self,x,y):
         """ does some thing before the thing is drawn """
+        
+    def getSize(self, gui=None):
+      if self.size[0]==-1 and self.size[1]==-1:
+        if gui==None:
+          gui = self.getGUI()
+        gui._draw()
+      return self.size
+      
+    def getGUI(self):
+      p1 = self.parent
+      p2 = self.parent
+      from core import Holder
+      from components import Pane
+      from core import Gui
+      while isinstance(p1, Holder):
+        p2=p1
+        p1=p1.parent
+      if not isinstance(p2, Gui):
+        return None
+      return p2
+      
  
  
 class Icon(Widget):
