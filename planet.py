@@ -125,7 +125,6 @@ class Start:
     #Place la caméra à sa position
     self.camera.setPos(self.cameraRayon,0,0)
     self.positionneCamera(render)
-    raw_input("nouvsphe")
     #Place une sphère à la place de la planète pendant la construction
     self.tmp = loader.loadModel("data/modeles/sphere.egg")
     self.tmp.reparentTo(render)
@@ -411,7 +410,6 @@ class Start:
   ### Gestion de la caméra ---------------------------------------------
   def positionneCamera(self, racine=None):
     """Place la caméra dans l'univers"""
-    #raw_input("positionne "+str(racine))
     if self.planete == None:
       racine = render
       delta = 0.1
@@ -589,9 +587,6 @@ def aideCommande():
   print "     Utiliser 'fichier' comme fichier de config"
   print "  -p / --profiler :"
   print "     Active cProfile et lui fait produire le fichier profiler.log"
-  print "  -b / --bug :"
-  print "     Affiche le détails des différents bugs ouverts en ce moment"
-  print "     --bug est plus verbeux"
   print ""
   print " # Configuration clavier par défaut :"
   print "  -q/esc :"
@@ -607,47 +602,12 @@ def aideCommande():
 
 #Parasage des paramètres de la ligne de commande
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "hbc:p", ["help", "config=", "profiler", "bug"])
+    opts, args = getopt.getopt(sys.argv[1:], "hc:p", ["help", "config=", "profiler"])
 except getopt.GetoptError, err:
     # print help information and exit:
     print str(err) # will print something like "option -a not recognized"
     aideCommande()
     sys.exit(2)
-
-def getBug(besoinDetails=False):
-  from urllib2 import urlopen
-  print "Lecture depuis http://bitbucket.org..."
-  data = urlopen("http://bitbucket.org/tlarhices/planet/issues/?status=new&status=open").read()
-
-  bugs = []
-  cpt=0
-  for element in data.split('href="/tlarhices/planet/issue/'):
-    if cpt%2==1:
-      adresse = 'http://bitbucket.org/tlarhices/planet/issue/'+element.split("\">")[0]
-      bugs.append(adresse)
-    elif cpt!=0:
-      milestone = element.split(";milestone=")[1].split("\" class=")[0].strip().upper()
-      if milestone!="":
-        print "!!!!!!!!!!!!!!!!!!!!!!!"
-      else:
-        print "#######################"
-      print element.split("</a")[0].split(">")[-1].strip().replace("&#39;","'").capitalize()
-      if milestone!="":
-        print "!!! MILESTONE ",milestone,"!!!"
-      print bugs[-1]
-      print 
-      if besoinDetails:
-        details = urlopen(bugs[-1]).read()
-        print details.split("issues-issue-description")[1].split("</div>")[0][2:].replace("<p>","").replace("</p>","").replace("<br />","").replace("<em>","").replace("</em>","").replace("<sup>","").replace("</sup>","").strip()
-      if milestone!="":
-        print "!!!!!!!!!!!!!!!!!!!!!!!"
-      else:
-        print "#######################"
-      print
-    cpt+=1
-    
-  print "Il y a %i bugs ouverts en ce moment" %len(bugs)
-  
 
 def deb():
   #Création de l'instance
@@ -660,7 +620,6 @@ def deb():
   #Lancement du jeu
   print "Initialisation terminée"
   print "Lancement..."
-#  start.start()
   #On va faire exécuter self.ping a chaque image
   taskMgr.add(start.ping, "BouclePrincipale")
 
@@ -678,12 +637,6 @@ if __name__=="__main__":
       sys.exit()
     elif o in ("-c", "--config"):
       fichierConfig = a
-    elif o =="-b":
-      getBug(False)
-      raw_input()
-    elif o =="--bug":
-      getBug(True)
-      raw_input()
     elif o in ("-p", "--profiler"):
       try:
         import cProfile

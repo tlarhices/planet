@@ -294,30 +294,35 @@ class Sprite:
     #cloud.setTexScale(TS,-1,1) 
     return cloud
     
-  def fabriqueSprite(self, fichierSprite, taille=1.0):
+  def fabriqueSprite(self, fichierSprite, taille=1.0, type="carte"):
     """Construit un nouveau sprite"""
     
     racine = NodePath("sprite")
     
-    #Fabrique un carré
-    cardMaker = CardMaker('sprite')
-    cardMaker.setFrame(-0.5, 0.5, 0.0, 1.0)
-    cardMaker.setHasNormals(True)
+    if type=="carte":
+      #Fabrique un carré
+      cardMaker = CardMaker('sprite')
+      cardMaker.setFrame(-0.5, 0.5, 0.0, 1.0)
+      cardMaker.setHasNormals(True)
     
-    #Construit une carte (un plan)
-    #card1 = racine.attachNewNode(cardMaker.generate())
-    #Applique la texture dessus (des 2 cotés)
-    card1 = self.makeDot()
-    card1.reparentTo(racine)
+      #Construit une carte (un plan)
+      card1 = racine.attachNewNode(cardMaker.generate())
+      #On fait tourner la carte pour quelle pointe toujours vers la caméra
+      #Elle rotationne autour d'un axe uniquement (garde ses pieds vers le sol)
+      card1.setBillboardAxis()
+    elif type=="point":
+      card1 = self.makeDot()
+      card1.reparentTo(racine)
+    else:
+      print "SPRITE :: Erreur :: type de carte inconnu :", type
+      return self.fabriqueSprite(fichierSprite=fichierSprite, taille=1.0, type="carte")
+      
     tex = loader.loadTexture(fichierSprite)
     card1.setTexture(tex)
     #Active la transprence
     card1.setTransparency(TransparencyAttrib.MDual)
     #Fait une mise à l'échelle
     card1.setScale(taille, taille, taille)
-    #On fait tourner la carte pour quelle pointe toujours vers la caméra
-    #Elle rotationne autour d'un axe uniquement (garde ses pieds vers le sol)
-    #card1.setBillboardAxis()
     
     #Les lignes suivantes font dessiner le sprite au dessus de tout le reste
     #Utile pour débugger
@@ -414,7 +419,7 @@ class Nuage(Sprite):
       #Fabrique un nouveau prout
       nuage = NodePath(FadeLODNode('lod'))
       tex="./data/textures/nuages/"+random.choice(textures)
-      self.fabriqueSprite(tex, taille=1).reparentTo(nuage)
+      self.fabriqueSprite(tex, taille=1, type="point").reparentTo(nuage)
       if i==0:
         nuage.node().addSwitch(99999, 0) 
       else:
