@@ -157,6 +157,7 @@ class Start:
       self.pickerNode.addSolid(self.pickerRay)
       base.cTrav.addCollider(self.pickerNP, self.myHandler)
     
+    self.positionneCamera()
     #On construit le modèle 3D de la planète
     self.planete.fabriqueModel()
     
