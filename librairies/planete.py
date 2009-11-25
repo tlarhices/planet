@@ -313,14 +313,7 @@ class Planete:
   def fabriqueModel(self):
     """Produit un modèle 3D à partir du nuage des faces"""
     general.startChrono("Planete::fabriqueModel")
-    
-    #Place une sphère à la place de la planète pendant la construction
-    tmp = loader.loadModel("data/modeles/sphere.egg")
-    tmp.reparentTo(render)
-    tmp.setColor(0.0, 0.0, 0.8, 1.0)
-    tmp.setScale(1.0+self.delta)
-    tmp.setLightOff()
-    
+    self.racine.setScale(0.01)
     cpt=0.0
     totlen = len(self.elements)
     #Dessine les triangles
@@ -330,10 +323,8 @@ class Planete:
         self.afficheTexte("Création du modèle... %i/%i" %(cpt, totlen))
       #Ce sont les faces qui vont se charger de faire le modèle pour nous
       element.fabriqueModel()
-      
-    #Retire la sphère temporaire
-    tmp.detachNode()
-    tmp.removeNode()
+    
+    self.racine.setScale(1.0)  
       
     #On ajoute l'eau
     self.fabriqueEau()

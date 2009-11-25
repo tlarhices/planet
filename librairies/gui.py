@@ -4,6 +4,7 @@ from pandac.PandaModules import *
 
 import sys
 import general
+import math
 
 import treegui
 from treegui.components import *
@@ -18,57 +19,137 @@ HAUTEUR_CHECK = 15
 HAUTEUR_TEXTE = 15
 TAILLE_ICONE = 15
 
-class Gauche(Form):
-  """Contient la liste des unitées que l'on peut construire"""
-  style = "default"
+class MenuCirculaire():
+  boutons = None
+  retour = None
+  besoinRetour = None
   
+  def __init__(self, gui):
+    self.gui = gui
+    self.purge()
+    self.besoinRetour = True
+    
+  def purge(self):
+    self.boutons = [[],[]]
+    
+  def ajouteGauche(self, bouton):
+    self.boutons[0].append(bouton)
+    return bouton
+    
+  def ajouteDroite(self, bouton):
+    self.boutons[1].append(bouton)
+    return bouton
+
+  def cercle(self, centre, rayon, angleOuverture, nbelemsG, nbelemsD):
+    elements = [[],[]]
+    
+    if nbelemsG==1:
+      angleG=angleOuverture
+    else:
+      angleG = float(angleOuverture)/(nbelemsG-1)
+    if nbelemsD==1:
+      angleD=angleOuverture
+    else:
+      angleD = float(angleOuverture)/(nbelemsD-1)
+    dep = -float(angleOuverture)/2.0
+    for i in range(0, max(nbelemsG, nbelemsD)):
+      if i<nbelemsD:
+        x=rayon*math.cos((dep + angleD*i)/180*math.pi)
+        y=rayon*math.sin((dep + angleD*i)/180*math.pi)
+        elements[1].append((centre[0]+x,centre[1]+y))
+      if i<nbelemsG:
+        x=rayon*math.cos((dep + angleG*i)/180*math.pi)
+        y=rayon*math.sin((dep + angleG*i)/180*math.pi)
+        elements[0].append((centre[0]-x,centre[1]+y))
+        
+    elements.append((centre[0],centre[1]+rayon))
+        
+    return elements
+    
+  def fabrique(self):
+    bg, bd = self.boutons
+    nbBoutonsG = len(bg)
+    nbBoutonsD = len(bd)
+    
+    coords = self.cercle((base.win.getXSize()/2,base.win.getYSize()/2), base.win.getYSize()/2 - HAUTEUR_BOUTON, 120.0, nbBoutonsG, nbBoutonsD)
+    i=0
+    for i in range(0, max(nbBoutonsG, nbBoutonsD)):
+      if i<len(bg):
+        bouton = bg[i]
+        x, y = coords[0][i]
+        bouton.doPlacement({"x":x-bouton.width, "y":y})
+        self.gui.gui.add(bouton)
+      
+      if i<len(bd):
+        bouton = bd[i]
+        x, y = coords[1][i]
+        bouton.doPlacement({"x":x, "y":y})
+        self.gui.gui.add(bouton)
+      i+=1
+      
+    if self.besoinRetour:
+      self.retour = self.gui.add(Icon("rtheme/twotone/rotate_node.png", x=coords[2][0], y=coords[2][1]))
+      self.retour.onClick = self.back
+    else:
+      self.retour = None
+    
+  def back(self):
+    self.gui.changeMenuVers(MenuPrincipal)
+    
+  def MAJ(self):
+    tmp = self.boutons[:]
+    self.efface()
+    self.boutons = tmp
+    self.fabrique()
+    
+  def efface(self):
+    for bouton in self.boutons[0]:
+      self.gui.remove(bouton)
+    for bouton in self.boutons[1]:
+      self.gui.remove(bouton)
+      
+    if self.retour!=None:
+      self.gui.remove(self.retour)
+      
+    self.boutons = [[],[]]
+    self.retour = None
+      
+  def retour(self):
+    self.gui.changeMenuVers(MenuPrincipal)
+    
+class EnJeu(MenuCirculaire):
+  """Contient la liste des unitées que l'on peut construire"""
+  select = None
+  
+  def __init__(self, gui):
+    MenuCirculaire.__init__(self, gui)
+    self.besoinRetour = False
+    self.fabrique()
+    
+  def fabrique(self):
+    self.purge()
+    
+    liste=general.configuration.getConfigurationSprite()
+    for elem in liste:
+      paneau = self.ajouteGauche(Pane(width=90))
+      check = paneau.add(PictureRadio(elem[3], elem[4], elem[0].capitalize()))
+      if elem[0].lower==self.select:
+        check.style = "CHECKON"
+        check.value=True
+      check.callback = self.clic
+    
+    MenuCirculaire.fabrique(self)
+    
   def clic(self, bouton, etat):
     """
     On a cliqué sur un bouton de construction d'unité
     bouton : le texte du bouton
     etat : si True alors le bouton est actif (ce devrait toujours être le cas de figure)
     """
-    print bouton.lower(), etat
-  
-  def __init__(self, gui):
-    self.gui=gui
-    Form.__init__(self, u"Unitées")
-    
-    #On place les boutons d'achat de gugusse
-    self.boutons = []
-    i=PAD+HAUTEUR_BOUTON
-    liste=general.configuration.getConfigurationSprite()
-    for elem in liste:
-      check = self.add(PictureRadio(elem[3], elem[4], elem[0].capitalize(), x=3, y = i))
-      check.callback = self.clic
-      self.boutons.append(check)
-      i+=HAUTEUR_CHECK
-    
-    #On positionne la Form
-    self.x = "left" 
-    self.y = "top" 
-    self.width = "110px"
-    self.height = "80%"
+    self.select = bouton.lower()
         
-class BasGauche(Pane):
-  """Informations sur le joueur"""
-  style = "default"
-  
-  def __init__(self, gui):
-    self.gui = gui
-    Pane.__init__(self)
-    
-    self.haut = self.add(Label(self.gui.joueur.nom, y=0))
-    #Statistiques
-    self.bas = self.add(Label("bois : 0\r\nbouffe : 0", y=HAUTEUR_TEXTE+PAD/2))
-    
-    #On positionne la Form
-    self.x = "left" 
-    self.y = "center" 
-    self.width = "80px"
-    self.height = "100%"
 
-class BasDroite(Pane):
+class Informations(Pane):
   """Boite de message"""
   style = "default"
   lignes = None
@@ -82,7 +163,7 @@ class BasDroite(Pane):
     
     y=0
     #On garde 6 lignes de texte
-    self.l1 = self.add(Label("", x=0, y=0)) #Texte
+    self.l1 = self.add(Label("", x=20, y=0)) #Texte
     self.i1 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=y)) #Icone
     self.i1.visable = False #On cache l'icone
     y+=HAUTEUR_TEXTE
@@ -107,9 +188,9 @@ class BasDroite(Pane):
     
     #On positionne la Form
     self.x = "left" 
-    self.y = "center" 
+    self.y = "bottom" 
     self.width = "100%"
-    self.height = "100%"
+    self.height = "70px"
     
   def logHaut(self):
     """Fait défiler le log vers le haut"""
@@ -147,7 +228,6 @@ class BasDroite(Pane):
     
     if len(lignes) >= 1:
       self.MAJObjet(self.i1, self.l1, lignes[0][0], lignes[0][1])
-      print self.l1.getSize()
     else:
       self.MAJObjet(self.i1, self.l1, None, None)
       
@@ -201,28 +281,6 @@ class BasDroite(Pane):
       #Il n'y a pas de texte, ni d'icone
       objeti.visable = False
       objett.text = ""
-      
-class Bas(Pane):
-  """
-  Cadre qui contient les élément de la barre du bas
-  s'il n'y a pas de joueur la structure est ainsi :
-  [[zone de textes informatifs]]
-  s'il y a un joueur :
-  [[détails du joueur][zone de textes informatifs]]
-  """
-  style = "default"
-  
-  def __init__(self, gui):
-    self.gui = gui
-    Pane.__init__(self)
-    
-    self.droite = self.add(BasDroite(gui))
-    
-    #On positionne la Form
-    self.x = "center" 
-    self.y = "bottom" 
-    self.width = "80%"
-    self.height = "60px"
     
 class Chargement(Pane):
   """
@@ -257,77 +315,82 @@ class EcranTitre(Pane):
     self.height = "20px"
     taskMgr.doMethodLater(0.5, self.gui.effaceEcranTitre, 'effaceEcranTitre')
     
-class MenuPrincipal(Form):
+class MenuPrincipal(MenuCirculaire):
   """Le menu principal"""
-  style = "default"
   
   def __init__(self, gui):
-    Form.__init__(self, "Menu principal")
-    self.gui = gui
+    MenuCirculaire.__init__(self, gui)
+    self.besoinRetour = False
     
-    y=PAD + HAUTEUR_BOUTON
-    self.boutonNouveau = self.add(Button(u"Nouvelle planète", self.gui.nouvellePlanete, x="center", y=y, width="190px"))
+    self.purge()
+    self.ajouteGauche(Button(u"Nouvelle planète", self.gui.nouvellePlanete, width=190))
     
-    y+=PAD/2 + HAUTEUR_BOUTON
     cpt = 0
     for fich in os.listdir(os.path.join(".", "data", "planetes")):
       if fich.endswith(".pln"):
         cpt+=1
     if cpt==0:
-      self.boutonVierge = self.add(Label(u"Utiliser un planète vierge", x="center", y=y, width="190px"))
+      self.ajouteGauche(Label(u"Utiliser un planète vierge", width=190))
     else:
-      self.boutonVierge = self.add(Button(u"Utiliser un planète vierge", self.gui.planeteVierge, x="center", y=y, width="190px"))
+      self.ajouteGauche(Button(u"Utiliser un planète vierge", self.gui.planeteVierge, width=190))
     
-    y+=PAD/2 + HAUTEUR_BOUTON
     cpt = 0
     for fich in os.listdir(os.path.join(".", "sauvegardes")):
       if fich.endswith(".pln"):
         cpt+=1
     if cpt==0:
-      self.boutonCharger = self.add(Label(u"Charger une partie", x="center", y=y, width="190px"))
+      self.ajouteGauche(Label(u"Charger une partie", width=190))
     else:
-      self.boutonCharger = self.add(Button(u"Charger une partie", self.gui.chargerPartie, x="center", y=y, width="190px"))
+      self.ajouteGauche(Button(u"Charger une partie", self.gui.chargerPartie, width=190))
 
-    y+=PAD/2 + HAUTEUR_BOUTON
-    self.boutonNouveau = self.add(Button(u"Configuration", self.gui.configurer, x="center", y=y, width="190px"))
+    self.ajouteGauche(Button(u"Configuration", self.gui.configurer, width=190))
+    self.fabrique()
     
-    y+=PAD/2 + HAUTEUR_BOUTON
-    #On positionne la Form
-    self.x = "center" 
-    self.y = "center" 
-    self.width = "80%"
-    self.height = y
-    
-  def back(self):
-    self.gui.changeMenuVers(MenuPrincipal)
-    
-class MenuConfiguration(Form):
-  """Le menu principal"""
-  style = "default"
+class MenuConfiguration(MenuCirculaire):
+  """Le menu de configuration"""
+  
+  select = u"affichage"
   
   def __init__(self, gui):
-    Form.__init__(self, "Configuration")
-    self.gui = gui
+    MenuCirculaire.__init__(self, gui)
+    self.fabrique()
     
-    self.colonneGauche = self.add(Pane(x="left", y=PAD+HAUTEUR_BOUTON, width="30%", height="100%"))
-    self.colonneDroite = self.add(Pane(x="right", y=PAD+HAUTEUR_BOUTON, width="70%", height="100%"))
+  def fabrique(self):
+    self.select = self.select.lower()
     
-    y=PAD
-    self.colonneGauche.add(PictureRadio("rtheme/twotone/gear-over.png", "rtheme/twotone/gear.png", u"Affichage", x="left", y=y)).callback = self.clic
-    y+=HAUTEUR_TEXTE + PAD/2
-    self.colonneGauche.add(PictureRadio("rtheme/twotone/move-over.png", "rtheme/twotone/move.png", u"Contrôles", x="left", y=y)).callback = self.clic
-    y+=HAUTEUR_TEXTE + PAD/2
-    self.colonneGauche.add(PictureRadio("rtheme/twotone/radio-off-over.png", "rtheme/twotone/radio-off.png", u"Planètes", x="left", y=y)).callback = self.clic
-    y+=HAUTEUR_TEXTE + PAD/2
-    self.colonneGauche.add(PictureRadio("rtheme/twotone/target-over.png", "rtheme/twotone/target.png", u"Debug", x="left", y=y)).callback = self.clic
-
-    self.add(Icon("rtheme/twotone/rotate_node.png", x="right", y="bottom")).onClick = self.back
+    self.purge()
     
-    #On positionne la Form
-    self.x = "center" 
-    self.y = "center" 
-    self.width = "80%"
-    self.height = PAD*4+HAUTEUR_BOUTON+HAUTEUR_TEXTE*4
+    btn = self.ajouteGauche(PictureRadio("rtheme/twotone/gear-over.png", "rtheme/twotone/gear.png", u"Affichage"))
+    btn.callback = self.clic
+    if self.select == u"affichage":
+      btn.style = "CHECKON"
+      btn.value = True
+      
+      btnD = self.ajouteDroite(Label(u"Résolution : "+general.configuration.getConfiguration("affichage-general", "resolution","640 480")))
+      btnD = self.ajouteDroite(Check(u"Bloom"))
+      if general.configuration.getConfiguration("affichage-effets", "utiliseBloom","0")=="1":
+        btnD.style = "CHECKON"
+        btnD.value = True
+    btn = self.ajouteGauche(PictureRadio("rtheme/twotone/move-over.png", "rtheme/twotone/move.png", u"Contrôles"))
+    btn.callback = self.clic
+    if self.select == u"contrôles":
+      btn.style = "CHECKON"
+      btn.value = True
+      touches = general.configuration.getConfigurationClavier()
+      for element in touches.keys():
+        btnD = self.ajouteDroite(Label(touches[element]+u" : "+element))
+    btn = self.ajouteGauche(PictureRadio("rtheme/twotone/radio-off-over.png", "rtheme/twotone/radio-off.png", u"Planètes"))
+    btn.callback = self.clic
+    if self.select == u"planètes":
+      btn.style = "CHECKON"
+      btn.value = True
+    btn = self.ajouteGauche(PictureRadio("rtheme/twotone/target-over.png", "rtheme/twotone/target.png", u"Debug"))
+    btn.callback = self.clic
+    if self.select == u"debug":
+      btn.style = "CHECKON"
+      btn.value = True
+    
+    MenuCirculaire.fabrique(self)
     
   resolutions = ["160 120", "320 240", "640 480", "800 600", "1024 768"]
     
@@ -361,45 +424,10 @@ class MenuConfiguration(Form):
     bouton : le texte du bouton
     etat : si True alors le bouton est actif (ce devrait toujours être le cas de figure)
     """
-    self.remove(self.colonneDroite)
-    self.colonneDroite = self.add(Pane(x="right", y=PAD+HAUTEUR_BOUTON, width="70%", height="100%"))
-    if bouton.lower() == "affichage":
-      w=PAD/2
-      w+= self.colonneDroite.add(Label(u"Résolution  ", x=PAD, y=PAD)).getSize()[1] + PAD / 2
-      self.colonneDroite.add(Icon("rtheme/twotone/arrow-left.png", x=w, y=PAD)).onClick = self.resolutionMoins
-      w+=TAILLE_ICONE + PAD/2
-      w += self.colonneDroite.add(Label(general.configuration.getConfiguration("affichage-general", "resolution","640 480"), x=w, y=PAD)).getSize()[1]
-      self.colonneDroite.add(Icon("rtheme/twotone/arrow-right.png", x=w, y=PAD)).onClick = self.resolutionPlus
-      tmp = self.colonneDroite.add(Check(u"Bloom", x=4, y=20))
-      if general.configuration.getConfiguration("affichage-effets", "utiliseBloom","0")=="1":
-        tmp.onClick()
-    elif bouton.lower() == u"contrôles":
-      self.remove(self.colonneDroite)
-      self.colonneDroite = self.add(ScrollPane(x="right", y=PAD+HAUTEUR_BOUTON, width="70%", height="100%"))
-      y=4
-      touches = general.configuration.getConfigurationClavier()
-      for element in touches.keys():
-        self.colonneDroite.add(Label(touches[element]+u" : "+element, x=4, y=y))
-        y+=16
-    elif bouton.lower() == u"planètes":
-      self.colonneDroite.add(Label(u"Résolution : "+general.configuration.getConfiguration("affichage-general", "resolution","640 480"), x=4, y=4))
-      tmp = self.colonneDroite.add(Check(u"Bloom", x=4, y=20))
-      if general.configuration.getConfiguration("affichage-effets", "utiliseBloom","0")=="1":
-        tmp.onClick()
-    elif bouton.lower() == u"debug":
-      self.colonneDroite.add(Label(u"Résolution : "+general.configuration.getConfiguration("affichage-general", "resolution","640 480"), x=4, y=4))
-      tmp = self.colonneDroite.add(Check(u"Bloom", x=4, y=20))
-      if general.configuration.getConfiguration("affichage-effets", "utiliseBloom","0")=="1":
-        tmp.onClick()
-      
-      
+    self.select = bouton
     
     
-  def back(self):
-    self.gui.changeMenuVers(MenuPrincipal)
-    
-    
-class MenuVierge(Form):
+class MenuVierge(MenuCirculaire):
   """Contient la liste des planètes vierges que l'on peut charger"""
   style = "default"
   
@@ -414,34 +442,24 @@ class MenuVierge(Form):
         self.gui.planeteVierge2(element[1])
   
   def __init__(self, gui):
-    self.gui=gui
-    Form.__init__(self, u"Planètes :")
+    MenuCirculaire.__init__(self, gui)
     
-    #On place les boutons d'achat de gugusse
-    self.boutons = []
-    i=2
     self.liste=[]
     for element in os.listdir(os.path.join(".", "data", "planetes")):
       if element.endswith(".pln"):
         self.liste.append((element.lower(), element))
+    i=0
     for elem in self.liste:
-      check = self.add(PictureRadio("rtheme/twotone/news-over.png", "rtheme/twotone/news.png", elem[0].capitalize(), x=3, y = 17*i))
+      if i<len(self.liste)/2:
+        check = self.ajouteGauche(PictureRadio("rtheme/twotone/news-over.png", "rtheme/twotone/news.png", elem[0].capitalize()))
+      else:
+        check = self.ajouteDroite(PictureRadio("rtheme/twotone/news-over.png", "rtheme/twotone/news.png", elem[0].capitalize()))
       check.callback = self.clic
-      self.boutons.append(check)
       i+=1
       
-    self.add(Icon("rtheme/twotone/rotate_node.png", x="right", y="bottom")).onClick = self.back
+    self.fabrique()
     
-    #On positionne la Form
-    self.x = "center" 
-    self.y = "center" 
-    self.width = "80%"
-    self.height = "80%"
-    
-  def back(self):
-    self.gui.changeMenuVers(MenuPrincipal)
-    
-class MenuCharge(Form):
+class MenuCharge(MenuCirculaire):
   """Contient la liste des planètes vierges que l'on peut charger"""
   style = "default"
   
@@ -456,32 +474,22 @@ class MenuCharge(Form):
         self.gui.planeteVierge2(element[1])
   
   def __init__(self, gui):
-    self.gui=gui
-    Form.__init__(self, u"Sauvegardes")
+    MenuCirculaire.__init__(self, gui)
     
-    #On place les boutons d'achat de gugusse
-    self.boutons = []
-    i=2
     self.liste=[]
     for element in os.listdir(os.path.join(".", "sauvegardes")):
       if element.endswith(".pln"):
         self.liste.append((element.lower(), element))
+    i=0
     for elem in self.liste:
-      check = self.add(PictureRadio("rtheme/twotone/diskette-over.png", "rtheme/twotone/diskette.png", elem[0].capitalize(), x=3, y = 17*i))
+      if i<len(self.liste)/2:
+        check = self.ajouteGauche(PictureRadio("rtheme/twotone/diskette-over.png", "rtheme/twotone/diskette.png", elem[0].capitalize()))
+      else:
+        check = self.ajouteDroite(PictureRadio("rtheme/twotone/diskette-over.png", "rtheme/twotone/diskette.png", elem[0].capitalize()))
       check.callback = self.clic
-      self.boutons.append(check)
       i+=1
       
-    self.add(Icon("rtheme/twotone/rotate_node.png", x="right", y="bottom")).onClick = self.back
-    
-    #On positionne la Form
-    self.x = "center" 
-    self.y = "center" 
-    self.width = "80%"
-    self.height = "80%"
-    
-  def back(self):
-    self.gui.changeMenuVers(MenuPrincipal)
+    self.fabrique()
     
 class Interface:
   joueur = None
@@ -492,13 +500,28 @@ class Interface:
     self.start = start
     self.gui = Gui(theme = rtheme.RTheme())
     #On affiche l'écran de titre
-    self.menuCourant = self.gui.add(EcranTitre(self))
+    self.menuCourant = MenuPrincipal(self)
+    #On place un bouton quitter en haut à droite de l'écran
+    self.quit = self.gui.add(Icon("rtheme/twotone/x.png", x="right", y="top"))
+    self.quit.onClick = sys.exit
+    taskMgr.add(self.ping, "Boucle GUI", 10)
+    
+  def add(self, pouet):
+    return self.gui.add(pouet)
+    
+  def remove(self, pouet):
+    return self.gui.remove(pouet)
+    
+  def ping(self, task):
+    if self.menuCourant!=None:
+      self.menuCourant.MAJ()
+    return task.cont
     
   def changeMenuVers(self, classe):
     if self.menuCourant != None:
-      self.gui.remove(self.menuCourant)
+      self.menuCourant.efface()
       if classe != None:
-        self.menuCourant = self.gui.add(classe(self))
+        self.menuCourant = classe(self)
       else:
         self.menuCourant = None
       
@@ -516,8 +539,7 @@ class Interface:
   def makeMain(self):
     #Construit les éléments principaux de l'interface
     self.changeMenuVers(None)
-    self.bas = Bas(self)
-    self.gui.add(self.bas)
+    self.informations = self.gui.add(Informations(self))
     self.chargement = self.gui.add(Chargement())
     
   def configurer(self):
@@ -546,14 +568,7 @@ class Interface:
     self.joueur = joueur
     
     #On ajoute les composants manquants
-    self.gauche = Gauche(self)
-    self.gui.add(self.gauche)
-    #On insère la zone d'infos dans la barre du bas
-    self.bas.gauche = self.bas.add(BasGauche(self))
-    self.bas.droite.x = "80px"
-    #On place un bouton quitter en haut à droite de l'écran
-    self.quit = self.gui.add(Icon("rtheme/twotone/x.png", x="right", y="top"))
-    self.quit.onClick = sys.exit
+    self.menuCourant = EnJeu(self)
     self.gui.remove(self.chargement)
     self.chargement = None
     
@@ -566,7 +581,7 @@ class Interface:
         print texte
       else:
         print "["+str(type)+"]",texte
-      self.bas.droite.ajouteTexte(type, texte)
+      self.informations.ajouteTexte(type, texte)
         
     if forceRefresh:
       #On force le recalcul du GUI

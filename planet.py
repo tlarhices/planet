@@ -124,7 +124,16 @@ class Start:
     base.disableMouse() 
     #Place la caméra à sa position
     self.camera.setPos(self.cameraRayon,0,0)
-    self.positionneCamera()
+    self.positionneCamera(render)
+    
+    #Place une sphère à la place de la planète pendant la construction
+    self.tmp = loader.loadModel("data/modeles/sphere.egg")
+    self.tmp.reparentTo(render)
+    self.tmp.setColor(0.0, 0.0, 0.8, 1.0)
+    self.tmp.setScale(1.0)
+    self.tmp.setLightOff()
+    self.positionneCamera(render)
+
     
   def start(self):
     """Lance le rendu et la boucle de jeu"""
@@ -157,9 +166,12 @@ class Start:
       self.pickerNode.addSolid(self.pickerRay)
       base.cTrav.addCollider(self.pickerNP, self.myHandler)
     
-    self.positionneCamera()
     #On construit le modèle 3D de la planète
     self.planete.fabriqueModel()
+    self.tmp.detachNode()
+    self.tmp.removeNode()
+    self.tmp = None
+    self.positionneCamera()
     
     #Préparation des shaders
     print " - Ajout de la projection d'ombre..."
@@ -247,7 +259,7 @@ class Start:
     delta = float(general.configuration.getConfiguration("generation", "delta", "0.2"))
     distanceSoleil = float(general.configuration.getConfiguration("univers", "distanceSoleil", "0.2"))
     self.planete.fabriqueNouvellePlanete(tesselation=tesselation, delta=delta, distanceSoleil=distanceSoleil)
-    self.camera.reparentTo(self.planete.racine)
+    #self.camera.reparentTo(self.planete.racine)
     
   def chargePlanete(self, fichierPlanete):
     """Construit une nouvelle planète via les gentils algos"""
@@ -255,7 +267,7 @@ class Start:
     self.planete = Planete()
     general.configuration.effacePlanete()
     self.planete.charge(fichier=fichierPlanete)
-    self.camera.reparentTo(self.planete.racine)
+    #self.camera.reparentTo(self.planete.racine)
     
   def detruit(self):
     """Supprime le modèle et retire les structures de données"""
@@ -397,13 +409,15 @@ class Start:
   ### Fin Gestion de l'éclairage ---------------------------------------
 
   ### Gestion de la caméra ---------------------------------------------
-  def positionneCamera(self):
+  def positionneCamera(self, racine=None):
     """Place la caméra dans l'univers"""
     
     if self.planete == None:
       return
       
-    self.camera.reparentTo(self.planete.racine)
+    if racine == None:
+      racine = self.planete.racine
+    self.camera.reparentTo(racine)
     
     #La position de la caméra est gérée en coordonnées sphériques
     if general.normaliseVecteurCarre(self.camera.getPos())!=self.cameraRayon*self.cameraRayon:
@@ -412,7 +426,7 @@ class Start:
     self.camera.setPos(coord[0], coord[1], coord[2])
     
     #La caméra regarde toujours le centre de la planète
-    self.camera.lookAt(Point3(0,0,0), self.planete.racine.getRelativeVector(self.camera, Vec3(0,0,1)))
+    self.camera.lookAt(Point3(0,0,0), racine.getRelativeVector(self.camera, Vec3(0,0,1)))
     angle = self.cameraAngleSurface-self.cameraAngleSurface*(-0.5+(self.cameraRayon-1.0)/(2*self.planete.delta))
     angle = max(0.0, angle)
     base.camera.setP(angle)
