@@ -67,9 +67,10 @@ class Planete:
           self.afficheTexte("Calcul du voisinage... %i/%i" %(sommet, totSommets))
       faces = self.sommetDansFace[sommet]
       for face in faces:
-        self.ajouteNoeud(sommet, face.sommets[0])
-        self.ajouteNoeud(sommet, face.sommets[1])
-        self.ajouteNoeud(sommet, face.sommets[2])
+        if face.enfants == None: #On ne considère que les faces les plus subdivisées
+          self.ajouteNoeud(sommet, face.sommets[0])
+          self.ajouteNoeud(sommet, face.sommets[1])
+          self.ajouteNoeud(sommet, face.sommets[2])
     general.stopChrono("Planete::fabriqueVoisinage")
         
   def ajouteNoeud(self, pt1, pt2):

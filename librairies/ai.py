@@ -26,17 +26,18 @@ class AINavigation:
   def coutPassage(self, idxSommet1, idxSommet2):
     """Retourne le cout necessaire pour passer du sommet idxSommet1 au sommet idxSommet2"""
     general.startChrono("AINavigation::coutPassage")
-    deltaMax = 1
+    deltaMax = 500
     cout = (general.normeVecteur(self.planete.sommets[idxSommet2]) - general.normeVecteur(self.planete.sommets[idxSommet1]))*100
     cout = cout*cout*cout
+    print cout
     if cout > deltaMax or cout < -deltaMax:
       cout = self.maxcout
       
     #On ne peut pas passer sous l'eau
     if general.normeVecteur(self.planete.sommets[idxSommet2]) < self.planete.niveauEau or general.normeVecteur(self.planete.sommets[idxSommet1]) < self.planete.niveauEau:
       cout = self.maxcout
-      
-    #if cout==self.maxcout:
+      #render.attachNewNode(self.dessineLigne((0.0, 0.0, 1.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
+    #elif cout==self.maxcout:
     #  render.attachNewNode(self.dessineLigne((1.0, 0.0, 0.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
     #else:
     #  render.attachNewNode(self.dessineLigne((0.0, 1.0, 0.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
