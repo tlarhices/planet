@@ -492,16 +492,19 @@ class Planete:
           self.tesselation = int(elements[1])
         elif elements[0]=="delta":
           #Attrapage des infos de delta
-          self.delta = int(elements[1])
+          self.delta = float(elements[1])
         elif elements[0]=="distancesoleil":
           #Attrapage des infos de distanceSoleil
-          self.distanceSoleil = int(elements[1])
+          self.distanceSoleil = float(elements[1])
         elif elements[0]=="niveaueau":
           #Attrapage des infos de niveauEau
-          self.niveauEau = int(elements[1])
+          self.niveauEau = float(elements[1])
         elif elements[0]=="niveauciel":
           #Attrapage des infos de niveauCiel
-          self.niveauCiel = int(elements[1])
+          if elements[1]=="none":
+            self.niveauCiel = 2.0
+          else:
+            self.niveauCiel = float(elements[1])
         else:
           print "Donnée inconnue : ",element[0]
       elif type=="p":

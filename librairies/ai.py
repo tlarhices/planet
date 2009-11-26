@@ -29,7 +29,7 @@ class AINavigation:
     deltaMax = 500
     cout = (general.normeVecteur(self.planete.sommets[idxSommet2]) - general.normeVecteur(self.planete.sommets[idxSommet1]))*100
     cout = cout*cout*cout
-    print cout
+    
     if cout > deltaMax or cout < -deltaMax:
       cout = self.maxcout
       
