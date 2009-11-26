@@ -38,6 +38,7 @@ class Planete:
   modeleEau = None #Modele 3D de l'eau
   niveauCiel = None #Altitude à laquelle se trouve le ciel
   modeleCiel = None #Modele 3D du ciel
+  azure = None
   
   aiNavigation = None #Le bout d'AI qui contient le graphe de navigation qui est commun a toute entité de la planète
   sprites = None #La liste des objets du monde dérivant de la classe sprite
@@ -381,13 +382,14 @@ class Planete:
     nuages.reparentTo(self.modeleCiel)
       
     #Ciel bleu
-    azure = loader.loadModel("data/modeles/sphere.egg")
-    azure.setTransparency(TransparencyAttrib.MDual )
-    azure.setColor(0.6, 0.6, 1.0, 1.0)
-    azure.setTwoSided(False)
-    azure.setScale((self.niveauCiel+0.001+0.0001))
-    azure.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullCounterClockwise))
-    azure.reparentTo(self.modeleCiel)
+    self.azure = loader.loadModel("data/modeles/sphere.egg")
+    self.azure.setTransparency(TransparencyAttrib.MDual )
+    self.azure.setColor(0.6, 0.6, 1.0, 1.0)
+    self.azure.setTwoSided(False)
+    self.azure.setScale((self.niveauCiel+0.001+0.0001))
+    self.azure.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullCounterClockwise))
+    self.azure.reparentTo(self.modeleCiel)
+    self.azure.setTexture("data/textures/EarthClearSky2.png", 1)
 
     #Fabrique une lumière ambiante pour que la nuit soit moins noire
     if general.configuration.getConfiguration("affichage-Effets", "typeEclairage","shader")!="none":
@@ -396,7 +398,7 @@ class Planete:
       alnp = render.attachNewNode(alight)
       render.setLight(alnp)
       #L'azure n'est pas affectée par la lumière ambiante
-      azure.setLightOff(alnp)
+      self.azure.setLightOff(alnp)
     
     #Ciel orange
     #couchant = loader.loadModel("data/modeles/sphere.egg")

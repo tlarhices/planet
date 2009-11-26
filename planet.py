@@ -242,6 +242,10 @@ class Start:
     if self.soleil != None and self.soleil != 1:
       self.soleil.setPos(0.0, math.sin(theta)*self.distanceSoleil, math.cos(theta)*self.distanceSoleil)
       self.soleil.lookAt(0,0,0)
+      
+    if self.planete != None:
+      if self.planete.azure != None:
+        self.planete.azure.lookAt(self.soleil)
     
     #On indique que l'on veut toujours cette fonction pour la prochaine image
     return Task.cont
