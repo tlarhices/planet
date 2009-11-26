@@ -189,7 +189,13 @@ class Sprite:
     
   def sauvegarde(self):
     """Retoune une chaine qui représente l'objet"""
-    return "S:"+str(self.position)+":"+str(self.modele)+":\r\n"
+    out = "s:"+self.id+":"+self.joueur.nom+":"+self.fichierModele+":"+self.fichierSymbole
+    out += ":"+self.position+":"+self.vitesse+":"+self.vie+":"+self.bouge+":"+self.aquatique+":\r\n"
+    for elem in self.marcheVersTab:
+      out+="sm:"+self.id+":"+elem+":\r\n"
+    if self.contenu != None:
+      print "SPRITE :: Erreur : contenu non géré dans la sauvegarde"
+    return out
     
   def marcheVers(self, cible):
     """Calcule la trajectoire pour aller du point actuel à la cible"""

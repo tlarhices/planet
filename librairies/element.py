@@ -119,7 +119,6 @@ class Element:
       /__\/__\
     p3   c3   p2
     """
-    return 
     #Si on a déjà subdivisé le niveau courant, on saute directement sur les enfants
     if self.enfants != None:
       for enfant in self.enfants:
@@ -354,7 +353,7 @@ class Element:
       
   def sauvegarde(self):
     """Produit une ligne formattée utilisable pour la sauvegarde de la structure de données"""
-    out="T:"+self.id+":"+str(self.sommets[0])+":"+str(self.sommets[1])+":"+str(self.sommets[2])+":\r\n"
+    out="F:"+self.id+":"+str(self.sommets[0])+":"+str(self.sommets[1])+":"+str(self.sommets[2])+":\r\n"
     if self.enfants != None:
       for enfant in self.enfants:
         out+=enfant.sauvegarde()

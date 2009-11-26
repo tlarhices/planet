@@ -82,6 +82,12 @@ class Joueur:
     for sprite in self.sprites:
       sprite.tue("destruction du joueur")
       
+  def sauvegarde(self):
+    out = "j:"+self.nom+":"+str(self.couleur)+":"+str(self.gui.joueur==self)+":\r\n"
+    for ressource in self.ressources.keys():
+      out += "jr:"+self.nom+":"+ressource+":"+str(self.ressources[ressource])+":\r\n"
+    return out
+      
 class JoueurLocal(Joueur):
   """Le joueur devant le clavier"""
   def __init__(self, nom, couleur, planetePrincipale):

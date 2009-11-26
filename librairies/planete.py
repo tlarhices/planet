@@ -175,8 +175,6 @@ class Planete:
     self.aiNavigation = AINavigation(self)
     self.aiNavigation.grapheDeplacement()
     
-    sommet = random.choice(self.sommets)
-    
     general.stopChrono("Planete::fabriqueNouvellePlanete")
     
     
@@ -437,14 +435,20 @@ class Planete:
       tess = self.tesselation
       
     fichier = open(fichier, "w")
-    fichier.write("Z:"+str(tess)+":\r\n")
-    
+    fichier.write("O:tesselation:"+str(tess)+":\r\n")
+    fichier.write("O:delta:"+str(self.delta)+":\r\n")
+    fichier.write("O:distanceSoleil:"+str(self.distanceSoleil)+":\r\n")
+    fichier.write("O:niveauEau:"+str(self.niveauEau)+":\r\n")
+    fichier.write("O:niveauCiel:"+str(self.niveauCiel)+":\r\n")
     for point in self.sommets:
       fichier.write("P:"+str(point[0])+":"+str(point[1])+":"+str(point[2])+":\r\n")
     for element in self.elements:
-      fichier.write(element.sauvegarde())
+      fichier.write(element.sauvegarde()) #t
     for joueur in self.joueurs:
-      fichier.write(joueur.sauvegarde())
+      fichier.write(joueur.sauvegarde()) #j
+    for sprite in self.sprites:
+      fichier.write(sprite.sauvegarde()) #s
+      
     fichier.close()
     general.stopChrono("Planete::sauvegarde")
     
@@ -482,13 +486,28 @@ class Planete:
       elements = ligne.strip().lower().split(":")
       type = elements[0]
       elements = elements[1:]
-      if type=="z":
-        #Attrapage des infos de tesselation
-        self.tesselation = int(elements[0])
+      if type=="o":
+        if elements[0]=="tesselation":
+          #Attrapage des infos de tesselation
+          self.tesselation = int(elements[1])
+        elif elements[0]=="delta":
+          #Attrapage des infos de delta
+          self.delta = int(elements[1])
+        elif elements[0]=="distancesoleil":
+          #Attrapage des infos de distanceSoleil
+          self.distanceSoleil = int(elements[1])
+        elif elements[0]=="niveaueau":
+          #Attrapage des infos de niveauEau
+          self.niveauEau = int(elements[1])
+        elif elements[0]=="niveauciel":
+          #Attrapage des infos de niveauCiel
+          self.niveauCiel = int(elements[1])
+        else:
+          print "Donnée inconnue : ",element[0]
       elif type=="p":
         #Création d'un sommet
         self.sommets.append([float(elements[0]), float(elements[1]), float(elements[2])])
-      elif type=="t":
+      elif type=="f":
         #Création d'une face
         ids = elements[0].replace("[","").split("]")
         if len(ids)<2:
@@ -498,15 +517,24 @@ class Planete:
           self.elements.append(Element("["+str(ids[0])+"]", int(elements[1]), int(elements[2]), int(elements[3]), self, 0, None))
         else:
           self.elements[int(ids[0])].charge(ids[1:], elements[1], elements[2], elements[3])
-      elif type=="nj":
+      elif type=="j":
         #Création d'un joueur
-        print "TODO"
+        nom, couleur, estJoueur = elements[1:-1]
+        print "TODO - Chargement joueur : ", nom, couleur, estJoueur
         #inutile, position, modele, inutile2 = elements
         #position = general.floatise(position.replace("(","").replace(")","").split(","))
         #self.sprites.append(Sprite(position, modele, self))
-      elif type=="ij":
-        #Informations d'un joueur
-        print "TODO"
+      elif type=="jr":
+        #Création des ressources d'un joueur
+        nomjoueur, nomressource, valeur = elements[1:-1]
+        print "TODO - Chargement ressource joueur : ", nomjoueur, nomressource, valeur
+        #inutile, position, modele, inutile2 = elements
+        #position = general.floatise(position.replace("(","").replace(")","").split(","))
+        #self.sprites.append(Sprite(position, modele, self))
+      elif type=="s":
+        #Sprites
+        nomjoueur, nomressource, valeur = elements[1:-1]
+        print "TODO - Chargement sprite : ", nomjoueur, nomressource, valeur
       else:
         print
         print "Avertissement : Planete::charge, type de ligne inconnue :", type,"sur la ligne :\r\n",ligne.strip()
