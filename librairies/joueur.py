@@ -18,6 +18,7 @@ class Joueur:
   sprites = None #La liste des sprites que ce joueur possède
   ressources = None #Les ressources que le joueur possède
   gui = None
+  type = None
   
   def __init__(self, nom, couleur, besoinGUI, planetePrincipale):
     """
@@ -40,7 +41,7 @@ class Joueur:
     #Le joueur n'a pas de sprites
     self.sprites = []
     
-    self.ressources = {}
+    self.ressources = {"bouffe":10}
     
     if besoinGUI:
       general.gui.ajouteJoueur(self)
@@ -83,7 +84,7 @@ class Joueur:
       sprite.tue("destruction du joueur")
       
   def sauvegarde(self):
-    out = "j:"+self.nom+":"+str(self.couleur)+":"+str(self.gui.joueur==self)+":\r\n"
+    out = "j:"+str(self.type)+":"+self.nom+":"+str(self.couleur)+":"+str(general.gui.joueur==self)+":\r\n"
     for ressource in self.ressources.keys():
       out += "jr:"+self.nom+":"+ressource+":"+str(self.ressources[ressource])+":\r\n"
     return out
@@ -92,13 +93,16 @@ class JoueurLocal(Joueur):
   """Le joueur devant le clavier"""
   def __init__(self, nom, couleur, planetePrincipale):
     Joueur.__init__(self, nom, couleur, True, planetePrincipale)
+    self.type="local"
 
 class JoueurDistant(Joueur):
   """Un joueur qui provient du réseau, peut-être humain ou une IA qui est sur une autre machine"""
   def __init__(self, nom, couleur, planetePrincipale):
     Joueur.__init__(self, nom, couleur, False, planetePrincipale)
+    self.type="distant"
 
 class JoueurIA(Joueur):
   """Une IA contrôlée sur cette machine"""
   def __init__(self, nom, couleur, planetePrincipale):
     Joueur.__init__(self, nom, couleur, False, planetePrincipale)
+    self.type="ia"

@@ -189,8 +189,11 @@ class Sprite:
     
   def sauvegarde(self):
     """Retoune une chaine qui représente l'objet"""
-    out = "s:"+self.id+":"+self.joueur.nom+":"+self.fichierModele+":"+self.fichierSymbole
-    out += ":"+self.position+":"+self.vitesse+":"+self.vie+":"+self.bouge+":"+self.aquatique+":\r\n"
+    nom = "none"
+    if self.joueur != None:
+      nom = self.joueur.nom
+    out = "s:"+self.id+":"+nom+":"+self.fichierModele+":"+self.fichierSymbole
+    out += ":"+str(self.position)+":"+str(self.vitesse)+":"+str(self.vie)+":"+str(self.bouge)+":"+str(self.aquatique)+":\r\n"
     for elem in self.marcheVersTab:
       out+="sm:"+self.id+":"+elem+":\r\n"
     if self.contenu != None:
@@ -465,3 +468,7 @@ class Nuage(Sprite):
     
     return self.modele
     
+  def sauvegarde(self):
+    """Retoune une chaine qui représente l'objet"""
+    print "Erreur : La sauvegarde des nuages n'est pas encore faite"
+    return "\r\n"

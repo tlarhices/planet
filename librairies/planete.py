@@ -11,10 +11,12 @@ import random
 import math
 import sys
 import os
+import zipfile
 
 from element import *
 from ai import *
 from sprite import *
+from joueur import *
 
 #from pandac.PandaModules import *
 
@@ -99,9 +101,9 @@ class Planete:
     self.joueurs = []
   # Fin Initialisation -------------------------------------------------
     
-  def afficheTexte(self, texte):
+  def afficheTexte(self, texte, type=None):
     """Affiche le texte sur l'écran, si texte==None, alors efface le dernier texte affiché"""
-    general.gui.afficheTexte(texte, None, True)
+    general.gui.afficheTexte(texte, type, True)
     
   # Constructions géométriques -----------------------------------------
   def fabriqueNouvellePlanete(self, tesselation, delta, distanceSoleil):
@@ -430,11 +432,15 @@ class Planete:
   # Import / Export ----------------------------------------------------
   def sauvegarde(self, fichier, tess=None):
     general.startChrono("Planete::sauvegarde")
+    self.afficheTexte("Sauvegarde en cours...", "sauvegarde")
+    
     """Sauvegarde le géoïde dans un fichier"""
     if tess==None:
       tess = self.tesselation
+    nomFichier = fichier
       
-    fichier = open(fichier, "w")
+    #On sauvegarde dans un fichier temporaire
+    fichier = open(os.path.join(".", "data", "cache", "save.tmp"), "w")
     fichier.write("O:tesselation:"+str(tess)+":\r\n")
     fichier.write("O:delta:"+str(self.delta)+":\r\n")
     fichier.write("O:distanceSoleil:"+str(self.distanceSoleil)+":\r\n")
@@ -448,16 +454,22 @@ class Planete:
       fichier.write(joueur.sauvegarde()) #j
     for sprite in self.sprites:
       fichier.write(sprite.sauvegarde()) #s
-      
     fichier.close()
+    
+    #On zip le fichier temporaire
+    zip = zipfile.ZipFile(nomFichier, "w")
+    zip.write(os.path.join(".", "data", "cache", "save.tmp"), os.path.basename(nomFichier), zipfile.ZIP_DEFLATED)
+    zip.close()
+    #On enlève le fichier temporaire
+    os.remove(os.path.join(".", "data", "cache", "save.tmp"))
+    self.afficheTexte("Sauvegarde terminée", "sauvegarde")
     general.stopChrono("Planete::sauvegarde")
     
   def charge(self, fichier, simple=False):
     """Charge le géoïde depuis un fichier"""
     general.startChrono("Planete::charge")
-    if general.DEBUG_CHARGE_PLANETE:
-      self.afficheTexte("Chargement de la planète...")
-    fichier = open(fichier)
+    self.afficheTexte("Chargement en cours...", "sauvegarde")
+    
     self.detruit()
     self.sommets = []
     self.faces = []
@@ -470,7 +482,14 @@ class Planete:
 
     if general.DEBUG_CHARGE_PLANETE:
       self.afficheTexte("Lecture du fichier...")
-    lignes = fichier.readlines()
+
+    #Lecture depuis le zip
+    zip = zipfile.ZipFile(fichier, "r")
+    if zip.testzip()!=None:
+      print "PLANETE :: Charge :: Erreur : Fichier de sauvegarde corrompu !"
+    data = zip.read(os.path.basename(fichier))
+    zip.close()
+    lignes = data.split("\r\n")
 
     if general.DEBUG_CHARGE_PLANETE:
       self.afficheTexte("Parsage des infos...")
@@ -522,29 +541,53 @@ class Planete:
           self.elements[int(ids[0])].charge(ids[1:], elements[1], elements[2], elements[3])
       elif type=="j":
         #Création d'un joueur
-        nom, couleur, estJoueur = elements[1:-1]
-        print "TODO - Chargement joueur : ", nom, couleur, estJoueur
-        #inutile, position, modele, inutile2 = elements
-        #position = general.floatise(position.replace("(","").replace(")","").split(","))
-        #self.sprites.append(Sprite(position, modele, self))
+        type, nom, couleur, estJoueur, vide = elements
+        couleur = general.floatise(couleur.replace("(","").replace(")","").replace("[","").replace("]","").split(","))
+        classe = Joueur
+        if type=="ia":
+          classe = JoueurIA
+        elif type=="local":
+          classe = JoueurLocal
+        elif type=="distant":
+          classe = JoueurDistant
+        else:
+          print "PLANETE :: Charge :: Erreur, type de joueur inconnu :", type
+        self.ajouteJoueur(classe(nom, couleur, estJoueur.lower().strip()=="true"))
       elif type=="jr":
         #Création des ressources d'un joueur
-        nomjoueur, nomressource, valeur = elements[1:-1]
-        print "TODO - Chargement ressource joueur : ", nomjoueur, nomressource, valeur
-        #inutile, position, modele, inutile2 = elements
-        #position = general.floatise(position.replace("(","").replace(")","").split(","))
-        #self.sprites.append(Sprite(position, modele, self))
+        nomjoueur, nomressource, valeur, vide = elements
+        for joueur in self.joueurs:
+          if joueur.nom.lower().strip()==nomjoueur.lower().strip():
+            joueur.ressources[nomressource] = int(valeur)
       elif type=="s":
         #Sprites
-        nomjoueur, nomressource, valeur = elements[1:-1]
-        print "TODO - Chargement sprite : ", nomjoueur, nomressource, valeur
-      else:
+        id, nomjoueur, modele, symbole, position, vitesse, vie, bouge, aquatique, vide = elements
+        position = general.floatise(position.replace("[","").replace("]","").replace("(","").replace(")","").split(","))
+        if nomjoueur.lower().strip()=="none":
+          joueur = None
+        else:
+          for joueurT in self.joueurs:
+            if joueurT.nom.lower().strip()==nomjoueur.lower().strip():
+              joueur = joueurT
+        sprite = Sprite(id, position, modele, symbole, self, joueur)
+        sprite.vitesse = float(vitesse)
+        sprite.vie = float(vie)
+        sprite.bouge = bouge.lower().strip()=="true"
+        sprite.aquatique = aquatique.lower().strip()=="true"
+        self.sprites.append(sprite)
+        joueur.sprites.append(sprite)
+      elif type=="sm":
+        #Mouvement des sprites
+        id, elem, vide = elements
+        for sprite in self.sprites:
+          if sprite.id.lower().strip() == id.lower().strip():
+            sprite.marcheVersTab.append(int(elem))
+      elif ligne.strip()!="":
         print
         print "Avertissement : Planete::charge, type de ligne inconnue :", type,"sur la ligne :\r\n",ligne.strip()
         
     if general.DEBUG_CHARGE_PLANETE:
       self.afficheTexte("Chargement des sommets... %i sommets chargés" %(len(self.sommets)))
-    fichier.close()
     
     if not simple:
       self.fabriqueVoisinage()
@@ -552,9 +595,13 @@ class Planete:
       #On ajoute le gestionnaire d'intelligence artificielle
       self.aiNavigation = AINavigation(self)
       self.aiNavigation.grapheDeplacement()
+    self.afficheTexte("Chargement terminé", "sauvegarde")
     general.stopChrono("Planete::charge")
   # Fin Import / Export ------------------------------------------------
       
+  lastSave = 1000
+  seuilSauvegardeAuto = 600 #Sauvegarde auto toutes les 10 minutes
+  
   # Mise à jour --------------------------------------------------------
   def ping(self, temps):
     general.startChrono("Planete::ping")
@@ -577,6 +624,14 @@ class Planete:
       if not sprite.ping(temps):
         sprite.joueur.spriteMort(sprite)
         self.sprites.remove(sprite)
+        
+    #Sauvegarde automatique
+    self.lastSave += temps
+    if self.lastSave > self.seuilSauvegardeAuto:
+      self.afficheTexte("Sauvegarde automatique en cours...", "sauvegarde")
+      self.sauvegarde(os.path.join(".","sauvegardes","sauvegarde-auto.pln"))
+      self.lastSave = 0
+    
     general.stopChrono("Planete::ping")
   # Fin Mise à jour ----------------------------------------------------
         

@@ -345,7 +345,8 @@ class Informations(Pane):
   "mort":"rtheme/twotone/skull.png",
   "chat":"rtheme/twotone/phone.png",
   "info":"rtheme/twotone/info.png",
-  "avertissement":"rtheme/twotone/caution.png"
+  "avertissement":"rtheme/twotone/caution.png",
+  "sauvegarde":"rtheme/twotone/diskette.png"
   }
     
   def MAJObjet(self, objeti, objett, type, texte):
@@ -564,7 +565,7 @@ class MenuCharge(MenuCirculaire):
     """
     for element in self.liste:
       if element[0].lower() == bouton.lower():
-        self.gui.planeteVierge2(element[1])
+        self.gui.chargerPartie2(element[1])
   
   def __init__(self, gui):
     MenuCirculaire.__init__(self, gui)
@@ -650,10 +651,10 @@ class Interface:
   def chargerPartie(self):
     self.changeMenuVers(MenuCharge)
     
-  def chargerPartie2(self):
+  def chargerPartie2(self, fichier):
     #Charge une partie en cours
     self.makeMain()
-    self.start.chargePlanete(os.path.join(".", "sauvegardes", "1.pln"))
+    self.start.chargePlanete(os.path.join(".", "sauvegardes", fichier))
     self.start.start()
     
   def ajouteJoueur(self, joueur):
