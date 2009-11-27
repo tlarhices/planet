@@ -112,12 +112,12 @@ class Element:
     """
     Découpe la face courante en 4 facette triangulaires
     Comme le triangle de base est équilatéral, on garde une subdivision équilatérale
-         p1
+         p2
          /\
-      c1/__\c2
+      c2/__\c3
        /\  /\
       /__\/__\
-    p3   c3   p2
+    p1   c1   p3
     """
     #Si on a déjà subdivisé le niveau courant, on saute directement sur les enfants
     if self.enfants != None:

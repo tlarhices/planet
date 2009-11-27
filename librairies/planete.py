@@ -206,6 +206,49 @@ class Planete:
     self.elements.append(Element("["+str(len(self.elements))+"]", iYM, iXP, iZM, self, 0, None))
     general.stopChrono("Planete::fabriqueSphere")
     
+  def fabriqueSphereIcosahedre2(self):
+    general.startChrono("Planete::fabriqueSphere")
+    a = math.sqrt(2.0/(5.0+math.sqrt(5.0)))
+    b = math.sqrt(2.0/(5.0-math.sqrt(5.0)))
+    
+    self.sommets = []
+    self.sommets.append((-a, 0.0, b))
+    self.sommets.append((a, 0.0, b))
+    self.sommets.append((-a, 0.0, -b))
+    self.sommets.append((a, 0.0, -b))
+    self.sommets.append((0.0, b, a))
+    self.sommets.append((0.0, b, -a))
+    self.sommets.append((0.0, -b, a))
+    self.sommets.append((0.0, -b, -a))
+    self.sommets.append((b, a, 0.0))
+    self.sommets.append((-b, a, 0.0))
+    self.sommets.append((b, -a, 0.0))
+    self.sommets.append((-b, -a, 0.0))
+    
+    #Faces
+    self.elements = []
+    self.elements.append(Element("["+str(len(self.elements))+"]", 1,  4, 0, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 4, 9, 0, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 4, 5, 9, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 8, 5, 4, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 1, 8, 4, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 1, 10, 8, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 10, 3, 8, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 8, 3, 5, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 3, 2, 5, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 3, 7, 2, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 3, 10, 7, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 10, 6, 7, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 6, 11, 7, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 6, 0, 11, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 6, 1, 0, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 10, 1, 6, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 11, 0, 9, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 2, 11, 9, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 5, 2, 9, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", 11, 2, 7, self, 0, None))
+    general.stopChrono("Planete::fabriqueSphere")
+    
   def fabriqueSphereIcosahedre(self):
     """fabrique un icosahèdre régulier de rayon 1.0"""
     general.startChrono("Planete::fabriqueSphere")
