@@ -180,9 +180,34 @@ class Planete:
     
     general.stopChrono("Planete::fabriqueNouvellePlanete")
     
-    
   def fabriqueSphere(self):
-    """fabrique un icohèdre régulier de rayon 1.0"""
+    self.fabriqueSphereIcosahedre()
+    
+  def fabriqueSphereOctahedre(self):
+    """fabrique un octahèdre régulier de rayon 1.0"""
+    general.startChrono("Planete::fabriqueSphere")
+    XP = (1.0,0.0,0.0)
+    XM = (-1.0,0.0,0.0)
+    YP = (0.0,1.0,0.0)
+    YM = (0.0,-1.0,0.0)
+    ZP = (0.0,0.0,1.0)
+    ZM = (0.0,0.0,-1.0)
+    
+    self.sommets = [XP, XM, YP, YM, ZP, ZM]
+    iXP = 0;iXM = 1;iYP = 2;iYM = 3;iZP = 4;iZM = 5
+    self.elements = []
+    self.elements.append(Element("["+str(len(self.elements))+"]", iXP, iZP, iYP, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iYP, iZP, iXM, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iXM, iZP, iYM, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iYM, iZP, iXP, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iXP, iYP, iZM, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iYP, iXM, iZM, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iXM, iYM, iZM, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iYM, iXP, iZM, self, 0, None))
+    general.stopChrono("Planete::fabriqueSphere")
+    
+  def fabriqueSphereIcosahedre(self):
+    """fabrique un icosahèdre régulier de rayon 1.0"""
     general.startChrono("Planete::fabriqueSphere")
     t=(1.0+math.sqrt(5.0))/2.0
     tau=t/math.sqrt(1.0+t*t)
