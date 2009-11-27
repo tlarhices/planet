@@ -471,6 +471,5 @@ class Nuage(Sprite):
     return self.modele
     
   def sauvegarde(self):
-    """Retoune une chaine qui représente l'objet"""
-    print "Erreur : La sauvegarde des nuages n'est pas encore faite"
+    """Les nuages ne sont là que pour faire joli"""
     return "\r\n"
