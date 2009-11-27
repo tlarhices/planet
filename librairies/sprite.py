@@ -38,6 +38,9 @@ class Sprite:
   rac = None #Ce qui fait que le sprite garde les pieds en bas
   racine = None #Ce qui fait que le sprite garde la tête en haut
   
+  inertie = None
+  terminalVelocity = None
+  
   def __init__(self, id, position, modele, symbole, planete, joueur):
     """
     Fabrique un nouvel objet
@@ -57,7 +60,9 @@ class Sprite:
     self.vie=100
     self.rac = NodePath("racine-sprite")
     self.racine = NodePath("racine-sprite")
-    self.miseAJourPosition(position)
+    self.miseAJourPosition(general.multiplieVecteur(position, 2.0))
+    self.inertie = [0.0,0.0,0.0]
+    self.terminalVelocity = 0.03
     
   def pointeRacineSol(self):
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""
@@ -84,9 +89,6 @@ class Sprite:
     if self.vie<=0:
       return False
       
-    #Teste le sol sous les pieds
-    self.testeSol()
-      
     #Fait marcher
     if self.marcheVersTab != None:
       if len(self.marcheVersTab) > 0:
@@ -97,6 +99,9 @@ class Sprite:
     #Fait tomber
     self.appliqueGravite(temps)
 
+    #Deplace
+    self.appliqueInertie(temps)
+
     if self.vie<=0:
       return False
       
@@ -105,14 +110,14 @@ class Sprite:
 
     return True
   
-  def testeSol(self):
+  def testeSol(self, temps):
     """Regarde l'angle entre la normale de la face et le sprite qui s'y tient"""
     sp = Vec3(*general.normaliseVecteur(self.position))
     fc = Vec3(*self.planete.trouveFace(self.position).calculNormale())
     angle = sp.angleDeg(fc)
     if angle > 60:
       print angle
-      self.position = self.position[0]+fc.getX()*0.001, self.position[1]+fc.getY()*0.001, self.position[2]+fc.getZ()*0.001
+      self.inertie = self.inertie[0]+fc.getX()*temps, self.inertie[1]+fc.getY()*temps, self.inertie[2]+fc.getZ()*temps
     
   def appliqueGravite(self, temps):
     """Fait tomber les objets sur le sol"""
@@ -122,12 +127,21 @@ class Sprite:
     if self.altCarre < altitudeCible or (self.altCarre > altitudeCible and not self.bouge):
       #Si on est dans le sol, on se place sur le sol d'un seul coup
       self.miseAJourPosition(general.multiplieVecteur(general.normaliseVecteur(self.position), math.sqrt(altitudeCible)))
+      self.inertie = (0.0,0.0,0.0)
     elif self.altCarre > altitudeCible+seuil:
       #Si on est au dessus, on tombe sur la surface
       #On calcul le vecteur -planete-sprite> et on lui donne comme longueur le déplacement que l'on veut faire
-      haut = general.multiplieVecteur(general.normaliseVecteur(self.position), seuil*temps)
-      #On retire ce vecteur à la position (fait un vecteur -sprite-planete>)
-      self.miseAJourPosition((self.position[0]-haut[0], self.position[1]-haut[1], self.position[2]-haut[2]))
+      haut = general.multiplieVecteur(general.normaliseVecteur(self.position), -seuil)
+      #On retire ce vecteur à l'inertie (fait un vecteur -sprite-planete>)
+      self.inertie = self.inertie[0]+haut[0]*temps, self.inertie[1]+haut[1]*temps, self.inertie[2]+haut[2]*temps
+    else:
+      self.testeSol(temps) #On est sur le sol, on teste si on peut se tenir debout dessus
+      
+  def appliqueInertie(self, temps):
+    if general.normeVecteur(self.inertie)>self.terminalVelocity:
+      self.inertie = general.multiplieVecteur(general.normaliseVecteur(self.inertie), self.terminalVelocity)
+    self.miseAJourPosition((self.position[0]+self.inertie[0]*temps, self.position[1]+self.inertie[1]*temps, self.position[2]+self.inertie[2]*temps))
+
     
   def versCoord(self, cible):
     """Si cible est une coordonnée, retourne cette dernière, sinon extrait les coordonnées"""
