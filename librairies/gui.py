@@ -203,14 +203,14 @@ class EnJeu(MenuCirculaire):
       #paneau = self.ajouteGauche(Pane(width=90))
       #check = paneau.add(PictureRadio(elem[3], elem[4], elem[0].capitalize()))
       check = self.ajouteGauche(PictureRadio(elem[3], elem[4], elem[0].capitalize(), width=20))
+      check.alpha = 0.5
       check.style = "DEFAULT"
-      
-      if elem[0].lower==self.select:
+      if elem[0].lower()==self.select:
         check.icon = check.picOn
         check.value=True
       else:
         check.icon = check.picOff
-        check.value=True
+        check.value=False
       check.callback = self.clic
     check = self.ajouteDroite(Icon("rtheme/twotone/focus.png"))
     check.alpha = abs(self.status["combat"][0]%2-1.0)
