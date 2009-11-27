@@ -18,7 +18,7 @@ HAUTEUR_BOUTON = 28
 HAUTEUR_CHECK = 15
 HAUTEUR_TEXTE = 15
 TAILLE_ICONE = 15
-TEMPS_ICONE = 3
+TEMPS_ICONE = 30.0
 
 class MenuCirculaire():
   boutons = None
@@ -41,17 +41,6 @@ class MenuCirculaire():
     self.exiting = False
     
     self.lastDraw = None
-    
-    self.status = {}
-    self.status["combat"] = 0
-    self.status["ennemi"] = 0
-    self.status["nuit"] = 0
-    self.status["besoin_ressource"] = 0
-    self.status["besoin_espace"] = 0
-    self.status["mort"] = 0
-    
-  def mort(self):
-    self.status["mort"] = TEMPS_ICONE
     
   def purge(self):
     self.boutons = [[],[]]
@@ -179,11 +168,32 @@ class EnJeu(MenuCirculaire):
   """Contient la liste des unitées que l'on peut construire"""
   select = None
   
+  status = None
+  
   def __init__(self, gui):
+    self.status = {}
+    self.status["combat"] = [0, []]
+    self.status["ennemi"] = [0, []]
+    self.status["nuit"] = [0, []]
+    self.status["besoin_ressource"] = [0, []]
+    self.status["besoin_espace"] = [0, []]
+    self.status["mort"] = [0, []]
+
     MenuCirculaire.__init__(self, gui)
     self.besoinRetour = False
     self.angleOuverture = 80.0
     self.fabrique()
+    
+  def alerte(self, type, message, coord):
+    self.status[type][0] = TEMPS_ICONE
+    self.status[type][1].append((message, coord))
+    print self.formateInfoBulle(type)
+    
+  def formateInfoBulle(self, type):
+    info = ""
+    for element in self.status[type][1]:
+      info+=element[0]+" @"+str(element[1])+"\r\n"
+    return info
     
   def fabrique(self):
     self.purge()
@@ -203,22 +213,28 @@ class EnJeu(MenuCirculaire):
         check.value=True
       check.callback = self.clic
     check = self.ajouteDroite(Icon("rtheme/twotone/focus.png"))
-    if self.status["combat"]<=0:
+    check.alpha = abs(self.status["combat"][0]%2-1.0)
+    if self.status["combat"][0]<=0:
       check.visable=False
     check = self.ajouteDroite(Icon("rtheme/twotone/enemy.png"))
-    if self.status["ennemi"]<=0:
+    check.alpha = abs(self.status["ennemi"][0]%2-1.0)
+    if self.status["ennemi"][0]<=0:
       check.visable=False
     check = self.ajouteDroite(Icon("rtheme/twotone/bulb.png"))
-    if self.status["nuit"]<=0:
+    check.alpha = abs(self.status["nuit"][0]%2-1.0)
+    if self.status["nuit"][0]<=0:
       check.visable=False
     check = self.ajouteDroite(Icon("rtheme/twotone/statusbar.png"))
-    if self.status["besoin_ressource"]<=0:
+    check.alpha = abs(self.status["besoin_ressource"][0]%2-1.0)
+    if self.status["besoin_ressource"][0]<=0:
       check.visable=False
     check = self.ajouteDroite(Icon("rtheme/twotone/cart.png"))
-    if self.status["besoin_espace"]<=0:
+    check.alpha = abs(self.status["besoin_espace"][0]%2-1.0)
+    if self.status["besoin_espace"][0]<=0:
       check.visable=False
     check = self.ajouteDroite(Icon("rtheme/twotone/skull.png"))
-    if self.status["mort"]<=0:
+    check.alpha = abs(self.status["mort"][0]%2-1.0)
+    if self.status["mort"][0]<=0:
       check.visable=False
 
     MenuCirculaire.fabrique(self)
@@ -230,7 +246,9 @@ class EnJeu(MenuCirculaire):
     tps = temps - self.lastDraw
         
     for clef in self.status.keys():
-      self.status[clef] = max(0.0, self.status[clef]-tps)
+      self.status[clef][0] = max(0.0, self.status[clef][0]-tps)
+      if self.status[clef][0] == 0:
+        self.status[clef][1]
     MenuCirculaire.MAJ(self, temps)
     
   def clic(self, bouton, etat):

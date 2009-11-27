@@ -29,6 +29,7 @@ class Sprite:
   joueur = None #Le joueur qui possède cet objet
   contenu = None #Ce qui se trouve dans l'objet
   vie = None #L'état dans lequel se trouve l'objet
+  typeMort = None
   
   bouge = None #Si True, alors l'objet peut bouger (personnage, véhicule, ...) sinon il est statique (arbre, bâtiment, ...)
   aquatique = None #Si True, alors l'objet peut aller dans l'eau, sinon il est détruit
@@ -180,6 +181,7 @@ class Sprite:
     """Gère la mort du sprite"""
     general.gui.afficheTexte(self.id+" est mort par "+type, "mort")
     self.vie = 0
+    self.typeMort = type
     self.rac.detachNode()
     self.rac.removeNode()
     self.rac = None

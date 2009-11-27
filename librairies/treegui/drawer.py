@@ -106,7 +106,7 @@ class Drawer:
                 style.draw(
                     self,
                     (realX,realY),
-                    (float(thing._width),float(thing._height)))
+                    (float(thing._width),float(thing._height)), thing.alpha)
         
         if thing.clips:
             # set clip stuff
@@ -116,7 +116,7 @@ class Drawer:
             rect = self.atlas.getRect(thing.icon)
             if rect: 
                 u,v,us,vs = rect
-                self.rectStreatch((realX,realY,us,vs),(u,v,us,vs))
+                self.rectStreatch((realX,realY,us,vs),(u,v,us,vs), thing.alpha)
             
         if thing.text:
             # draw text stuff
@@ -126,7 +126,7 @@ class Drawer:
                     gui.theme.defineFont(thing.font),
                     thing.text,
                     realX,
-                    realY,
+                    realY, thing.alpha,
                     thing.selection,
                     thing.caret)
             else:
@@ -134,7 +134,7 @@ class Drawer:
                     gui.theme.defineFont(thing.font),
                     thing.text,
                     realX,
-                    realY)
+                    realY, thing.alpha)
             self.color = Vec4(1,1,1,1)
             
         if thing.children:
@@ -149,7 +149,7 @@ class Drawer:
     
      
     
-    def drawText(self, font, text, x, y):
+    def drawText(self, font, text, x, y, alpha):
         """ 
             draws just text
         """
@@ -186,7 +186,7 @@ class Drawer:
                 maxh = max(maxh,h-e[1])
                  
             for x,y,u,v,w,h in build:
-                self.rectStreatch((x,y+maxh-h,w,h),(u,v,w,h))
+                self.rectStreatch((x,y+maxh-h,w,h),(u,v,w,h), alpha)
                 
             x = ox     
             y += maxh
@@ -199,7 +199,7 @@ class Drawer:
             
         return height, width
     
-    def drawEditText(self, font, text, x, y, selection=(0,0), caret=-1):
+    def drawEditText(self, font, text, x, y, alpha, selection=(0,0), caret=-1):
         """ 
             draws the text
             and selection
@@ -249,7 +249,7 @@ class Drawer:
                 char_count += 1 
                  
             for x,y,u,v,w,h in build:
-                self.rectStreatch((x,y+maxh-h,w,h),(u,v,w,h))
+                self.rectStreatch((x,y+maxh-h,w,h),(u,v,w,h), alpha)
                 
             x = ox
             y += maxh
@@ -262,11 +262,11 @@ class Drawer:
             
         return height, width
         
-    def rect(self,(x,y,xs,ys),(u,v)):
+    def rect(self,(x,y,xs,ys),(u,v),alpha):
         """ draw a rectangle """
         us = xs
         vs = ys
-        self.rectStreatch((x,y,xs,ys),(u,v,us,vs))
+        self.rectStreatch((x,y,xs,ys),(u,v,us,vs),alpha)
         
         
     def doClip(self,xs,ys,xe,ye):
@@ -279,7 +279,7 @@ class Drawer:
         
         self.clip.append((xs,ys,xe,ye))   
         
-    def rectStreatch(self,(x,y,xs,ys),(u,v,us,vs)):
+    def rectStreatch(self,(x,y,xs,ys),(u,v,us,vs),alpha):
         """ draw a generic stretched rectangle """
         # do clipping now:
         
@@ -347,7 +347,7 @@ class Drawer:
         
         w = self.w
         h = self.h
-        
+        color[3]=alpha
         u,v,us,vs = u/w,1-v/h,(u+us)/w,1-(v+vs)/h,
         self.drawer.tri( 
             v1, color, Vec2(u,v),

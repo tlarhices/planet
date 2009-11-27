@@ -75,7 +75,7 @@ class Joueur:
     
   def spriteMort(self, sprite):
     #general.gui.afficheTexte("Joueur "+self.nom+" dit : :'( :'( pauvre "+sprite.id, "chat")
-    general.gui.menuCourant.mort()
+    general.gui.menuCourant.alerte("mort", sprite.id+" est mort par "+sprite.typeMort, sprite.position)
     self.sprites.remove(sprite)
     
   def detruit(self):

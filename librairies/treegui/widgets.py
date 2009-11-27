@@ -25,6 +25,7 @@ class Widget(object):
     _height = 20
     size = [-1,-1]
 
+    alpha = 1.0
 
     text = None     
     font = "default_font"     
