@@ -194,7 +194,7 @@ class Planete:
     ZM = (0.0,0.0,-1.0)
     
     self.sommets = [XP, XM, YP, YM, ZP, ZM]
-    iXP = 0;iXM = 1;iYP = 2;iYM = 3;iZP = 4;iZM = 5
+    iXP = 0;iXM = 1;iYP = 2;iYM = 3;iZP = 4;iZM = 5
     self.elements = []
     self.elements.append(Element("["+str(len(self.elements))+"]", iXP, iZP, iYP, self, 0, None))
     self.elements.append(Element("["+str(len(self.elements))+"]", iYP, iZP, iXM, self, 0, None))
