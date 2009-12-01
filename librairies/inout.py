@@ -181,6 +181,9 @@ class IO:
     self.tourneCamera(-self.cameraPasRotation,0.0)
   def deplaceBas(self):
     self.tourneCamera(0.0,self.cameraPasRotation)
+  def placeCameraAuDessusDe(self, point):
+    self.camera.setPos(general.multiplieVecteur(general.normaliseVecteur(point), self.cameraRayon))
+    self.positionneCamera()
   ### Fin Gestion de la caméra -----------------------------------------
     
   ### Gestion du clavier/souris ----------------------------------------

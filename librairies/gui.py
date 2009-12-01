@@ -219,8 +219,11 @@ class Historique(MenuCirculaire):
     self.besoinRetour = False
     self.fabrique()
   
-  def ajouteMessage(self, type, message):
+  def ajouteMessage(self, type, message, position=None):
     self.messages.append((TEMPS_ICONE, type, message, self.ajouteDroite(self.fabriqueMessage(type, message))))
+    if position!=None:
+      self.messages[-1][3].callback = self.gui.io.placeCameraAuDessusDe
+      self.messages[-1][3].callbackParams = {"point":position}
     self.fabrique()
     
   def fabriqueMessage(self, type, texte):
@@ -278,7 +281,7 @@ class EnJeu(MenuCirculaire):
       bouton.doPlacement({"x":bouton.x-bouton.width})
     
   def alerte(self, type, message, coord):
-    self.historique.ajouteMessage(type, message+" "+str(coord))
+    self.historique.ajouteMessage(type, message, coord)
  
   def clic(self, bouton, etat):
     """

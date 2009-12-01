@@ -146,9 +146,21 @@ class Icon(Widget):
     """ a simple image that can act as a button"""
     clips = False
     style = None
+    callbackParams=None
+    
     def __init__(self, icon, **placement):
         self.doPlacement(placement)    
         self.icon = icon
+        
+    def onClick(self):
+      if self.callbackParams != None:
+        self.callback(**self.callbackParams)
+      else:
+        self.callback()
+            
+    def callback(self):
+      pass
+
         
 class Label(Widget):
     """ display a string of text in the ui """

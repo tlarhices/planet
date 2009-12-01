@@ -60,7 +60,8 @@ class Sprite:
     self.vie=100
     self.rac = NodePath("racine-sprite")
     self.racine = NodePath("racine-sprite")
-    self.miseAJourPosition(general.multiplieVecteur(position, 2.0))
+    #self.miseAJourPosition(general.multiplieVecteur(position, 2.0))
+    self.miseAJourPosition(position)
     self.inertie = [0.0,0.0,0.0]
     self.terminalVelocity = 0.03
     
