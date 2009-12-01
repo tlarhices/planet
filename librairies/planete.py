@@ -65,6 +65,9 @@ class Planete:
     self.vitesseSoleil = float(general.configuration.getConfiguration("planete-Univers", "vitesseSoleil","1.0"))
     self.angleSoleil = 0.0
     
+    general.WIREFRAME = general.configuration.getConfiguration("affichage-general", "fildefer","0")=="1"
+    general.TEXTURES = general.configuration.getConfiguration("affichage-general", "utilise-textures","1")=="1"
+    
   def fabriqueVoisinage(self):
     """
     Remplit le dictionnaire self.voisinage de la façon suivante :
@@ -108,6 +111,8 @@ class Planete:
       self.racine.removeNode()
     for joueur in self.joueurs:
       joueur.detruit()
+    for sprite in self.sprites:
+      sprite.tue("destruction de la planète")
     self.sprites = []
     self.joueurs = []
   # Fin Initialisation -------------------------------------------------

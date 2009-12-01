@@ -6,6 +6,8 @@ import sys
 import general
 import math
 
+from inout import IO
+
 import treegui
 from treegui.components import *
 from treegui.widgets import *
@@ -641,11 +643,15 @@ class MenuCharge(MenuCirculaire):
 class Interface:
   joueur = None
   menuCourant = None
+  informations = None
+  io = None
+  start = None
   
   def __init__(self, start):
     #Fabrique le GUI de base
     self.start = start
     self.gui = Gui(theme = rtheme.RTheme())
+    self.io = IO(self)
     #On affiche l'écran de titre
     self.menuCourant = MenuPrincipal(self)
     #On place un bouton quitter en haut à droite de l'écran
@@ -728,7 +734,8 @@ class Interface:
         print texte
       else:
         print "["+str(type)+"]",texte
-      self.informations.ajouteTexte(type, texte)
+      if self.informations !=None:
+        self.informations.ajouteTexte(type, texte)
         
     if forceRefresh:
       #On force le recalcul du GUI

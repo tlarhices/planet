@@ -31,29 +31,9 @@ class Start:
   
   #Paramètres de génération de la planète
   planete=None #L'instance de la classe planète
+  tmp=None
   delta=None #Le taux de perturbation de la surface de la planète
   
-  #Gestion de la caméra
-  camera = None
-  cameraRayon = 6.0 #Distance de la caméra au centre de la planète
-  cameraAngleX = 0.0 #Angle de rotation de la planète selon la verticale
-  cameraAngleY = 0.0 #Angle de rotation de la planète selon l'horizontale
-  cameraPasRotation = general.degVersRad(1.0) #Angle entre 2 positions de la caméra
-  cameraPasZoom = 0.005 #Pas de zoom
-  cameraAngleSurface = 50 #L'angle de la caméra à la surface
-  
-  #Gestion du clavier
-  touches = None #Liste des touches pressées en ce moment 
-  configClavier = None #Dictionnaire des affectations de commandes
-                       #De la forme ["nom de touche"]="action"
-                       #Par exemple ["escape"]="quitter"
-  actions = None #Dictionnaire des actions accessibles via touches
-                 #De la frome ["action"]=(fonction à exécuter,X)
-                 #X peut être None
-                 #X peut être un tuple (0, 1) ou (0, ) ou (a, b ,c)...
-                 #X peut être une liste [a, g]...
-                 #X peut être un dictionnaire {"nom parametre":valeur, ...}
-                 
   #Autres
   preImage = None #L'heure à laquelle la précédente image a été rendue
   
@@ -70,8 +50,6 @@ class Start:
     general.DEBUG_CHARGE_PLANETE_VERBOSE = general.configuration.getConfiguration("general", "debug_charge_planete_verbose","0")=="1"
     general.DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION = general.configuration.getConfiguration("general", "debug_ai_graphe_deplacement_construction","0")=="1"
     general.DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE = general.configuration.getConfiguration("general", "debug_ai_graphe_deplacement_promenade","0")=="1"
-    general.WIREFRAME = general.configuration.getConfiguration("affichage-general", "fildefer","0")=="1"
-    general.TEXTURES = general.configuration.getConfiguration("affichage-general", "utilise-textures","1")=="1"
     
     if base.camLens != None:
       general.gui = Interface(self)
@@ -90,37 +68,16 @@ class Start:
     if general.configuration.getConfiguration("affichage-general", "afficheFPS","0")=="1":
       base.setFrameRateMeter(True)
     
-    #On donne des alias à certaines fonctions
-    self.lierActionsFonctions()
-    
-    #On associe des touches à des actions
-    self.touches = []
-    self.configClavier = general.configuration.getConfigurationClavier()
-    
-    general.zoomPlus = self.zoomPlus
-    general.zoomMoins = self.zoomMoins
-    general.deplaceHaut = self.deplaceHaut
-    general.deplaceGauche = self.deplaceGauche
-    general.deplaceDroite = self.deplaceDroite
-    general.deplaceBas = self.deplaceBas
-    
-    #On place la caméra dans un noeud facile à secouer
-    self.camera = NodePath("cam")
-    self.camera.reparentTo(render)
-    base.camera.reparentTo(self.camera)
-    
-    #Désactive la gestion par défaut de la souris
-    base.disableMouse() 
-    #Place la caméra à sa position
-    self.camera.setPos(self.cameraRayon,0,0)
-    self.positionneCamera(render)
     #Place une sphère à la place de la planète pendant la construction
-    self.tmp = loader.loadModel("data/modeles/sphere.egg")
-    self.tmp.reparentTo(render)
-    self.tmp.setColor(0.0, 0.0, 0.8, 1.0)
-    self.tmp.setScale(1.0)
-    self.tmp.setLightOff()
-    self.positionneCamera(render)
+    self.tmp = Planete()
+    self.tmp.fabriqueNouvellePlanete(tesselation=3, delta=0.2)
+    self.tmp.fabriqueModel()
+#    self.tmp.reparentTo(render)
+#    self.tmp.setColor(0.0, 0.0, 0.8, 1.0)
+#    self.tmp.setScale(1.0)
+#    self.tmp.setLightOff()
+    
+    general.gui.io.positionneCamera(render)
 
     
   def start(self):
@@ -130,36 +87,11 @@ class Start:
       print "Vous devez créer une planète avant !"
       return
       
-    
-    #Normalement panda envoie des evenements du type "arrow_left"
-    #ou "alt_arrow_left", avec ça il envoie "alt" et "arow_left" tout seul
-    if base.mouseWatcherNode != None:
-      base.mouseWatcherNode.setModifierButtons(ModifierButtons())
-      base.buttonThrowers[0].node().setModifierButtons(ModifierButtons())
-      #On redirige toutes les événements de touches vers 2 fonctions magiques
-      base.accept('wheel_up', self.presseTouche, ['wheel_up'])
-      base.accept('wheel_down', self.presseTouche, ['wheel_down'])
-      base.buttonThrowers[0].node().setButtonDownEvent('presseTouche')
-      base.buttonThrowers[0].node().setButtonUpEvent('relacheTouche')
-      base.accept('presseTouche', self.presseTouche)
-      base.accept('relacheTouche', self.relacheTouche)
-      
-      #Ajout du rayon magique de la souris
-      base.cTrav = CollisionTraverser()
-      self.myHandler = CollisionHandlerQueue()
-      self.pickerNode=CollisionNode('mouseRay')
-      self.pickerNP=camera.attachNewNode(self.pickerNode)
-      self.pickerNode.setFromCollideMask(GeomNode.getDefaultCollideMask())
-      self.pickerRay=CollisionRay()
-      self.pickerNode.addSolid(self.pickerRay)
-      base.cTrav.addCollider(self.pickerNP, self.myHandler)
-    
     #On construit le modèle 3D de la planète
     self.planete.fabriqueModel()
-    self.tmp.detachNode()
-    self.tmp.removeNode()
+    self.tmp.detruit()
     self.tmp = None
-    self.positionneCamera()
+    general.gui.io.positionneCamera()
     
     #On ajoute les joueurs
     j1 = JoueurLocal("Joueur 1", (1.0, 0.0, 0.0, 1.0), self.planete)
@@ -188,29 +120,11 @@ class Start:
       deltaT = task.time
     self.preImage = task.time
     
-    if base.mouseWatcherNode !=None:
-      #Teste de la position de la souris
-      if base.mouseWatcherNode.hasMouse():
-        mpos=base.mouseWatcherNode.getMouse()
-        x=mpos.getX()
-        y=mpos.getY()
-        seuil = 0.8
-        #Regarde si la caméra est proche d'un bord et fait tourner la planète le cas échéant
-        if x<-seuil:
-          self.tourneCamera(self.cameraPasRotation*(x+seuil)/(1.0-seuil), 0.0)
-        if x>seuil:
-          self.tourneCamera(self.cameraPasRotation*(x-seuil)/(1.0-seuil), 0.0)
-        if y<-seuil:
-          self.tourneCamera(0.0, self.cameraPasRotation*(y+seuil)/(1.0-seuil))
-        if y>seuil:
-          self.tourneCamera(0.0, self.cameraPasRotation*(y-seuil)/(1.0-seuil))
-      
-    #Clavier
-    self.gereTouche()
-    
     #On ping la planète
-    if self.planete!=None:
+    if self.planete != None:
       self.planete.ping(deltaT)
+    if self.tmp != None:
+      self.tmp.ping(deltaT)
     
     #On indique que l'on veut toujours cette fonction pour la prochaine image
     return Task.cont
@@ -243,160 +157,25 @@ class Start:
       self.planete = None
   ### Fin gestion de la planète ----------------------------------------
       
-  ### Gestion de la caméra ---------------------------------------------
-  def positionneCamera(self, racine=None):
-    """Place la caméra dans l'univers"""
-    if self.planete == None:
-      racine = render
-      delta = 0.1
-    else:
-      delta = self.planete.delta
-      
-    if racine == None:
-      racine = self.planete.racine
-    self.camera.reparentTo(racine)
-    
-    #La position de la caméra est gérée en coordonnées sphériques
-    if general.normaliseVecteurCarre(self.camera.getPos())!=self.cameraRayon*self.cameraRayon:
-      coord = general.multiplieVecteur(general.normaliseVecteur(self.camera.getPos()), self.cameraRayon)
-    
-    self.camera.setPos(coord[0], coord[1], coord[2])
-    
-    #La caméra regarde toujours le centre de la planète
-    self.camera.lookAt(Point3(0,0,0), racine.getRelativeVector(self.camera, Vec3(0,0,1)))
-    angle = self.cameraAngleSurface-self.cameraAngleSurface*(-0.5+(self.cameraRayon-1.0)/(2*delta))
-    angle = max(0.0, angle)
-    base.camera.setP(angle)
-
-  def zoomPlus(self):
-    """Approche la caméra de la planète"""
-    self.cameraRayon -= self.cameraRayon*self.cameraPasZoom
-    self.cameraRayon = max(self.cameraRayon, 1.0 + self.planete.delta + 0.001)
-    self.positionneCamera()
-
-  def zoomMoins(self):
-    """Éloigne la caméra de la planète"""
-    self.cameraRayon += self.cameraRayon*self.cameraPasZoom
-    #On empèche la caméra de passer derrière le soleil
-    self.cameraRayon = min(self.cameraRayon, self.distanceSoleil-0.01)
-    self.positionneCamera()
-    
-  def tourneCamera(self, anglex, angley):
-    """Tourne la caméra autour de la planète"""
-    self.camera.setPos(self.camera, anglex*self.cameraRayon, 0, angley*self.cameraRayon)
-    self.positionneCamera()
-    
-  def deplaceHaut(self):
-    self.tourneCamera(0.0,-self.cameraPasRotation)
-  def deplaceGauche(self):
-    self.tourneCamera(self.cameraPasRotation,0.0)
-  def deplaceDroite(self):
-    self.tourneCamera(-self.cameraPasRotation,0.0)
-  def deplaceBas(self):
-    self.tourneCamera(0.0,self.cameraPasRotation)
-  ### Fin Gestion de la caméra -----------------------------------------
-    
-  ### Gestion du clavier/souris ----------------------------------------
-  def presseTouche(self, touche):
-    """Une touche a été pressée, on l'ajoute a la liste des touches"""
-    self.touches.append(touche)
-    self.gereTouche()
-    
-  def relacheTouche(self, touche):
-    """Une touche a été relâchée, on l'enlève de la liste des touches"""
-    while self.touches.count(touche)>0:
-      self.touches.remove(touche)
-      
-  def gereTouche(self):
-    """Gère les touches clavier"""
-    for touche in self.touches:
-      #La touche est configurée
-      if touche in self.configClavier.keys():
-        action = self.configClavier[touche]
-        if action not in self.actions.keys():
-          #La touche a été configurée pour faire un truc mais on saît pas ce que c'est
-          print "Type d'action inconnue : ", action
-        else:
-          #On lance la fonction
-          self.appelFonction(*self.actions[action])
-      
-  def lierActionsFonctions(self):
-    """On donne des noms gentils à des appels de fonction moins sympas"""
-    self.actions = {}
-    self.actions["quitter"] = (sys.exit,(0,))
-    self.actions["tournecameraverslagauche"] = (self.tourneCamera,(self.cameraPasRotation,0.0))
-    self.actions["tournecameraversladroite"] = (self.tourneCamera,(-self.cameraPasRotation,0.0))
-    self.actions["tournecameraverslehaut"] = (self.tourneCamera,(0.0,-self.cameraPasRotation))
-    self.actions["tournecameraverslebas"] = (self.tourneCamera,(0.0,self.cameraPasRotation))
-    self.actions["zoomplus"] = (self.zoomPlus,None)
-    self.actions["zoommoins"] = (self.zoomMoins,None)
-    self.actions["modifiealtitude+"] = (self.modifieAltitude,(1.0,))
-    self.actions["modifiealtitude-"] = (self.modifieAltitude,(-1.0,))
-    self.actions["affichestat"] = (self.afficheStat,None)
-    self.actions["screenshot"] = (self.screenShot,None)
-    
-  def appelFonction(self, fonction, parametres):
-    """Appel la fonction fonction en lui passant les paramètres décris"""
-    if parametres==None:
-      fonction()
-    elif isinstance(parametres, dict):
-      fonction(**parametres)
-    elif isinstance(parametres, list) or isinstance(parametres, tuple):
-      fonction(*parametres)
-    else:
-      print "ERREUR : Start.appelFonction, parametres doit être None, un tuple, une liste ou un dictionnaire"
-      fonction[parametre]
-  ### Fin gestion du clavier/souris ------------------------------------
-      
   ### Autres -----------------------------------------------------------
   def modifieAltitude(self, direction):
     """Change l'altitude d'un point, si direction>0 alors l'altitude sera accrue sinon diminuée"""
     
-    self.testeSouris()
+    general.gui.io.testeSouris()
     
-    if self.planete.survol == None:
+    if self.planete!=None:
+      planete = self.planete
+    elif self.tmp!=None:
+      planete = self.tmp
+    else:
       return
     
-    ndelta = self.planete.delta * direction * 0.01
-    self.planete.elevePoint(self.planete.survol, ndelta)
+    if planete.survol == None:
+      return
     
-  select = None
+    ndelta = planete.delta * direction * 0.01
+    planete.elevePoint(planete.survol, ndelta)
     
-  def testeSouris(self):
-    """Teste ce qui se trouve sous le curseur de la souris"""
-    if base.mouseWatcherNode.hasMouse():
-      mpos=base.mouseWatcherNode.getMouse()
-      x=mpos.getX()
-      y=mpos.getY()
-      
-      #Test du survol de la souris  
-      self.pickerRay.setFromLens(base.camNode, mpos.getX(), mpos.getY())
-      base.cTrav.traverse(render)
-      if self.myHandler.getNumEntries() > 0:
-        self.myHandler.sortEntries()
-        objet = self.myHandler.getEntry(0).getIntoNodePath().findNetPythonTag('type')
-        if objet.getPythonTag('type') == "sol":
-          coord = self.myHandler.getEntry(0).getSurfacePoint(self.planete.racine)
-          if self.select != None:
-            self.select.marcheVers(coord)
-            self.select = None
-          else:
-            idsommet = self.planete.trouveSommet(coord)
-            self.planete.survol = idsommet
-        elif objet.getPythonTag('type') == "sprite":
-            general.gui.afficheTexte("Clic sur le sprite : "+str(objet.getPythonTag('id'))+" cliquez sur le sol où vous voulez qu'il aille", "info")
-            self.select = objet.getPythonTag('instance')
-        elif objet.getPythonTag('type') == "eau":
-            print "clic dans l'eau"
-        else:
-          general.gui.afficheTexte("Clic sur un objet au tag inconnu : "+str(objet.getPythonTag('type')), "info")
-          
-        #On demande aux facettes de se redessiner
-        #for element in self.planete.sommetDansFace[idsommet]:
-        #  element.sommetAChange(idsommet)
-      else:
-        self.planete.survol = None
-        
   def screenShot(self):
     base.screenshot("test")
   ### Fin autres -------------------------------------------------------
