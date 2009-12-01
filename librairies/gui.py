@@ -146,7 +146,6 @@ class MenuCirculaire:
       i+=1
       
     if self.besoinRetour:
-      raw_input("retour")
       self.retour = self.gui.add(Icon("rtheme/twotone/rotate_node.png", x="center", y="bottom"))
       self.retour.onClick = self.back
     else:

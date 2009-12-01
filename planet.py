@@ -28,14 +28,6 @@ except ImportError:
     print 
 
 class Start:
-  #Paramètres shader
-  pushBias=0.1 #Calcul des ombres
-  ambient=0.2 #Lumière ambiante
-  
-  #Paramètres éclairage
-  soleil=None #Noeud du soleil (une caméra dans le cas de la projection d'ombre)
-  distanceSoleil = None #Distance du soleil à la planète
-  vitesseSoleil = None #Vitesse de rotation du soleil en pifometre/s
   
   #Paramètres de génération de la planète
   planete=None #L'instance de la classe planète
@@ -90,9 +82,6 @@ class Start:
         def ajouteJoueur(self, joueur):
           pass
       general.gui = DUMMY()
-    
-    self.distanceSoleil = float(general.configuration.getConfiguration("planete-Univers", "distanceSoleil","10.0"))
-    self.vitesseSoleil = float(general.configuration.getConfiguration("planete-Univers", "vitesseSoleil","1.0"))
     
     if general.configuration.getConfiguration("general", "DEBUG_PANDA_VIA_PSTATS","0")=="1":
       #Profile du code via PStat
@@ -172,20 +161,6 @@ class Start:
     self.tmp = None
     self.positionneCamera()
     
-    #Préparation des shaders
-    print " - Ajout de la projection d'ombre..."
-    eclairage = general.configuration.getConfiguration("affichage-effets", "typeEclairage","shader")
-    if eclairage == "flat":
-      self.hackNoShadow()
-    elif eclairage == "none":
-      self.hackNoLight()
-    else:
-      if eclairage != "shader":
-        print "Type d'éclairage inconnu", eclairage, "utilisation de 'shader' par defaut"
-      if not self.fabriqueShader():
-        self.exit("Impossible de continuer, on ne peut pas afficher les ombres")
-    print " - Ajout de la projection d'ombre terminée"
-
     #On ajoute les joueurs
     j1 = JoueurLocal("Joueur 1", (1.0, 0.0, 0.0, 1.0), self.planete)
     self.joueur = j1
@@ -237,16 +212,6 @@ class Start:
     if self.planete!=None:
       self.planete.ping(deltaT)
     
-    #Fait tourner le soleil
-    theta = task.time / math.pi * self.vitesseSoleil
-    if self.soleil != None and self.soleil != 1:
-      self.soleil.setPos(0.0, math.sin(theta)*self.distanceSoleil, math.cos(theta)*self.distanceSoleil)
-      self.soleil.lookAt(0,0,0)
-      
-    if self.planete != None:
-      if self.planete.azure != None:
-        self.planete.azure.lookAt(self.soleil)
-    
     #On indique que l'on veut toujours cette fonction pour la prochaine image
     return Task.cont
   ### Fin initialisation -----------------------------------------------
@@ -260,8 +225,7 @@ class Start:
     general.configuration.charge(fichierPlanete)
     tesselation = int(general.configuration.getConfiguration("generation", "tesselation", "4"))
     delta = float(general.configuration.getConfiguration("generation", "delta", "0.2"))
-    distanceSoleil = float(general.configuration.getConfiguration("univers", "distanceSoleil", "0.2"))
-    self.planete.fabriqueNouvellePlanete(tesselation=tesselation, delta=delta, distanceSoleil=distanceSoleil)
+    self.planete.fabriqueNouvellePlanete(tesselation=tesselation, delta=delta)
     #self.camera.reparentTo(self.planete.racine)
     
   def chargePlanete(self, fichierPlanete):
@@ -278,139 +242,7 @@ class Start:
       self.planete.detruit()
       self.planete = None
   ### Fin gestion de la planète ----------------------------------------
-    
-  ### Gestion de l'éclairage -------------------------------------------
-  def fabriqueShader(self):
-    """Ajoute le shader qui fait les projections d'ombres"""
-    
-    #Vérification de la carte graphique
-    if (base.win.getGsg().getSupportsBasicShaders()==0):
-      raw_input("Planete: Pas de shader dans la carte graphique.")
-      return False
-    if (base.win.getGsg().getSupportsDepthTexture()==0):
-      raw_input("Planete: Pas de texture de profondeur.")
-      return False
-  
-    #Crée une fenêtre de rendu hors écran
-    winprops = WindowProperties.size(512,512)
-    props = FrameBufferProperties()
-    props.setRgbColor(1)
-    props.setAlphaBits(1)
-    props.setDepthBits(1)
-    LBuffer = base.graphicsEngine.makeOutput(
-             base.pipe, "offscreen buffer", -2,
-             props, winprops,
-             GraphicsPipe.BFRefuseWindow,
-             base.win.getGsg(), base.win)
-
-    if (LBuffer == None):
-      raw_input("Planete: Pas de buffer hors écran.")
-      return False
-
-    #render.setShaderAuto()
-
-    #Ajoute une texture de profondeur
-    Ldepthmap = Texture()
-    LBuffer.addRenderTexture(Ldepthmap, GraphicsOutput.RTMBindOrCopy, GraphicsOutput.RTPDepthStencil)
-    if (base.win.getGsg().getSupportsShadowFilter()):
-        Ldepthmap.setMinfilter(Texture.FTShadow)
-        Ldepthmap.setMagfilter(Texture.FTShadow) 
-
-    #Un buffer en couleur pour le debug
-    Lcolormap = Texture()
-    LBuffer.addRenderTexture(Lcolormap, GraphicsOutput.RTMBindOrCopy, GraphicsOutput.RTPColor)
-
-    #On fabrique une caméra qui sera notre lampe
-    self.soleil=base.makeCamera(LBuffer)
-    self.soleil.node().setScene(render)
-
-    #On prépare les variables du shader
-    render.setShaderInput('light', self.soleil)
-    render.setShaderInput('Ldepthmap', Ldepthmap)
-    render.setShaderInput('ambient', self.ambient,0,0,1.0)
-    render.setShaderInput('texDisable', 0,0,0,0)
-    render.setShaderInput('scale', 1,1,1,1)
-    render.setShaderInput('push',self.pushBias,self.pushBias,self.pushBias,0)
-
-    #On place le shader sur le soleil
-    lci = NodePath(PandaNode("Light Camera Initializer"))
-    lci.setShader(Shader.load('data/shaders/caster.sha'))
-    self.soleil.node().setInitialState(lci.getState())
-  
-    #On place un shader sur la caméra écran
-    #Si la carte 3D a du hardware pour ça, on l'utilise
-    mci = NodePath(PandaNode("Main Camera Initializer"))
-    if (base.win.getGsg().getSupportsShadowFilter()):
-        mci.setShader(Shader.load('data/shaders/shadow.sha'))
-    else:
-        mci.setShader(Shader.load('data/shaders/shadow-nosupport.sha'))
-    base.cam.node().setInitialState(mci.getState())
-    
-    #On configure notre soleil
-    self.soleil.setPos(0,-40,40)
-    self.soleil.lookAt(0,0,0)
-    self.soleil.node().getLens().setFov(30)
-    self.soleil.node().getLens().setNearFar(20,60)
-    #self.soleil.node().showFrustum()
-  
-    #base.bufferViewer.toggleEnable()
-    return True
-    
-  def hackNoShadow(self):
-    """Passe a travers les securités qui font qu'on peut pas lancer le jeu sans ombre"""
-    print "DANGER :: HACK :: Ombres desactivées ! [planet.py]"
-    light = PointLight('soleil')
-    light.setColor(VBase4(0.9, 0.9, 0.9, 0.8))
-    self.soleil = render.attachNewNode(light)
-    self.soleil.setPos(0,0,0)
-    self.soleil.setLightOff()
-    #self.soleil.setColor(1.0, 0.7, 0.3)
-    
-    #teste si la carte graphique supporte les shaders
-    if (base.win.getGsg().getSupportsBasicShaders() == 0):
-      print ":("
-    else:
-      print ":)"
       
-    #applique un bloom
-    if general.configuration.getConfiguration("affichage-effets", "utiliseBloom","0")=="1":
-      from direct.filter.CommonFilters import CommonFilters
-      self.filters = CommonFilters(base.win, base.cam)
-      filterok = True
-      filterok = filterok and self.filters.setBloom(blend=(0.3,0.4,0.3,0), mintrigger=0.6, maxtrigger=1.0, desat=0.6, intensity=3.0, size="small")
-      #filterok = filterok and self.filters.setCartoonInk()
-    
-      if not filterok:
-        print "Erreur d'initialisation des filtres"
-      
-    render.setLight(self.soleil)
-    
-    cardMaker = CardMaker('soleil')
-    cardMaker.setFrame(-0.5, 0.5, -0.5, 0.5)
-    bl = render.attachNewNode(cardMaker.generate())
-    #Applique la tecture dessus
-    tex = loader.loadTexture("data/textures/soleil.png")
-    bl.setTexture(tex)
-    #Active la transprence
-    bl.setTransparency(TransparencyAttrib.MDual)
-    #Fait une mise à l'échelle
-    bl.setScale(0.8)
-    #On fait en sorte que la carte soit toujours tournée vers la caméra, le haut vers le haut
-    bl.setBillboardPointEye()
-
-    #bl = loader.loadModel("./data/modeles/sphere.egg")
-    bl.reparentTo(self.soleil)
-    
-    self.soleil.reparentTo(render)
-    
-    
-  def hackNoLight(self):
-    """Passe a travers les securités qui font qu'on peut pas lancer le jeu sans lumière"""
-    print "DANGER :: HACK :: Eclairage desactivé ! [planet.py]"
-    self.soleil = loader.loadModel("./data/modeles/sphere.egg")
-    self.soleil.reparentTo(render)
-  ### Fin Gestion de l'éclairage ---------------------------------------
-
   ### Gestion de la caméra ---------------------------------------------
   def positionneCamera(self, racine=None):
     """Place la caméra dans l'univers"""

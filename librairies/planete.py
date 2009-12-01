@@ -44,6 +44,12 @@ class Planete:
   sprites = None #La liste des objets du monde dérivant de la classe sprite
   joueurs = None
   
+  #Paramètres éclairage
+  soleil=None #Noeud du soleil (une caméra dans le cas de la projection d'ombre)
+  distanceSoleil = None #Distance du soleil à la planète
+  vitesseSoleil = None #Vitesse de rotation du soleil en pifometre/s
+  angleSoleil = None
+  
   # Initialisation -----------------------------------------------------
   def __init__(self):
     """Constructeur, initialise les tableaux"""
@@ -54,6 +60,10 @@ class Planete:
     self.voisinage = {} #Pas de sommet, donc pas de voisinage
     self.sommetDansFace = {} #Pas de faces, donc pas d'association
     self.survol = None #Le curseur n'est au dessus de rien par défaut
+    
+    self.distanceSoleil = float(general.configuration.getConfiguration("planete-Univers", "distanceSoleil","10.0"))
+    self.vitesseSoleil = float(general.configuration.getConfiguration("planete-Univers", "vitesseSoleil","1.0"))
+    self.angleSoleil = 0.0
     
   def fabriqueVoisinage(self):
     """
@@ -107,7 +117,7 @@ class Planete:
     general.gui.afficheTexte(texte, type, True)
     
   # Constructions géométriques -----------------------------------------
-  def fabriqueNouvellePlanete(self, tesselation, delta, distanceSoleil):
+  def fabriqueNouvellePlanete(self, tesselation, delta):
     """
     Construit une nouvelle planète :
     tesselation : Le nombre de subdivision que l'on souhaite faire
@@ -121,11 +131,11 @@ class Planete:
     self.joueurs = [] 
     self.voisinage = {} #Pas de sommet, donc pas de voisinage
     self.sommetDansFace = {} #Pas de faces, donc pas d'association
+    self.angleSoleil = 0.0
     
     #Permet d'être sûr que ce sont bien des valeurs valides
     self.delta = float(delta)
     self.tesselation = int(tesselation)
-    self.distanceSoleil = distanceSoleil
     
     #On regarde si on a pas déjà calculé une sphère a ce niveau de tesselation
     if os.path.isfile(os.path.join(".","data","pre-tesselate",str(tesselation))):
@@ -463,8 +473,8 @@ class Planete:
     if general.configuration.getConfiguration("affichage-Effets", "typeEclairage","shader")!="none":
       alight = AmbientLight('alight')
       alight.setColor(VBase4(0.2, 0.2, 0.275, 1))
-      alnp = render.attachNewNode(alight)
-      render.setLight(alnp)
+      alnp = self.racine.attachNewNode(alight)
+      self.racine.setLight(alnp)
       #L'azure n'est pas affectée par la lumière ambiante
       self.azure.setLightOff(alnp)
     
@@ -516,6 +526,7 @@ class Planete:
     fichier.write("O:distanceSoleil:"+str(self.distanceSoleil)+":\r\n")
     fichier.write("O:niveauEau:"+str(self.niveauEau)+":\r\n")
     fichier.write("O:niveauCiel:"+str(self.niveauCiel)+":\r\n")
+    fichier.write("O:angleSoleil:"+str(self.angleSoleil)+":\r\n")
     for point in self.sommets:
       fichier.write("P:"+str(point[0])+":"+str(point[1])+":"+str(point[2])+":\r\n")
     for element in self.elements:
@@ -585,6 +596,9 @@ class Planete:
         elif elements[0]=="distancesoleil":
           #Attrapage des infos de distanceSoleil
           self.distanceSoleil = float(elements[1])
+        elif elements[0]=="anglesoleil":
+          #Attrapage des infos de angleSoleil
+          self.angleSoleil = float(elements[1])
         elif elements[0]=="niveaueau":
           #Attrapage des infos de niveauEau
           self.niveauEau = float(elements[1])
@@ -673,6 +687,114 @@ class Planete:
   seuilSauvegardeAuto = 600 #Sauvegarde auto toutes les 10 minutes
   
   # Mise à jour --------------------------------------------------------
+  def fabriqueSoleil(self, type=None):
+    if type==None:
+      type = general.configuration.getConfiguration("affichage-effets", "typeEclairage","shader")
+    type=type.lower().strip()
+      
+    if type=="flat":
+      light = PointLight('soleil')
+      light.setColor(VBase4(0.9, 0.9, 0.9, 0.8))
+      self.soleil = self.racine.attachNewNode(light)
+      self.soleil.setPos(0,0,0)
+      self.soleil.setLightOff()
+      self.racine.setLight(self.soleil)
+      
+      cardMaker = CardMaker('soleil')
+      cardMaker.setFrame(-0.5, 0.5, -0.5, 0.5)
+      bl = self.racine.attachNewNode(cardMaker.generate())
+      #Applique la tecture dessus
+      tex = loader.loadTexture("data/textures/soleil.png")
+      bl.setTexture(tex)
+      #Active la transprence
+      bl.setTransparency(TransparencyAttrib.MDual)
+      #Fait une mise à l'échelle
+      bl.setScale(0.8)
+      #On fait en sorte que la carte soit toujours tournée vers la caméra, le haut vers le haut
+      bl.setBillboardPointEye()
+
+      #bl = loader.loadModel("./data/modeles/sphere.egg")
+      bl.reparentTo(self.soleil)
+      
+      self.soleil.reparentTo(self.racine)
+    elif type=="none":
+      self.soleil = loader.loadModel("./data/modeles/sphere.egg")
+      self.soleil.reparentTo(self.racine)
+    elif type=="shader":
+      #Vérification de la carte graphique
+      if (base.win.getGsg().getSupportsBasicShaders()==0):
+        raw_input("Planete: Pas de shader dans la carte graphique.")
+        self.fabriqueSoleil("flat")
+      if (base.win.getGsg().getSupportsDepthTexture()==0):
+        raw_input("Planete: Pas de texture de profondeur.")
+        self.fabriqueSoleil("flat")
+    
+      #Crée une fenêtre de rendu hors écran
+      winprops = WindowProperties.size(512,512)
+      props = FrameBufferProperties()
+      props.setRgbColor(1)
+      props.setAlphaBits(1)
+      props.setDepthBits(1)
+      LBuffer = base.graphicsEngine.makeOutput(
+               base.pipe, "offscreen buffer", -2,
+               props, winprops,
+               GraphicsPipe.BFRefuseWindow,
+               base.win.getGsg(), base.win)
+
+      if (LBuffer == None):
+        raw_input("Planete: Pas de buffer hors écran.")
+        self.fabriqueSoleil("flat")
+
+      #self.racine.setShaderAuto()
+
+      #Ajoute une texture de profondeur
+      Ldepthmap = Texture()
+      LBuffer.addRenderTexture(Ldepthmap, GraphicsOutput.RTMBindOrCopy, GraphicsOutput.RTPDepthStencil)
+      if (base.win.getGsg().getSupportsShadowFilter()):
+          Ldepthmap.setMinfilter(Texture.FTShadow)
+          Ldepthmap.setMagfilter(Texture.FTShadow) 
+
+      #Un buffer en couleur pour le debug
+      Lcolormap = Texture()
+      LBuffer.addRenderTexture(Lcolormap, GraphicsOutput.RTMBindOrCopy, GraphicsOutput.RTPColor)
+
+      #On fabrique une caméra qui sera notre lampe
+      self.soleil=base.makeCamera(LBuffer)
+      self.soleil.node().setScene(render)
+
+      #On prépare les variables du shader
+      render.setShaderInput('light', self.soleil)
+      render.setShaderInput('Ldepthmap', Ldepthmap)
+      render.setShaderInput('ambient', self.ambient,0,0,1.0)
+      render.setShaderInput('texDisable', 0,0,0,0)
+      render.setShaderInput('scale', 1,1,1,1)
+      render.setShaderInput('push',self.pushBias,self.pushBias,self.pushBias,0)
+
+      #On place le shader sur le soleil
+      lci = NodePath(PandaNode("Light Camera Initializer"))
+      lci.setShader(Shader.load('data/shaders/caster.sha'))
+      self.soleil.node().setInitialState(lci.getState())
+    
+      #On place un shader sur la caméra écran
+      #Si la carte 3D a du hardware pour ça, on l'utilise
+      mci = NodePath(PandaNode("Main Camera Initializer"))
+      if (base.win.getGsg().getSupportsShadowFilter()):
+          mci.setShader(Shader.load('data/shaders/shadow.sha'))
+      else:
+          mci.setShader(Shader.load('data/shaders/shadow-nosupport.sha'))
+      base.cam.node().setInitialState(mci.getState())
+      
+      #On configure notre soleil
+      self.soleil.setPos(0,-40,40)
+      self.soleil.lookAt(0,0,0)
+      self.soleil.node().getLens().setFov(30)
+      self.soleil.node().getLens().setNearFar(20,60)
+      #self.soleil.node().showFrustum()
+    
+      #base.bufferViewer.toggleEnable()
+    else:
+      print "Type d'éclairage inconnu",type
+
   def ping(self, temps):
     general.startChrono("Planete::ping")
     """Fonction appelée a chaque image, temps indique le temps écoulé depuis l'image précédente"""
@@ -701,6 +823,19 @@ class Planete:
       self.afficheTexte("Sauvegarde automatique en cours...", "sauvegarde")
       self.sauvegarde(os.path.join(".","sauvegardes","sauvegarde-auto.pln"))
       self.lastSave = 0
+    
+    #On fabrique le soleil si on en a pas
+    if self.soleil == None:
+      self.fabriqueSoleil()
+      
+    #Fait tourner le soleil
+    self.angleSoleil += temps / math.pi * self.vitesseSoleil
+    if self.soleil != None and self.soleil != 1:
+      self.soleil.setPos(0.0, math.sin(self.angleSoleil)*self.distanceSoleil, math.cos(self.angleSoleil)*self.distanceSoleil)
+      self.soleil.lookAt(0,0,0)
+      
+    if self.azure != None:
+      self.azure.lookAt(self.soleil)
     
     general.stopChrono("Planete::ping")
   # Fin Mise à jour ----------------------------------------------------
