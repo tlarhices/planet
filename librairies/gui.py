@@ -78,15 +78,15 @@ class MenuCirculaire:
 
   def cercle(self, centre, rayon, angleOuverture, nbelemsG, nbelemsD):
     elements = [[],[]]
-    
+    rayon=abs(rayon)
     if nbelemsG==1:
       angleG=angleOuverture
     else:
-      angleG = float(angleOuverture)/(nbelemsG-1)
+      angleG = abs(float(angleOuverture)/(nbelemsG-1))
     if nbelemsD==1:
       angleD=angleOuverture
     else:
-      angleD = float(angleOuverture)/(nbelemsD-1)
+      angleD = abs(float(angleOuverture)/(nbelemsD-1))
     dep = -float(angleOuverture)/2.0
     
     for i in range(0, max(nbelemsG, nbelemsD)):
@@ -268,17 +268,17 @@ class EnJeu(MenuCirculaire):
     
     liste=general.configuration.getConfigurationSprite()
     for elem in liste:
-      check = self.ajouteGauche(PictureRadio(elem[3], elem[4], elem[0].capitalize(), width=20))
+      check = self.ajouteGauche(PictureRadio(elem[3], elem[4], elem[0].capitalize(), width=LARGEUR_BOUTON))
       check.alpha = 0.5
       check.style = "DEFAULT"
       check.callback = self.clic
     self.fabrique()
     self.historique = Historique(self.gui)
     
-  def fabrique(self):
-    MenuCirculaire.fabrique(self)
-    for bouton in self.boutons[0]:
-      bouton.doPlacement({"x":bouton.x-bouton.width})
+  def anime(self, temps):
+    MenuCirculaire.anime(self, temps)
+    for composant, indice, cote in self.composants:
+      composant.doPlacement({"x":composant.x-composant.width})
     
   def alerte(self, type, message, coord):
     self.historique.ajouteMessage(type, message, coord)
