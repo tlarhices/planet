@@ -108,6 +108,7 @@ class IO:
     
   ### Gestion de la caméra ---------------------------------------------
   def positionneCamera(self, racine=None):
+    """Place la caméra dans l'univers"""
     if self.gui.start.planete != None:
       planete = self.gui.start.planete
     elif self.gui.start.tmp != None:
@@ -115,7 +116,6 @@ class IO:
     else:
       planete = None
       
-    """Place la caméra dans l'univers"""
     if planete == None:
       racine = render
       delta = 0.1
