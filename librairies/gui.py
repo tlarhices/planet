@@ -322,7 +322,7 @@ class MiniMap(Pane):
   def __init__(self, gui):
     Pane.__init__(self)
     self.gui = gui
-    self.echelle = 0.5
+    self.echelle = 75
     
     #On positionne la carte
     self.x = "right" 
