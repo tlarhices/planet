@@ -263,7 +263,10 @@ def ligneCroiseSphere(l1, l2, c, r):
   """Retourne None si la ligne n'intersecte pas la sphère, sinon retourne le ou les points d'intersection"""
   #Teste si le segment croise la sphere
   def intersecte(l1, l2, c):
-    u=((x3 - x1)(x2 - x1) + (y3 - y1)(y2 - y1) + (z3 - z1)(z2 - z1))/((x2 - x1)(x2 - x1) + (y2 - y1)(y2 - y1) + (z2 - z1)(z2 - z1))
+    x1, y1, z1 = l1
+    x2, y2, z2 = l2
+    x3, y3, z3 = c
+    u=((x3 - x1)*(x2 - x1) + (y3 - y1)*(y2 - y1) + (z3 - z1)*(z2 - z1))/((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1) + (z2 - z1)*(z2 - z1))
     if u<0 or u>1:
       return False
     return True
@@ -276,21 +279,21 @@ def ligneCroiseSphere(l1, l2, c, r):
   x2, y2, z2 = l2
   x3, y3, z3 = c
   a = (x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1) + (z2 - z1)*(z2 - z1)
-  b = 2((x2 - x1)*(x1 - x3) + (y2 - y1)*(y1 - y3) + (z2 - z1)*(z1 - z3))
-  c = x3*x3 + y3*y3 + z3*z3 + x1*x1 + y1*y1 + z1*z1 - 2(x3*x1 + y3*y1 + z3*z1) - r*r
+  b = 2*((x2 - x1)*(x1 - x3) + (y2 - y1)*(y1 - y3) + (z2 - z1)*(z1 - z3))
+  c = x3*x3 + y3*y3 + z3*z3 + x1*x1 + y1*y1 + z1*z1 - 2*(x3*x1 + y3*y1 + z3*z1) - r*r
 
   #On calcul un u, c'est à dire la position du point sur la ligne l1-l2 en partant de l1
   #Permet de retrouver les coordonnées
   def coordDepuisU(l1, l2, u):
     x1, y1, z1 = l1
     x2, y2, z2 = l2
-    return (x1 + u (x2 - x1), y1 + u (y2 - y1), z1 + u (z2 - z1))
+    return (x1 + u*(x2 - x1), y1 + u*(y2 - y1), z1 + u*(z2 - z1))
 
   #Le facteur de résolution de l'équation du second degré
   facteur = b*b - 4*a*c
   if facteur < 0:
     return None #Pas de collision
   elif facteur == 0:
-    return [coordDepuisU(-b/2a)] #Une seule (droite tangente)
+    return [coordDepuisU(l1, l2, -b/2*a)] #Une seule (droite tangente)
   else:
-    return [coordDepuisU((-b + math.sqrt(facteur))/2a), coordDepuisU((-b - math.sqrt(facteur))/2a)] #2 collisions
+    return [coordDepuisU(l1, l2, (-b + math.sqrt(facteur))/2*a), coordDepuisU(l1, l2, (-b - math.sqrt(facteur))/2*a)] #2 collisions

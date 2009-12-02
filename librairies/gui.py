@@ -208,6 +208,7 @@ class Historique(MenuCirculaire):
   "inconnu":"rtheme/twotone/q.png",
   "mort":"rtheme/twotone/skull.png",
   "chat":"rtheme/twotone/phone.png",
+  "obscurite":"rtheme/twotone/clock.png",
   "info":"rtheme/twotone/info.png",
   "avertissement":"rtheme/twotone/caution.png",
   "sauvegarde":"rtheme/twotone/diskette.png"
@@ -227,6 +228,8 @@ class Historique(MenuCirculaire):
     self.fabrique()
     
   def fabriqueMessage(self, type, texte):
+    if type not in self.icones.keys():
+      type="inconnu"
     return Icon(self.icones[type])
     
   def MAJ(self, temps):
@@ -282,6 +285,7 @@ class EnJeu(MenuCirculaire):
     
   def alerte(self, type, message, coord):
     self.historique.ajouteMessage(type, message, coord)
+    self.gui.informations.ajouteTexte(type, message)
  
   def clic(self, bouton, etat):
     """
@@ -399,6 +403,7 @@ class Informations(Pane):
   "mort":"rtheme/twotone/skull.png",
   "chat":"rtheme/twotone/phone.png",
   "info":"rtheme/twotone/info.png",
+  "obscurite":"rtheme/twotone/clock.png",
   "avertissement":"rtheme/twotone/caution.png",
   "sauvegarde":"rtheme/twotone/diskette.png"
   }

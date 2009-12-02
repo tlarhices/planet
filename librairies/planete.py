@@ -804,6 +804,19 @@ class Planete:
     general.startChrono("Planete::ping")
     """Fonction appelée a chaque image, temps indique le temps écoulé depuis l'image précédente"""
     
+    #On fabrique le soleil si on en a pas
+    if self.soleil == None:
+      self.fabriqueSoleil()
+
+    #Fait tourner le soleil
+    self.angleSoleil += temps / math.pi * self.vitesseSoleil
+    if self.soleil != None and self.soleil != 1:
+      self.soleil.setPos(0.0, math.sin(self.angleSoleil)*self.distanceSoleil, math.cos(self.angleSoleil)*self.distanceSoleil)
+      self.soleil.lookAt(0,0,0)
+      
+    if self.azure != None:
+      self.azure.lookAt(self.soleil)
+
     #Regarde s'il faut optimiser le modèle 3D, passe au minimum (apr défaut) 3 secondes après la dernière modification du modèle
     dureeOptimise = float(general.configuration.getConfiguration("Planete-MAJ","duree-optimisation",3.0))
     for element in self.elements:
@@ -818,8 +831,11 @@ class Planete:
       
     #Met à jour les états des sprites
     for sprite in self.sprites[:]:
+      if general.ligneCroiseSphere(sprite.position, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
+        sprite.tue("obscurite")
       if not sprite.ping(temps):
-        sprite.joueur.spriteMort(sprite)
+        if sprite.joueur !=None:
+          sprite.joueur.spriteMort(sprite)
         self.sprites.remove(sprite)
         
     #Sauvegarde automatique
@@ -828,19 +844,6 @@ class Planete:
       self.afficheTexte("Sauvegarde automatique en cours...", "sauvegarde")
       self.sauvegarde(os.path.join(".","sauvegardes","sauvegarde-auto.pln"))
       self.lastSave = 0
-    
-    #On fabrique le soleil si on en a pas
-    if self.soleil == None:
-      self.fabriqueSoleil()
-      
-    #Fait tourner le soleil
-    self.angleSoleil += temps / math.pi * self.vitesseSoleil
-    if self.soleil != None and self.soleil != 1:
-      self.soleil.setPos(0.0, math.sin(self.angleSoleil)*self.distanceSoleil, math.cos(self.angleSoleil)*self.distanceSoleil)
-      self.soleil.lookAt(0,0,0)
-      
-    if self.azure != None:
-      self.azure.lookAt(self.soleil)
     
     general.stopChrono("Planete::ping")
   # Fin Mise à jour ----------------------------------------------------

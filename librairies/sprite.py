@@ -197,11 +197,18 @@ class Sprite:
     general.gui.afficheTexte(self.id+" est mort par "+type, "mort")
     self.vie = 0
     self.typeMort = type
-    self.rac.detachNode()
-    self.rac.removeNode()
-    self.rac = None
-    self.racine = None
-    self.modele = None
+    if self.rac!=None:
+      self.rac.detachNode()
+      self.rac.removeNode()
+      self.rac = None
+    if self.racine!=None:
+      self.racine.detachNode()
+      self.racine.removeNode()
+      self.racine = None
+    if self.modele!=None:
+      self.modele.detachNode()
+      self.modele.removeNode()
+      self.modele = None
     self.symbole = None
     
   def sauvegarde(self):
@@ -395,20 +402,28 @@ class Nuage(Sprite):
   """Génère un nuage aléatoirement"""
   
   def __init__(self, planete):
-    Sprite.__init__(self, "nuage", (10000,10000,10000), "none", "none", planete, None)
+    Sprite.__init__(self, "nuage", (0.01,0.01,0.01), "none", "none", planete, None)
     self.planete = planete
     
   def tue(self, type):
     """Un nuage ne peut pas mourrir"""
     return
+    #if type=="noyade":
+    #  return
+    #else:
+    #  Sprite.tue(self, type)
     
   def ping(self, temps):
     """Non utilisé mais protège du risque d'appel à ping() de Sprite"""
     self.deplace(temps)
+    if self.vie<=0:
+      return False
     return True
     
   def deplace(self, temps):
     """Promène le nuage sur l'écran"""
+    if self.racine == None or self.modele==None:
+      return
     #Modele est centré sur la planète, donc les rotations le promènent un peu tout autour
     f = random.random()*2.0-1.0
     self.modele.setH(self.modele.getH()+random.random()*temps*f)
@@ -419,6 +434,7 @@ class Nuage(Sprite):
     self.racine.setH(self.racine.getH()+random.random()*temps*f)
     self.racine.setP(self.racine.getP()+random.random()*temps*f)
     self.racine.setR(self.racine.getR()+random.random()*temps*f)
+    self.position = self.n1.getPos(self.planete.racine)
     
   def fabriqueModel(self):
     """Construit le nuage"""
@@ -450,6 +466,7 @@ class Nuage(Sprite):
       self.fabriqueSprite(tex, taille=1, type="point").reparentTo(nuage)
       if i==0:
         nuage.node().addSwitch(99999, 0) 
+        self.n1=nuage
       else:
         nuage.node().addSwitch(float(i)/float(taille)*distanceSoleil, 0) 
         
