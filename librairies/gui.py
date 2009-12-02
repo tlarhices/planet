@@ -256,6 +256,64 @@ class Historique(MenuCirculaire):
         
     MenuCirculaire.MAJ(self, temps)
     
+class MiniMap(Pane):
+  gui = None
+  tailleMiniMap = 150
+  points = None
+  blips = None
+  echelle = None
+  
+  def __init__(self, gui):
+    Pane.__init__(self)
+    self.gui = gui
+    self.echelle = 0.5
+    
+    #On positionne la Form
+    self.x = "right" 
+    self.y = "top" 
+    self.width = self.tailleMiniMap
+    self.height = self.tailleMiniMap
+    
+    self.points={}
+    self.blips={}
+    taskMgr.add(self.ping, "Boucle minimap")
+    
+  def ajoutePoint(self, point, icone):
+    if len(point)!=2:
+      print "La mini carte n'accepte que des points en 2D !"
+      return None
+      
+    for id, (pointT, iconeT) in self.points.iteritems():
+      if pointT==point and iconeT==icone:
+        return id
+    for i in range(0, len(self.points)):
+      if not i in self.points.keys():
+        self.points[i]=(point, icone)
+        return i
+    self.points[len(self.points)+1]=(point, icone)
+    return len(self.points)+1
+    
+  def enlevePoint(self, id):
+    if id not in self.points.keys():
+      print "Erreur, impossible d'effacer le point : point pas sur la carte", id
+      return
+    del self.points[id]
+    if id in self.blips.keys():
+      self.remove(self.blips[id])
+      del self.blips[id]
+
+  def ping(self, task):
+    for id in self.points.keys():
+      if id not in self.blips.keys():
+        self.blips[id] = self.add(Icon(self.points[id][1],x=self.points[id][0][0]*self.echelle, y=self.points[id][0][1]*self.echelle))
+    return task.cont
+        
+  def changeEchelle(self, nouvelleEchelle):
+    self.echelle = nouvelleEchelle
+    for blib in self.blips.values():
+      self.remove(blib)
+    self.blips = {}
+    
 class EnJeu(MenuCirculaire):
   """Contient la liste des unitées que l'on peut construire"""
   select = None
@@ -277,6 +335,7 @@ class EnJeu(MenuCirculaire):
       check.callback = self.clic
     self.fabrique()
     self.historique = Historique(self.gui)
+    self.miniMap = self.gui.gui.add(MiniMap(self.gui))
     
   def anime(self, temps):
     MenuCirculaire.anime(self, temps)
@@ -298,6 +357,11 @@ class EnJeu(MenuCirculaire):
   def MAJ(self, temps):
     self.historique.MAJ(temps)
     MenuCirculaire.MAJ(self, temps)
+    
+  def clear(self):
+    self.historique.clear()
+    self.gui.gui.remove(self.miniMap)
+    MenuCirculaire.clear(self)
         
 
 class Informations(Pane):
@@ -662,9 +726,9 @@ class Interface:
     self.io = IO(self)
     #On affiche l'écran de titre
     self.menuCourant = MenuPrincipal(self)
-    #On place un bouton quitter en haut à droite de l'écran
-    self.quit = self.gui.add(Icon("rtheme/twotone/x.png", x="right", y="top"))
-    self.quit.onClick = sys.exit
+    ##On place un bouton quitter en haut à droite de l'écran
+    #self.quit = self.gui.add(Icon("rtheme/twotone/x.png", x="right", y="top"))
+    #self.quit.onClick = sys.exit
     taskMgr.add(self.ping, "Boucle GUI", 10)
     
   def add(self, pouet):

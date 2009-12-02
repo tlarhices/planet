@@ -840,7 +840,7 @@ class Planete:
         
     #Sauvegarde automatique
     self.lastSave += temps
-    if self.lastSave > self.seuilSauvegardeAuto:
+    if self.seuilSauvegardeAuto != -1 and self.lastSave > self.seuilSauvegardeAuto:
       self.afficheTexte("Sauvegarde automatique en cours...", "sauvegarde")
       self.sauvegarde(os.path.join(".","sauvegardes","sauvegarde-auto.pln"))
       self.lastSave = 0

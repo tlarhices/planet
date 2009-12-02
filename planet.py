@@ -70,6 +70,7 @@ class Start:
     
     #Place une sphère à la place de la planète pendant la construction
     self.tmp = Planete()
+    self.tmp.seuilSauvegardeAuto = -1
     self.tmp.fabriqueNouvellePlanete(tesselation=3, delta=0.2)
     self.tmp.fabriqueModel()
 #    self.tmp.reparentTo(render)

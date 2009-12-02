@@ -108,8 +108,15 @@ class Sprite:
       
     #Recalcule la verticale du modèle
     self.MAJSymbole()
-
+    self.blip()
     return True
+    
+  blipid = None
+  def blip(self):
+    pCam = general.gui.io.camera.getRelativeVector(self.planete.racine, Vec3(*self.position))
+    if self.blipid!=None:
+      general.gui.menuCourant.miniMap.enlevePoint(self.blipid)
+    self.blipid = general.gui.menuCourant.miniMap.ajoutePoint((pCam[0], pCam[2]),"rtheme/twotone/user.png")
   
   def testeSol(self, temps):
     """Regarde l'angle entre la normale de la face et le sprite qui s'y tient"""
@@ -414,11 +421,15 @@ class Nuage(Sprite):
     #  Sprite.tue(self, type)
     
   def ping(self, temps):
-    """Non utilisé mais protège du risque d'appel à ping() de Sprite"""
+    """Les nuages ne sont pas affectés par la gravité"""
     self.deplace(temps)
     if self.vie<=0:
       return False
     return True
+    
+  def blip(self):
+    """Les nuages n'apparaissent pas sur le radar"""
+    pass
     
   def deplace(self, temps):
     """Promène le nuage sur l'écran"""
