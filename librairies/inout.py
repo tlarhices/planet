@@ -189,6 +189,8 @@ class IO:
   ### Gestion du clavier/souris ----------------------------------------
   def presseTouche(self, touche):
     """Une touche a été pressée, on l'ajoute a la liste des touches"""
+    if self.gui.gui.hoveringOver and touche.startswith("mouse"):
+      return
     self.touches.append(touche)
     self.gereTouche()
     
@@ -200,15 +202,17 @@ class IO:
   def gereTouche(self):
     """Gère les touches clavier"""
     for touche in self.touches:
-      #La touche est configurée
-      if touche in self.configClavier.keys():
-        action = self.configClavier[touche]
-        if action not in self.actions.keys():
-          #La touche a été configurée pour faire un truc mais on saît pas ce que c'est
-          print "Type d'action inconnue : ", action
-        else:
-          #On lance la fonction
-          self.appelFonction(*self.actions[action])
+      #On regarde si clique pas sur l'interface
+      if not (self.gui.gui.hoveringOver and touche.startswith("mouse")):
+        #La touche est configurée
+        if touche in self.configClavier.keys():
+          action = self.configClavier[touche]
+          if action not in self.actions.keys():
+            #La touche a été configurée pour faire un truc mais on saît pas ce que c'est
+            print "Type d'action inconnue : ", action
+          else:
+            #On lance la fonction
+            self.appelFonction(*self.actions[action])
       
   def lierActionsFonctions(self):
     """On donne des noms gentils à des appels de fonction moins sympas"""
