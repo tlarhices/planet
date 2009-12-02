@@ -15,68 +15,97 @@ from treegui.core import Gui
 import rtheme
 import os
 
-PAD = 4
-HAUTEUR_BOUTON = 28
-LARGEUR_BOUTON = 190
-HAUTEUR_CHECK = 15
-HAUTEUR_TEXTE = 15
-TAILLE_ICONE = 15
-TEMPS_ICONE = 30.0
+PAD = 4 #Taille de l'espace entre les composants
+HAUTEUR_BOUTON = 28 #Hauteur d'un bouton
+LARGEUR_BOUTON = 190 #Largeur d'un bouton
+HAUTEUR_CHECK = 15 #Hauteur d'une checkbox
+HAUTEUR_TEXTE = 15 #Hauteur d'une ligne de texte
+TAILLE_ICONE = 15 #Hauteur==Largeur d'une icone
+TEMPS_ICONE = 30.0 #Durée durant laquelle une icone reste affichée à l'écran
 
 class InfoBulle(Pane):
+  """Zone de texte qui disparait après un certain temps"""
   def __init__(self, gui, message, timeout, x, y, callback=None):
+    """
+    gui : l'instance de la classe Interface en cours d'utilisation
+    message : le message à afficher
+    timeout : la durée après laquelle l'infobulle doit disparaitre
+    x,y : la position de l'infobulle à l'écran
+    callback : la fonction à appeler une fois que la bulle disparait
+    """
     Pane.__init__(self)
+    #Crée le label
     label = self.add(Label(message))
+    #Positionne et dimentionne le fond de la bulle
     self.width, self.height = label.getSize(gui.gui)
     self.x, self.y = x, y
     
+    #La fonction de fin
     if callback != None:
       self.callback = callback
+      
+    #La fonction qui va supprimer l'infobulle une fois le timeout passé
     taskMgr.doMethodLater(timeout, self.exit, 'effaceInfoBulle')
     
   def exit(self, task=None):
+    """
+    Fonction qui détruit l'infobulle
+    task : paramètre renvoyé par taskMgr
+    """
     self.parent.remove(self)
     self.callback()
     if task!=None:
       return task.done
     
   def callback(self):
+    """Cette fonction est appelée quand la bulle est détruite"""
     pass
     
 class MenuCirculaire:
-  boutons = None
-  composants = None
-  retour = None
-  besoinRetour = True
-  angleOuverture = None
+  """Affiche des boutons positionnés sur un anneau"""
+  boutons = None #Liste des instances de boutons
+  composants = None #Liste des instances de boutons (utilisé pour l'animation)
+  retour = None #Un bouton qui ramène au menu précédent
+  besoinRetour = True #Si True, alors de l'appel à fabrique un bouton ramenant au menu précédent sera crée
+  angleOuverture = None #L'angle sur lequel les boutons s'étalent (en degrés)
   
-  animation = None
-  directionAnimation = None
-  exit = None
-  exiting = None
+  animation = None #La position actuelle dans l'animation (en degrés)
+  directionAnimation = None #si <0 les boutons s'éloignent, si >0 les boutons se resserent et si ==0, pas d'animation
+  exit = None #La classe de menu à produire quand on quitte
+  exiting = None #Si True, alors se menu est en cours de destruction
   
-  lastDraw = None
+  lastDraw = None #Heure à laquelle on a affiché le menu en dernier
   
   def __init__(self, gui):
+    """gui: l'instance de Interface en cours d'utilisation"""
     self.gui = gui
+    #Par défaut les boutons s'étalent sur 120°
     self.angleOuverture = 120.0
     self.animation = 120.0
     self.directionAnimation = -1
     self.exiting = False
     self.boutons=[[],[]]
     self.composants = []
-    
     self.lastDraw = None
     
   def ajouteGauche(self, bouton):
+    """Ajoute un bouton dans la colonne de gauche"""
     self.boutons[0].append(bouton)
     return bouton
     
   def ajouteDroite(self, bouton):
+    """Ajoute un bouton dans la colonne de droite"""
     self.boutons[1].append(bouton)
     return bouton
 
   def cercle(self, centre, rayon, angleOuverture, nbelemsG, nbelemsD):
+    """
+    Calcul les positions des boutons à placer sur le cercle
+    centre : le centre du cercle
+    rayon : le rayon du cercle
+    angleOuverture : l'angle sur lequel les boutons l'étalent
+    nbelemS, bnelemsD : le nombre d'éléments dans la colonne de gauche / de droite
+    """
     elements = [[],[]]
     rayon=abs(rayon)
     if nbelemsG==1:
@@ -102,6 +131,7 @@ class MenuCirculaire:
     return elements
 
   def anime(self, temps):
+    """Déplacent les boutons selon l'heure pour produire l'animation"""
     self.animation += self.directionAnimation * temps * 75
     
     if self.animation<0:
@@ -121,12 +151,15 @@ class MenuCirculaire:
       composant.doPlacement({"x":x, "y":y, "width":composant.width})
     
   def getCentre(self):
+    """Retourne le centre de la fenêtre"""
     return (base.win.getXSize()/2,base.win.getYSize()/2)
     
   def getRayon(self):
+    """Retourne le rayon maximal qui peut être obtenu pour cette taille de fenêtre"""
     return min(base.win.getXSize()/2 - LARGEUR_BOUTON, base.win.getYSize()/2 - HAUTEUR_BOUTON)
     
   def fabrique(self):
+    """Construit le menu et l'affiche"""
     bg, bd = self.boutons
     self.composants = []
     nbBoutonsG = len(bg)
@@ -156,6 +189,7 @@ class MenuCirculaire:
     self.anime(0.0)
     
   def MAJ(self, temps):
+    """Met à jour l'affichage"""
     if self.lastDraw == None:
       self.lastDraw = temps
       
@@ -165,6 +199,10 @@ class MenuCirculaire:
     self.anime(tps)
     
   def efface(self, cible):
+    """
+    Lance l'animation de repliage du menu
+    cible : la classe du menu qui sera produite après la disparition complète (si None, quitte sans animation)
+    """
     self.directionAnimation = 1.0
     self.exit = cible
     if cible==None:
@@ -172,6 +210,7 @@ class MenuCirculaire:
       self.clear()
 
   def remove(self, composant):
+    """Retire un bouton du menu"""
     cible = None
     for bouton, indice, cote in self.composants:
       if composant == bouton:
@@ -186,6 +225,7 @@ class MenuCirculaire:
     self.fabrique()
       
   def clear(self):
+    """Supprime tous les composants"""
     for bouton, indice, cote in self.composants:
       self.gui.remove(bouton)
       
@@ -195,15 +235,17 @@ class MenuCirculaire:
     self.boutons = [[],[]]
     self.composants = []
     self.retour = None
-
     return True
       
   def back(self):
+    """Retourne au menu précédent"""
     self.gui.changeMenuVers(MenuPrincipal)
     
 class Historique(MenuCirculaire):
+  """Affiche les messages sous forme d'icones s'empilant sur le coté droit de l'écran"""
   messages = None
   
+  #Liste des icones pour chaque type de message
   icones = {
   "inconnu":"rtheme/twotone/q.png",
   "mort":"rtheme/twotone/skull.png",
@@ -221,32 +263,45 @@ class Historique(MenuCirculaire):
     self.fabrique()
   
   def ajouteMessage(self, type, message, position=None):
+    """
+    Ajoute un nouveau message
+    type : le type de message (voir self.icones)
+    message : le contenu du message
+    position : le point au dessus duquel la caméra doit aller lors d'un clic sur l'icône
+    """
     self.messages.append((TEMPS_ICONE, type, message, self.ajouteDroite(self.fabriqueMessage(type, message))))
     if position!=None:
       self.messages[-1][3].callback = self.gui.io.placeCameraAuDessusDe
       self.messages[-1][3].callbackParams = {"point":position}
     self.fabrique()
     
-  def fabriqueMessage(self, type, texte):
+  def fabriqueMessage(self, type, message):
+    """
+    Construit un composant pour le message
+    type : le type de message (voir self.icones)
+    message : le message associé
+    """
     if type not in self.icones.keys():
       type="inconnu"
     return Icon(self.icones[type])
     
   def MAJ(self, temps):
+    """Gère la pulsation des icones et supprime les icones périmées"""
     if self.lastDraw == None:
       self.lastDraw = temps
       
     tps = temps - self.lastDraw
-        
     aVirer = []
         
     for i in range(0, len(self.messages)):
       restant, type, message, composant = self.messages[i]
       restant = max(0.0, restant-tps)
       if restant == 0:
+        #Composant périmé
         self.remove(composant)
         aVirer.append(self.messages[i])
       else:
+        #Fait pulser
         composant.alpha = abs(restant%2-1)
       self.messages[i] = (restant, type, message, composant)
       
@@ -257,18 +312,19 @@ class Historique(MenuCirculaire):
     MenuCirculaire.MAJ(self, temps)
     
 class MiniMap(Pane):
-  gui = None
-  tailleMiniMap = 150
-  points = None
-  blips = None
-  echelle = None
+  """Affiche une carte miniature de la planète"""
+  gui = None #l'instance de la classe Interface en cours d'utilisation
+  tailleMiniMap = 150 #La taille de la carte en pixels (la carte est carrée)
+  points = None #La liste des points à afficher
+  blips = None #La liste des composants représentants les points
+  echelle = None #Le facteur d'échelle entre le monde réel et la miniCarte
   
   def __init__(self, gui):
     Pane.__init__(self)
     self.gui = gui
     self.echelle = 0.5
     
-    #On positionne la Form
+    #On positionne la carte
     self.x = "right" 
     self.y = "top" 
     self.width = self.tailleMiniMap
@@ -279,6 +335,7 @@ class MiniMap(Pane):
     taskMgr.add(self.ping, "Boucle minimap")
     
   def ajoutePoint(self, point, icone):
+    """Ajout un point2D à la carte, retourne un indice servant à l'effacer plus tard"""
     if len(point)!=2:
       print "La mini carte n'accepte que des points en 2D !"
       return None
@@ -293,7 +350,31 @@ class MiniMap(Pane):
     self.points[len(self.points)+1]=(point, icone)
     return len(self.points)+1
     
+  def ajoutePoint3D(self, point, icone):
+    """Ajout un point3D à la carte, retourne un indice servant à l'effacer plus tard"""
+    #On calcul le point derrière la caméra, super loin
+    camNorm = general.normaliseVecteur(self.gui.io.camera.getPos())
+    mCam = general.multiplieVecteur(camNorm, self.gui.start.planete.distanceSoleil)
+    #On regarde si le point est bien en vue et pas derrière la planète
+    if general.ligneCroiseSphere(point, mCam, (0.0,0.0,0.0), 1.0)==None:
+      test = NodePath("cam")
+      test.reparentTo(self.gui.start.planete.racine)
+      test.setPos(*mCam)
+      test.lookAt(self.gui.start.planete.racine)
+      pt = test.getRelativePoint(self.gui.start.planete.racine, Point3(*point))
+      test.detachNode()
+      test.removeNode()
+      return self.ajoutePoint((pt[0] ,pt[2]), icone)
+    else:
+      return None
+    
   def enlevePoint(self, id):
+    """
+    Supprime un point de la carte
+    id : le résultat produit lors de ajoutePoint ou ajoutePoint3D
+    """
+    if id==None:
+      return
     if id not in self.points.keys():
       print "Erreur, impossible d'effacer le point : point pas sur la carte", id
       return
@@ -303,12 +384,15 @@ class MiniMap(Pane):
       del self.blips[id]
 
   def ping(self, task):
+    """Boucle qui met à jour la carte"""
     for id in self.points.keys():
       if id not in self.blips.keys():
+        #Ce point n'a pas de représentation sur la carte, on en fabrique un nouveau
         self.blips[id] = self.add(Icon(self.points[id][1],x=self.points[id][0][0]*self.echelle, y=self.points[id][0][1]*self.echelle))
     return task.cont
         
   def changeEchelle(self, nouvelleEchelle):
+    """Change l'échelle de la carte"""
     self.echelle = nouvelleEchelle
     for blib in self.blips.values():
       self.remove(blib)
@@ -316,11 +400,9 @@ class MiniMap(Pane):
     
 class EnJeu(MenuCirculaire):
   """Contient la liste des unitées que l'on peut construire"""
-  select = None
-  
-  status = None
-  infoBulle = None
-  icones = None
+  select = None #L'unité sélctionnée en ce moment
+  historique = None #La liste des icones d'information
+  miniMap = None #La carte
   
   def __init__(self, gui):
     MenuCirculaire.__init__(self, gui)
@@ -343,6 +425,7 @@ class EnJeu(MenuCirculaire):
       composant.doPlacement({"x":composant.x-composant.width})
     
   def alerte(self, type, message, coord):
+    """Ajoute un nouveau message"""
     self.historique.ajouteMessage(type, message, coord)
     self.gui.informations.ajouteTexte(type, message)
  
@@ -360,6 +443,8 @@ class EnJeu(MenuCirculaire):
     
   def clear(self):
     self.historique.clear()
+    #Purge tous les points de la carte
+    self.miniMap.changeEchelle(0.0)
     self.gui.gui.remove(self.miniMap)
     MenuCirculaire.clear(self)
         
@@ -515,22 +600,6 @@ class Chargement(Pane):
     self.y = "center" 
     self.width = "80%"
     self.height = "20px"
-    
-class EcranTitre(Pane):
-  """Le menu principal"""
-  style = "default"
-  
-  def __init__(self, gui):
-    Pane.__init__(self)
-    self.gui = gui
-    self.label = self.add(Label(u"Vertes & plaisantes contrées", x="left", y=PAD))
-    
-    #On positionne la Form
-    self.x = "center" 
-    self.y = "center" 
-    self.width = "80%"
-    self.height = "20px"
-    taskMgr.doMethodLater(0.5, self.gui.effaceEcranTitre, 'effaceEcranTitre')
     
 class MenuPrincipal(MenuCirculaire):
   """Le menu principal"""
@@ -732,9 +801,11 @@ class Interface:
     taskMgr.add(self.ping, "Boucle GUI", 10)
     
   def add(self, pouet):
+    """Racourcis pour gui.gui.add"""
     return self.gui.add(pouet)
     
   def remove(self, pouet):
+    """Racourcis pour gui.gui.remove"""
     return self.gui.remove(pouet)
     
   def ping(self, task):
@@ -743,47 +814,42 @@ class Interface:
     return task.cont
     
   def changeMenuVers(self, classe):
+    """Passe d'un menu à un autre"""
     if self.menuCourant != None:
       self.menuCourant.efface(classe)
-      #if classe != None:
-      #  self.menuCourant = classe(self)
-      #else:
-      #  self.menuCourant = None
-      
-  def effaceEcranTitre(self, task):
-    #Supprime l'écran de titre, charge le menu principal
-    self.changeMenuVers(MenuPrincipal)
-    return task.done
       
   def nouvellePlanete(self):
-    #Construit une nouvelle planète aléatoirement
+    """Construit une nouvelle planète aléatoirement"""
     self.makeMain()
     self.start.fabriquePlanete(os.path.join(".", "configuration", "planete.cfg"))
     self.start.start()
     
   def makeMain(self):
-    #Construit les éléments principaux de l'interface
+    """Construit les éléments de l'interface lors du chargement"""
     self.changeMenuVers(None)
     self.informations = self.gui.add(Informations(self))
     self.chargement = self.gui.add(Chargement())
     
   def configurer(self):
+    """Passe au menu de configuration"""
     self.changeMenuVers(MenuConfiguration)
     
   def planeteVierge(self):
+    """Lance une planète "vierge" """
     self.changeMenuVers(MenuVierge)
     
   def planeteVierge2(self, fichier):
-    #Charge un prototype de planète pré-construit
+    """Charge un prototype de planète pré-construit"""
     self.makeMain()
     self.start.chargePlanete(os.path.join(".", "data", "planetes", fichier))
     self.start.start()
     
   def chargerPartie(self):
+    """Charge un partie sauvegardée"""
     self.changeMenuVers(MenuCharge)
     
   def chargerPartie2(self, fichier):
-    #Charge une partie en cours
+    """Charge une partie en cours"""
     self.makeMain()
     self.start.chargePlanete(os.path.join(".", "sauvegardes", fichier))
     self.start.start()
@@ -818,4 +884,3 @@ class Interface:
       self.gui._draw()
       #On force le rendu
       base.graphicsEngine.renderFrame()
-    

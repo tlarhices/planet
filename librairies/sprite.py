@@ -113,10 +113,9 @@ class Sprite:
     
   blipid = None
   def blip(self):
-    pCam = general.gui.io.camera.getRelativeVector(self.planete.racine, Vec3(*self.position))
     if self.blipid!=None:
       general.gui.menuCourant.miniMap.enlevePoint(self.blipid)
-    self.blipid = general.gui.menuCourant.miniMap.ajoutePoint((pCam[0], pCam[2]),"rtheme/twotone/user.png")
+    self.blipid = general.gui.menuCourant.miniMap.ajoutePoint3D(self.position,"rtheme/twotone/user.png")
   
   def testeSol(self, temps):
     """Regarde l'angle entre la normale de la face et le sprite qui s'y tient"""

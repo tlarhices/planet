@@ -297,3 +297,24 @@ def ligneCroiseSphere(l1, l2, c, r):
     return [coordDepuisU(l1, l2, -b/2*a)] #Une seule (droite tangente)
   else:
     return [coordDepuisU(l1, l2, (-b + math.sqrt(facteur))/2*a), coordDepuisU(l1, l2, (-b - math.sqrt(facteur))/2*a)] #2 collisions
+    
+def projetePointSurPlan(normale, pointPlan, pointProj):
+  #Calcul du plan
+  #a*x + b*y + c*z + d = 0
+  a, b, c = normale
+  x, y, z = pointPlan
+  d = -a*x - b*y - c*z
+  
+  #calcul de la projection
+  x, y, z = pointProj
+  #comme P(xp, yp, zp) est sur le plan on a :
+  #a*xp+b*yp+c*zp+d=0
+  #et comme le vecteur -pointProj-P-> est selon la normale
+  #xp=x-k*a
+  #yp=y-k*a
+  #zp=z-k*a
+  k = (a*x+b*y+c*z+d)/(a*a+b*b+c*c)
+  xp=x-k*a
+  yp=y-k*a
+  zp=z-k*a
+  return xp, yp, zp
