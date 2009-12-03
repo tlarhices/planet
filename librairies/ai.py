@@ -18,21 +18,22 @@ class AINavigation:
   graph = None #Le graph de navigation
   planete = None #L'instance de la planète
   maxcout = 100000000 #Ce coût veut dire que c'est impossible
+  angleSolMax = None
 
   def __init__(self, planete):
     self.planete = planete
+    self.angleSolMax = float(general.configuration.getConfiguration("sprite-navigation", "angleSolMax","70.0"))
     
   # Création d'infos ---------------------------------------------------    
   def coutPassage(self, idxSommet1, idxSommet2):
     """Retourne le cout necessaire pour passer du sommet idxSommet1 au sommet idxSommet2"""
-    deltaMax = 70
     #cout = (general.normeVecteur(self.planete.sommets[idxSommet2]) - general.normeVecteur(self.planete.sommets[idxSommet1]))*100
     
     sp = Vec3(*general.normaliseVecteur(self.planete.sommets[idxSommet1]))
     fc = Vec3(*self.planete.trouveFace(self.planete.sommets[idxSommet2]).calculNormale())
     angle = sp.angleDeg(fc)
     
-    if angle >= deltaMax or angle <= -deltaMax:
+    if angle >= self.angleSolMax or angle <= -self.angleSolMax:
       angle = self.maxcout
       
     #navigation = NodePath("nav")

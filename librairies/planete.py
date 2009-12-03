@@ -458,8 +458,10 @@ class Planete:
     self.niveauCiel = 1.0+self.delta*1.25+0.0001
     
     nuages = NodePath("nuage")
+    densite = int(general.configuration.getConfiguration("planete-nuages", "densite","15"))
+    taille = float(general.configuration.getConfiguration("planete-nuages", "taille","0.15"))
     for i in range(0, 80):
-      a = Nuage(self)
+      a = Nuage(densite, taille, self)
       a.fabriqueModel().reparentTo(nuages)
       self.sprites.append(a)
     nuages.reparentTo(self.modeleCiel)
@@ -658,9 +660,8 @@ class Planete:
           for joueurT in self.joueurs:
             if joueurT.nom.lower().strip()==nomjoueur.lower().strip():
               joueur = joueurT
-        sprite = Sprite(id, position, modele, symbole, self, joueur)
+        sprite = Sprite(id, position, modele, symbole, float(vie), self, joueur)
         sprite.vitesse = float(vitesse)
-        sprite.vie = float(vie)
         sprite.bouge = bouge.lower().strip()=="true"
         sprite.aquatique = aquatique.lower().strip()=="true"
         self.sprites.append(sprite)

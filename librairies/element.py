@@ -330,13 +330,15 @@ class Element:
     #else:
     #  print "Étrange UV",  self.posUV[1]
     tex3 = loader.loadTexture("data/textures/"+t3+"-2.png")
+    ts1 = TextureStage('ts1')
+    ts1.setMode(TextureStage.MDecal)
     ts2 = TextureStage('ts2')
     ts2.setMode(TextureStage.MDecal)
     ts3 = TextureStage('ts3')
     ts3.setMode(TextureStage.MDecal)
     nd.setTransparency(TransparencyAttrib.MAlpha)  
     #nd.setTexture(tex0)
-    nd.setTexture(tex1)
+    nd.setTexture(ts1, tex1)
     nd.setTexture(ts2, tex2)
     nd.setTexture(ts3, tex3)
 

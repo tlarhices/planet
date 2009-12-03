@@ -22,7 +22,7 @@ class Sprite:
   altCarre = None #L'altitude de cet objet
   symbole=None
   
-  vitesse = 0.01 #(en unité/s)
+  vitesse = None
   
   marcheVersTab = None #La liste des sommets vers lequel l'objet se dirige
   
@@ -40,8 +40,9 @@ class Sprite:
   
   inertie = None
   terminalVelocity = None
+  distanceProche = None
   
-  def __init__(self, id, position, modele, symbole, planete, joueur):
+  def __init__(self, id, position, modele, symbole, distanceSymbole, vie, terminalVelocity, distanceProche, seuilToucheSol, constanteGravitationelle, vitesse, planete, joueur):
     """
     Fabrique un nouvel objet
     position : là où l'objet se trouve
@@ -57,13 +58,19 @@ class Sprite:
     self.bouge = True
     self.aquatique = False
     self.id = id
-    self.vie=100
+    self.vie=vie
     self.rac = NodePath("racine-sprite")
     self.racine = NodePath("racine-sprite")
     #self.miseAJourPosition(general.multiplieVecteur(position, 2.0))
     self.miseAJourPosition(position)
     self.inertie = [0.0,0.0,0.0]
-    self.terminalVelocity = 0.03
+    self.terminalVelocity = terminalVelocity
+    self.angleSolMax = float(general.configuration.getConfiguration("sprite-navigation", "angleSolMax","70.0"))
+    self.distanceProche = distanceProche
+    self.seuilToucheSol = seuilToucheSol
+    self.constanteGravitationelle = constanteGravitationelle
+    self.vitesse = vitesse
+    self.distanceSymbole = distanceSymbole
     
   def pointeRacineSol(self):
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""
@@ -94,7 +101,7 @@ class Sprite:
     if self.marcheVersTab != None:
       if len(self.marcheVersTab) > 0:
         self.deplace(self.marcheVersTab[0], temps)
-        if general.distanceCarree(self.position, self.versCoord(self.marcheVersTab[0])) < 0.002:
+        if general.distanceCarree(self.position, self.versCoord(self.marcheVersTab[0])) < self.distanceProche:
           self.marcheVersTab.pop(0)
 
     #Fait tomber
@@ -122,22 +129,21 @@ class Sprite:
     sp = Vec3(*general.normaliseVecteur(self.position))
     fc = Vec3(*self.planete.trouveFace(self.position).calculNormale())
     angle = sp.angleDeg(fc)
-    if angle > 70:
+    if angle > self.angleSolMax:
       self.inertie = self.inertie[0]+fc.getX()*temps, self.inertie[1]+fc.getY()*temps, self.inertie[2]+fc.getZ()*temps
     
   def appliqueGravite(self, temps):
     """Fait tomber les objets sur le sol"""
     altitudeCible = self.planete.altitudeCarre(self.position)
-    seuil = 0.01
     
     if self.altCarre < altitudeCible or (self.altCarre > altitudeCible and not self.bouge):
       #Si on est dans le sol, on se place sur le sol d'un seul coup
       self.miseAJourPosition(general.multiplieVecteur(general.normaliseVecteur(self.position), math.sqrt(altitudeCible)))
       self.inertie = (0.0,0.0,0.0)
-    elif self.altCarre > altitudeCible+seuil:
+    elif self.altCarre > altitudeCible+self.seuilToucheSol:
       #Si on est au dessus, on tombe sur la surface
       #On calcul le vecteur -planete-sprite> et on lui donne comme longueur le déplacement que l'on veut faire
-      haut = general.multiplieVecteur(general.normaliseVecteur(self.position), -seuil)
+      haut = general.multiplieVecteur(general.normaliseVecteur(self.position), -self.constanteGravitationelle)
       #On retire ce vecteur à l'inertie (fait un vecteur -sprite-planete>)
       self.inertie = self.inertie[0]+haut[0]*temps, self.inertie[1]+haut[1]*temps, self.inertie[2]+haut[2]*temps
     else:
@@ -260,12 +266,12 @@ class Sprite:
     else:
       tmp = loader.loadModel(self.fichierModele)
     tmp.reparentTo(self.modele)
-    self.modele.node().addSwitch(3.0, 0) 
+    self.modele.node().addSwitch(self.distanceSymbole, 0) 
     
     symbole = self.fabriqueSymbole(self.fichierSymbole)
     symbole.reparentTo(self.modele)
     
-    self.modele.node().addSwitch(9999999, 3.0) 
+    self.modele.node().addSwitch(9999999, self.distanceSymbole) 
     
     self.modele.setPythonTag("type","sprite")
     self.modele.setPythonTag("id",self.id)
@@ -407,9 +413,12 @@ class SpritePlan(Sprite):
 
 class Nuage(Sprite):
   """Génère un nuage aléatoirement"""
+  densite = None
   
-  def __init__(self, planete):
-    Sprite.__init__(self, "nuage", (0.01,0.01,0.01), "none", "none", planete, None)
+  def __init__(self, densite, taille, planete):
+    Sprite.__init__(self, id="nuage", position=(0.01,0.01,0.01), modele="none", symbole="none", distanceSymbole=999999, vie=100, terminalVelocity=1000, distanceProche=1000, seuilToucheSol=1000, constanteGravitationelle=1000, vitesse=1000, planete=planete, joueur=None)
+    self.densite = densite
+    self.taille = taille
     self.planete = planete
     
   def tue(self, type):
@@ -436,7 +445,7 @@ class Nuage(Sprite):
     if self.racine == None or self.modele==None:
       return
     #Modele est centré sur la planète, donc les rotations le promènent un peu tout autour
-    f = random.random()*2.0-1.0
+    f = random.random()*2.0
     self.modele.setH(self.modele.getH()+random.random()*temps*f)
     self.modele.setP(self.modele.getP()+random.random()*temps*f)
     self.modele.setR(self.modele.getR()+random.random()*temps*f)
@@ -449,9 +458,6 @@ class Nuage(Sprite):
     
   def fabriqueModel(self):
     """Construit le nuage"""
-    
-    #Choisit un nombre de prout nuageux aléatoirement
-    taille = (int)(random.random()*15)+4
     #Choisit une position du nuage selon un sommet aléatoire
     centre = random.choice(self.planete.sommets)
     
@@ -470,7 +476,7 @@ class Nuage(Sprite):
     textures = os.listdir(os.path.join(".","data","textures","nuages"))
     
     #Ajoute les prouts nuageux un par un
-    for i in range(0, taille):
+    for i in range(0, self.densite):
       #Fabrique un nouveau prout
       nuage = NodePath(FadeLODNode('lod'))
       tex="./data/textures/nuages/"+random.choice(textures)
@@ -479,7 +485,7 @@ class Nuage(Sprite):
         nuage.node().addSwitch(99999, 0) 
         self.n1=nuage
       else:
-        nuage.node().addSwitch(float(i)/float(taille)*distanceSoleil, 0) 
+        nuage.node().addSwitch(float(i)/float(self.densite)*distanceSoleil, 0) 
         
       #nuage.setBillboardPointWorld()
       
@@ -502,7 +508,7 @@ class Nuage(Sprite):
       nuage.reparentTo(self.racine)
     self.racine.reparentTo(self.modele)
     #On redimentionne le bestiau
-    self.modele.setScale(0.2)
+    self.modele.setScale(self.taille)
     #On optimise les envois à la carte graphique
     self.racine.flattenStrong()
     self.modele.reparentTo(self.planete.racine)
