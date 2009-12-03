@@ -25,25 +25,27 @@ class AINavigation:
   # Création d'infos ---------------------------------------------------    
   def coutPassage(self, idxSommet1, idxSommet2):
     """Retourne le cout necessaire pour passer du sommet idxSommet1 au sommet idxSommet2"""
-    general.startChrono("AINavigation::coutPassage")
-    deltaMax = 500
-    cout = (general.normeVecteur(self.planete.sommets[idxSommet2]) - general.normeVecteur(self.planete.sommets[idxSommet1]))*100
-    cout = cout*cout*cout
+    deltaMax = 70
+    #cout = (general.normeVecteur(self.planete.sommets[idxSommet2]) - general.normeVecteur(self.planete.sommets[idxSommet1]))*100
     
-    if cout > deltaMax or cout < -deltaMax:
-      cout = self.maxcout
+    sp = Vec3(*general.normaliseVecteur(self.planete.sommets[idxSommet1]))
+    fc = Vec3(*self.planete.trouveFace(self.planete.sommets[idxSommet2]).calculNormale())
+    angle = sp.angleDeg(fc)
+    
+    if angle >= deltaMax or angle <= -deltaMax:
+      angle = self.maxcout
       
+    #navigation = NodePath("nav")
+    #navigation.reparentTo(self.planete.racine)
     #On ne peut pas passer sous l'eau
     if general.normeVecteur(self.planete.sommets[idxSommet2]) < self.planete.niveauEau or general.normeVecteur(self.planete.sommets[idxSommet1]) < self.planete.niveauEau:
       cout = self.maxcout
-      #render.attachNewNode(self.dessineLigne((0.0, 0.0, 1.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
-    #elif cout==self.maxcout:
-    #  render.attachNewNode(self.dessineLigne((1.0, 0.0, 0.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
+    #  navigation.attachNewNode(self.dessineLigne((0.0, 0.0, 1.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
+    #elif angle==self.maxcout:
+    #  navigation.attachNewNode(self.dessineLigne((1.0, 0.0, 0.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
     #else:
-    #  render.attachNewNode(self.dessineLigne((0.0, 1.0, 0.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
-      
-    general.stopChrono("AINavigation::coutPassage")
-    return cout
+    #  navigation.attachNewNode(self.dessineLigne((0.0, 1.0, 0.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
+    return angle
     
   def dessineLigne(self, couleur, depart, arrivee):
     """Dessine une ligne de depart vers arrivée et ne fait pas de doublons"""
@@ -208,17 +210,14 @@ class AINavigation:
    
   def fabriqueChemin(self, promenade,fin):
     """Construit le chemin calculé par A*"""
-    general.startChrono("AINavigation::fabriqueChemin")
     if fin in promenade.keys():
       out = []
       p = self.fabriqueChemin(promenade,promenade[fin])
       for element in p:
         out.append(element)
       out.append(fin) #On ajoute le sommet courant a la fin de la pile comme on parcours la liste à l'envers
-      general.stopChrono("AINavigation::fabriqueChemin")
       return out
     else:
-      general.stopChrono("AINavigation::fabriqueChemin")
       return [fin]
        
   # Fin Recherche d'itinéraire -----------------------------------------

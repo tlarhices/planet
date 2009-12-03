@@ -122,8 +122,7 @@ class Sprite:
     sp = Vec3(*general.normaliseVecteur(self.position))
     fc = Vec3(*self.planete.trouveFace(self.position).calculNormale())
     angle = sp.angleDeg(fc)
-    if angle > 60:
-      print angle
+    if angle > 70:
       self.inertie = self.inertie[0]+fc.getX()*temps, self.inertie[1]+fc.getY()*temps, self.inertie[2]+fc.getZ()*temps
     
   def appliqueGravite(self, temps):
@@ -216,6 +215,8 @@ class Sprite:
       self.modele.removeNode()
       self.modele = None
     self.symbole = None
+    if self.blipid!=None:
+      general.gui.menuCourant.miniMap.enlevePoint(self.blipid)
     
   def sauvegarde(self):
     """Retoune une chaine qui représente l'objet"""

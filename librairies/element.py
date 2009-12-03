@@ -226,17 +226,17 @@ class Element:
     prct = (altitude-minAlt)/(maxAlt-minAlt)*100
     
     if prct < -10:
-      return self.subSubAquatique, "data/textures/subsubaquatique.jpg" #Eau super profonde
+      return self.subSubAquatique, "subsubaquatique" #Eau super profonde
     elif prct < 0:
-      return self.subAquatique, "data/textures/subaquatique.jpg" #Eau
+      return self.subAquatique, "subaquatique" #Eau
     elif prct < 10:
-      return self.sable, "data/textures/sable.jpg" #Plage
+      return self.sable, "sable" #Plage
     elif prct < 50:
-      return self.herbe, "data/textures/herbe.jpg" #Sol normal
+      return self.herbe, "herbe" #Sol normal
     elif prct < 90:
-      return self.terre, "data/textures/terre.jpg" #Montagne
+      return self.terre, "terre" #Montagne
     else:
-      return self.neige, "data/textures/neige.jpg" #Haute montagne
+      return self.neige, "neige" #Haute montagne
     
   def dessineLigne(self, couleur, depart, arrivee):
     """Dessine une ligne de depart vers arrivée et ne fait pas de doublons"""
@@ -320,8 +320,25 @@ class Element:
     nd = NodePath(node)
     
     #On applique la texture
-    tex = loader.loadTexture(t1)
-    nd.setTexture(tex)
+    tex1 = loader.loadTexture("data/textures/"+t1+".png")
+    #if self.posUV[1]==1:
+    tex2 = loader.loadTexture("data/textures/"+t2+"-1.png")
+    #elif self.posUV[1]==2:
+    #  tex2 = loader.loadTexture(t2, "data/textures/opacite-0.jpg")
+    #elif self.posUV[1]==3:
+    #  tex2 = loader.loadTexture(t2, "data/textures/opacite-0.jpg")
+    #else:
+    #  print "Étrange UV",  self.posUV[1]
+    tex3 = loader.loadTexture("data/textures/"+t3+"-2.png")
+    ts2 = TextureStage('ts2')
+    ts2.setMode(TextureStage.MDecal)
+    ts3 = TextureStage('ts3')
+    ts3.setMode(TextureStage.MDecal)
+    nd.setTransparency(TransparencyAttrib.MAlpha)  
+    #nd.setTexture(tex0)
+    nd.setTexture(tex1)
+    nd.setTexture(ts2, tex2)
+    nd.setTexture(ts3, tex3)
 
     return nd
     

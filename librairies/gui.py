@@ -259,6 +259,7 @@ class Historique(MenuCirculaire):
   def __init__(self, gui):
     self.messages = []
     MenuCirculaire.__init__(self, gui)
+    self.angleOuverture = 80.0
     self.besoinRetour = False
     self.fabrique()
   
@@ -348,7 +349,7 @@ class MiniMap(Pane):
         self.points[i]=(point, icone)
         return i
     self.points[len(self.points)+1]=(point, icone)
-    return len(self.points)+1
+    return len(self.points)
     
   def ajoutePoint3D(self, point, icone):
     """Ajout un point3D à la carte, retourne un indice servant à l'effacer plus tard"""
@@ -388,7 +389,7 @@ class MiniMap(Pane):
     for id in self.points.keys():
       if id not in self.blips.keys():
         #Ce point n'a pas de représentation sur la carte, on en fabrique un nouveau
-        self.blips[id] = self.add(Icon(self.points[id][1],x=self.points[id][0][0]*self.echelle, y=self.points[id][0][1]*self.echelle))
+        self.blips[id] = self.add(Icon(self.points[id][1],x=self.points[id][0][0]*self.echelle+self.tailleMiniMap/2, y=-self.points[id][0][1]*self.echelle+self.tailleMiniMap/2))
     return task.cont
         
   def changeEchelle(self, nouvelleEchelle):
