@@ -7,7 +7,7 @@
 
 import general
 import math
-import sys
+import sys, os
 import random
 
 from pandac.PandaModules import *
@@ -107,6 +107,59 @@ class Element:
       self.modele.removeNode()
       self.modele = None
     self.lignes = []
+    
+  textures={}
+    
+  def textureMixer(self, t1, t2, t3):
+    """Mixe les textures t1, t2 et t3"""
+    #On regarde si on a pas déjà calculé cette texture
+    clef = t1+"-"+t2+"-"+t3
+    if clef in self.textures.keys():
+      return self.textures[clef]
+    if general.configuration.getConfiguration("affichage-general", "cache-texture","1")=="1":
+      if clef+".png" in os.listdir(os.path.join(".","data","cache")):
+        texture = loader.loadTexture("data/cache/"+clef+".png")
+        self.textures[clef] = texture
+        return texture
+    print "Création de la texture", clef
+    #Charge les 3 textures et les redimentionne en 256x256
+    tmp1 = PNMImage()
+    tmp1.read(Filename("data/textures/"+t1+".png"))
+    i1 = PNMImage(256, 256)
+    i1.gaussianFilterFrom(1.0, tmp1)
+    tmp2 = PNMImage()
+    tmp2.read(Filename("data/textures/"+t2+".png"))
+    i2 = PNMImage(256, 256)
+    i2.gaussianFilterFrom(1.0, tmp2)
+    tmp3 = PNMImage()
+    tmp3.read(Filename("data/textures/"+t3+".png"))
+    i3 = PNMImage(256, 256)
+    i3.gaussianFilterFrom(1.0, tmp3)
+    
+    #On produit une image vierge qui contiendra notre texture finale
+    imageFinale = PNMImage(256, 256)
+    imageFinale.fill(1, 1, 1)
+    
+    for x in range(0, 256):
+      for y in range(0, 256):
+        c1 = i1.getXel(x,y)
+        c2 = i2.getXel(x,y)
+        c3 = i3.getXel(x,y)
+        
+        #Interpole les couleurs de pixels
+        def interpole(a, b, c, x, y):
+          return a*y/256.0+c*x/256.0+b*(1.0-(x/256.0+y/256.0))
+        c = interpole(c1[0], c2[0], c3[0], x, y), interpole(c1[1], c2[1], c3[1], x, y), interpole(c1[2], c2[2], c3[2], x, y)
+        
+        imageFinale.setXel(x, y, c)
+        
+    #On garde la texture en mémoire pour de futures utilisations
+    if general.configuration.getConfiguration("affichage-general", "cache-texture","1")=="1":
+      imageFinale.write(Filename("data/cache/"+clef+".png")); 
+    texture = Texture("imageFinale")
+    texture.load(imageFinale)
+    self.textures[clef] = texture
+    return texture
     
   def tesselate(self):
     """
@@ -320,7 +373,8 @@ class Element:
     nd = NodePath(node)
     
     #On applique la texture
-    tex1 = loader.loadTexture("data/textures/"+t1+".png")
+    tex = self.textureMixer(t1, t2, t3)
+    """tex1 = loader.loadTexture("data/textures/"+t1+".png")
     #if self.posUV[1]==1:
     tex2 = loader.loadTexture("data/textures/"+t2+"-1.png")
     #elif self.posUV[1]==2:
@@ -340,7 +394,8 @@ class Element:
     #nd.setTexture(tex0)
     nd.setTexture(ts1, tex1)
     nd.setTexture(ts2, tex2)
-    nd.setTexture(ts3, tex3)
+    nd.setTexture(ts3, tex3)"""
+    nd.setTexture(tex)
 
     return nd
     
