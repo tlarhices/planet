@@ -122,7 +122,7 @@ class Sprite:
   def blip(self):
     if self.blipid!=None:
       general.gui.menuCourant.miniMap.enlevePoint(self.blipid)
-    self.blipid = general.gui.menuCourant.miniMap.ajoutePoint3D(self.position,"rtheme/twotone/user.png")
+    self.blipid = general.gui.menuCourant.miniMap.ajoutePoint3D(self.position,"theme/icones/user.png")
   
   def testeSol(self, temps):
     """Regarde l'angle entre la normale de la face et le sprite qui s'y tient"""

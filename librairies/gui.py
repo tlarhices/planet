@@ -12,7 +12,7 @@ import treegui
 from treegui.components import *
 from treegui.widgets import *
 from treegui.core import Gui
-import rtheme
+import theme
 import os
 
 PAD = 4 #Taille de l'espace entre les composants
@@ -181,7 +181,7 @@ class MenuCirculaire:
       i+=1
       
     if self.besoinRetour:
-      self.retour = self.gui.add(Icon("rtheme/twotone/rotate_node.png", x="center", y="bottom"))
+      self.retour = self.gui.add(Icon("theme/icones/rotate_node.png", x="center", y="bottom"))
       self.retour.onClick = self.back
     else:
       self.retour = None
@@ -247,13 +247,13 @@ class Historique(MenuCirculaire):
   
   #Liste des icones pour chaque type de message
   icones = {
-  "inconnu":"rtheme/twotone/q.png",
-  "mort":"rtheme/twotone/skull.png",
-  "chat":"rtheme/twotone/phone.png",
-  "obscurite":"rtheme/twotone/clock.png",
-  "info":"rtheme/twotone/info.png",
-  "avertissement":"rtheme/twotone/caution.png",
-  "sauvegarde":"rtheme/twotone/diskette.png"
+  "inconnu":"theme/icones/q.png",
+  "mort":"theme/icones/skull.png",
+  "chat":"theme/icones/phone.png",
+  "obscurite":"theme/icones/clock.png",
+  "info":"theme/icones/info.png",
+  "avertissement":"theme/icones/caution.png",
+  "sauvegarde":"theme/icones/diskette.png"
   }
   
   def __init__(self, gui):
@@ -465,27 +465,27 @@ class Informations(Pane):
     y=0
     #On garde 6 lignes de texte
     self.l1 = self.add(Label("", x=20, y=0)) #Texte
-    self.i1 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=y)) #Icone
+    self.i1 = self.add(Icon("theme/icones/blank.png", x=20, y=y)) #Icone
     self.i1.visable = False #On cache l'icone
     y+=HAUTEUR_TEXTE
     self.l2 = self.add(Label("", x=20, y=y))
-    self.i2 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=y))
+    self.i2 = self.add(Icon("theme/icones/blank.png", x=20, y=y))
     self.i2.visable = False
     y+=HAUTEUR_TEXTE
     self.l3 = self.add(Label("", x=20, y=y))
-    self.i3 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=y))
+    self.i3 = self.add(Icon("theme/icones/blank.png", x=20, y=y))
     self.i3.visable = False
     y+=HAUTEUR_TEXTE
     self.l4 = self.add(Label("", x=20, y=y))
-    self.i4 = self.add(Icon("rtheme/twotone/blank.png", x=20, y=y))
+    self.i4 = self.add(Icon("theme/icones/blank.png", x=20, y=y))
     self.i4.visable = False
     
     #Bare de défilement
-    self.plus = self.add(Icon("rtheme/twotone/arrow-up.png", x="left", y="top"))
+    self.plus = self.add(Icon("theme/icones/arrow-up.png", x="left", y="top"))
     self.plus.onClick = self.logHaut
-    self.plus = self.add(Icon("rtheme/twotone/arrow-down.png", x="left", y="bottom"))
+    self.plus = self.add(Icon("theme/icones/arrow-down.png", x="left", y="bottom"))
     self.plus.onClick = self.logBas
-    self.curseur = self.add(Icon("rtheme/twotone/blank.png", x="left", y=HAUTEUR_TEXTE))
+    self.curseur = self.add(Icon("theme/icones/blank.png", x="left", y=HAUTEUR_TEXTE))
     
     #On positionne la Form
     self.x = "left" 
@@ -549,13 +549,13 @@ class Informations(Pane):
 
     
   icones = {
-  "inconnu":"rtheme/twotone/q.png",
-  "mort":"rtheme/twotone/skull.png",
-  "chat":"rtheme/twotone/phone.png",
-  "info":"rtheme/twotone/info.png",
-  "obscurite":"rtheme/twotone/clock.png",
-  "avertissement":"rtheme/twotone/caution.png",
-  "sauvegarde":"rtheme/twotone/diskette.png"
+  "inconnu":"theme/icones/q.png",
+  "mort":"theme/icones/skull.png",
+  "chat":"theme/icones/phone.png",
+  "info":"theme/icones/info.png",
+  "obscurite":"theme/icones/clock.png",
+  "avertissement":"theme/icones/caution.png",
+  "sauvegarde":"theme/icones/diskette.png"
   }
     
   def MAJObjet(self, objeti, objett, type, texte):
@@ -651,7 +651,7 @@ class MenuConfiguration(MenuCirculaire):
     self.directionAnimation = -1.0
     self.clear()
     
-    btn = self.ajouteGauche(PictureRadio("rtheme/twotone/gear-over.png", "rtheme/twotone/gear.png", u"Affichage", width=LARGEUR_BOUTON))
+    btn = self.ajouteGauche(PictureRadio("theme/icones/gear-over.png", "theme/icones/gear.png", u"Affichage", width=LARGEUR_BOUTON))
     btn.callback = self.clic
     if self.select == u"affichage":
       btn.style = "CHECKON"
@@ -662,7 +662,7 @@ class MenuConfiguration(MenuCirculaire):
       if general.configuration.getConfiguration("affichage-effets", "utiliseBloom","0")=="1":
         btnD.style = "CHECKON"
         btnD.value = True
-    btn = self.ajouteGauche(PictureRadio("rtheme/twotone/move-over.png", "rtheme/twotone/move.png", u"Contrôles", width=LARGEUR_BOUTON))
+    btn = self.ajouteGauche(PictureRadio("theme/icones/move-over.png", "theme/icones/move.png", u"Contrôles", width=LARGEUR_BOUTON))
     btn.callback = self.clic
     if self.select == u"contrôles":
       btn.style = "CHECKON"
@@ -670,12 +670,12 @@ class MenuConfiguration(MenuCirculaire):
       touches = general.configuration.getConfigurationClavier()
       for element in touches.keys():
         btnD = self.ajouteDroite(Label(touches[element]+u" : "+element))
-    btn = self.ajouteGauche(PictureRadio("rtheme/twotone/radio-off-over.png", "rtheme/twotone/radio-off.png", u"Planètes", width=LARGEUR_BOUTON))
+    btn = self.ajouteGauche(PictureRadio("theme/icones/radio-off-over.png", "theme/icones/radio-off.png", u"Planètes", width=LARGEUR_BOUTON))
     btn.callback = self.clic
     if self.select == u"planètes":
       btn.style = "CHECKON"
       btn.value = True
-    btn = self.ajouteGauche(PictureRadio("rtheme/twotone/target-over.png", "rtheme/twotone/target.png", u"Debug", width=LARGEUR_BOUTON))
+    btn = self.ajouteGauche(PictureRadio("theme/icones/target-over.png", "theme/icones/target.png", u"Debug", width=LARGEUR_BOUTON))
     btn.callback = self.clic
     if self.select == u"debug":
       btn.style = "CHECKON"
@@ -742,9 +742,9 @@ class MenuVierge(MenuCirculaire):
     i=0
     for elem in self.liste:
       if i<len(self.liste)/2:
-        check = self.ajouteGauche(PictureRadio("rtheme/twotone/news-over.png", "rtheme/twotone/news.png", elem[0].capitalize()))
+        check = self.ajouteGauche(PictureRadio("theme/icones/news-over.png", "theme/icones/news.png", elem[0].capitalize()))
       else:
-        check = self.ajouteDroite(PictureRadio("rtheme/twotone/news-over.png", "rtheme/twotone/news.png", elem[0].capitalize()))
+        check = self.ajouteDroite(PictureRadio("theme/icones/news-over.png", "theme/icones/news.png", elem[0].capitalize()))
       check.callback = self.clic
       i+=1
       
@@ -774,9 +774,9 @@ class MenuCharge(MenuCirculaire):
     i=0
     for elem in self.liste:
 #      if i<len(self.liste)/2:
-      check = self.ajouteGauche(PictureRadio("rtheme/twotone/diskette-over.png", "rtheme/twotone/diskette.png", elem[0].capitalize(), width=LARGEUR_BOUTON))
+      check = self.ajouteGauche(PictureRadio("theme/icones/diskette-over.png", "theme/icones/diskette.png", elem[0].capitalize(), width=LARGEUR_BOUTON))
 #      else:
-#        check = self.ajouteDroite(PictureRadio("rtheme/twotone/diskette-over.png", "rtheme/twotone/diskette.png", elem[0].capitalize(), width=LARGEUR_BOUTON))
+#        check = self.ajouteDroite(PictureRadio("theme/icones/diskette-over.png", "theme/icones/diskette.png", elem[0].capitalize(), width=LARGEUR_BOUTON))
       check.callback = self.clic
       i+=1
       
@@ -792,12 +792,12 @@ class Interface:
   def __init__(self, start):
     #Fabrique le GUI de base
     self.start = start
-    self.gui = Gui(theme = rtheme.RTheme())
+    self.gui = Gui(theme = theme.Theme())
     self.io = IO(self)
     #On affiche l'écran de titre
     self.menuCourant = MenuPrincipal(self)
     ##On place un bouton quitter en haut à droite de l'écran
-    #self.quit = self.gui.add(Icon("rtheme/twotone/x.png", x="right", y="top"))
+    #self.quit = self.gui.add(Icon("theme/icones/x.png", x="right", y="top"))
     #self.quit.onClick = sys.exit
     taskMgr.add(self.ping, "Boucle GUI", 10)
     
