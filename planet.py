@@ -140,6 +140,7 @@ class Start:
     general.configuration.charge(fichierPlanete)
     tesselation = int(general.configuration.getConfiguration("generation", "tesselation", "4"))
     delta = float(general.configuration.getConfiguration("generation", "delta", "0.2"))
+    print delta
     self.planete.fabriqueNouvellePlanete(tesselation=tesselation, delta=delta)
     #self.camera.reparentTo(self.planete.racine)
     

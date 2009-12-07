@@ -112,6 +112,8 @@ class Element:
     
   def textureMixer(self, t1, t2, t3):
     """Mixe les textures t1, t2 et t3"""
+    tailleTexture = 128
+    
     #On regarde si on a pas déjà calculé cette texture
     clef = t1+"-"+t2+"-"+t3
     if clef in self.textures.keys():
@@ -125,30 +127,37 @@ class Element:
     #Charge les 3 textures et les redimentionne en 256x256
     tmp1 = PNMImage()
     tmp1.read(Filename("data/textures/"+t1+".png"))
-    i1 = PNMImage(256, 256)
+    i1 = PNMImage(tailleTexture, tailleTexture)
     i1.gaussianFilterFrom(1.0, tmp1)
     tmp2 = PNMImage()
     tmp2.read(Filename("data/textures/"+t2+".png"))
-    i2 = PNMImage(256, 256)
+    i2 = PNMImage(tailleTexture, tailleTexture)
     i2.gaussianFilterFrom(1.0, tmp2)
     tmp3 = PNMImage()
     tmp3.read(Filename("data/textures/"+t3+".png"))
-    i3 = PNMImage(256, 256)
+    i3 = PNMImage(tailleTexture, tailleTexture)
     i3.gaussianFilterFrom(1.0, tmp3)
     
     #On produit une image vierge qui contiendra notre texture finale
-    imageFinale = PNMImage(256, 256)
+    imageFinale = PNMImage(tailleTexture, tailleTexture)
     imageFinale.fill(1, 1, 1)
     
-    for x in range(0, 256):
-      for y in range(0, 256):
+    for x in range(0, tailleTexture):
+      for y in range(0, tailleTexture):
         c1 = i1.getXel(x,y)
         c2 = i2.getXel(x,y)
         c3 = i3.getXel(x,y)
         
         #Interpole les couleurs de pixels
         def interpole(a, b, c, x, y):
-          return a*y/256.0+c*x/256.0+b*(1.0-(x/256.0+y/256.0))
+          fa = general.distance((x,y,0),(0.0,0.0,0.0)) #HG
+          fb = general.distance((x,y,0),(tailleTexture,tailleTexture,0.0)) #BD
+          fc = general.distance((x,y,0),(0.0,tailleTexture,0.0)) #BG
+          fac = (fa+fb+fc)/2
+          fa = 1-fa/fac
+          fb = 1-fb/fac
+          fc = 1-fc/fac
+          return b*fa+c*fb+a*fc
         c = interpole(c1[0], c2[0], c3[0], x, y), interpole(c1[1], c2[1], c3[1], x, y), interpole(c1[2], c2[2], c3[2], x, y)
         
         imageFinale.setXel(x, y, c)
@@ -277,17 +286,25 @@ class Element:
     maxAlt = (1.0+self.planete.delta)*(1.0+self.planete.delta)
     altitude = general.normeVecteurCarre(sommet)
     prct = (altitude-minAlt)/(maxAlt-minAlt)*100
-    
+
     if prct < -10:
       return self.subSubAquatique, "subsubaquatique" #Eau super profonde
     elif prct < 0:
       return self.subAquatique, "subaquatique" #Eau
-    elif prct < 10:
+    elif prct < 35:
       return self.sable, "sable" #Plage
+    elif prct < 40:
+      return self.herbe, "champ" #Sol normal
     elif prct < 50:
       return self.herbe, "herbe" #Sol normal
+    elif prct < 65:
+      return self.terre, "feuillesc" #Montagne
+    elif prct < 70:
+      return self.terre, "feuillesb" #Montagne
+    elif prct < 80:
+      return self.terre, "feuillesa" #Montagne
     elif prct < 90:
-      return self.terre, "terre" #Montagne
+      return self.terre, "cailloux" #Montagne
     else:
       return self.neige, "neige" #Haute montagne
     
