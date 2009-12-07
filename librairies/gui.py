@@ -320,6 +320,8 @@ class MiniMap(Pane):
   blips = None #La liste des composants représentants les points
   echelle = None #Le facteur d'échelle entre le monde réel et la miniCarte
   
+  camBlip = None
+  
   def __init__(self, gui):
     Pane.__init__(self)
     self.gui = gui
@@ -379,14 +381,14 @@ class MiniMap(Pane):
       lat=math.acos(x/math.sqrt(x*x+y*y))
     else:
       lat=2 * math.pi - math.acos(x/math.sqrt(x*x+y*y))
-    return (lat+self.tailleMiniMap/2)*self.echelle, (z+self.tailleMiniMap/2)*self.echelle
+    lat=lat*20
+    return lat*self.echelle, (z+self.tailleMiniMap/2)*self.echelle
     
   def enlevePoint(self, id):
     """
     Supprime un point de la carte
     id : le résultat produit lors de ajoutePoint ou ajoutePoint3D
     """
-    return
     if id==None:
       return
     if id not in self.points.keys():
@@ -399,6 +401,10 @@ class MiniMap(Pane):
 
   def ping(self, task):
     """Boucle qui met à jour la carte"""
+    self.enlevePoint(self.camBlip)
+    pt = self.point3DVersCarte(general.normaliseVecteur(self.gui.io.camera.getPos()))
+    #print pt
+    self.camBlip = self.ajoutePoint(pt,"theme/icones/camera.png")
     for id in self.points.keys():
       if id not in self.blips.keys():
         #Ce point n'a pas de représentation sur la carte, on en fabrique un nouveau
