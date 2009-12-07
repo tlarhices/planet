@@ -122,7 +122,10 @@ class Sprite:
   def blip(self):
     if self.blipid!=None:
       general.gui.menuCourant.miniMap.enlevePoint(self.blipid)
-    self.blipid = general.gui.menuCourant.miniMap.ajoutePoint3D(self.position,"theme/icones/user.png")
+    try:
+      self.blipid = general.gui.menuCourant.miniMap.ajoutePoint3D(self.position,"theme/icones/user.png")
+    except AttributeError:
+      pass
   
   def testeSol(self, temps):
     """Regarde l'angle entre la normale de la face et le sprite qui s'y tient"""
@@ -432,6 +435,7 @@ class Nuage(Sprite):
   def ping(self, temps):
     """Les nuages ne sont pas affectés par la gravité"""
     self.deplace(temps)
+    #self.blip()
     if self.vie<=0:
       return False
     return True

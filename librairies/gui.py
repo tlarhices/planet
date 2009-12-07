@@ -323,7 +323,7 @@ class MiniMap(Pane):
   def __init__(self, gui):
     Pane.__init__(self)
     self.gui = gui
-    self.echelle = 75
+    self.echelle = 0.75
     
     #On positionne la carte
     self.x = "right" 
@@ -340,7 +340,7 @@ class MiniMap(Pane):
     if len(point)!=2:
       print "La mini carte n'accepte que des points en 2D !"
       return None
-      
+    
     for id, (pointT, iconeT) in self.points.iteritems():
       if pointT==point and iconeT==icone:
         return id
@@ -353,6 +353,8 @@ class MiniMap(Pane):
     
   def ajoutePoint3D(self, point, icone):
     """Ajout un point3D à la carte, retourne un indice servant à l'effacer plus tard"""
+    return self.ajoutePoint(self.point3DVersCarte(point), icone)
+    
     #On calcul le point derrière la caméra, super loin
     camNorm = general.normaliseVecteur(self.gui.io.camera.getPos())
     mCam = general.multiplieVecteur(camNorm, self.gui.start.planete.distanceSoleil)
@@ -368,12 +370,23 @@ class MiniMap(Pane):
       return self.ajoutePoint((pt[0] ,pt[2]), icone)
     else:
       return None
+      
+  def point3DVersCarte(self, point):
+    x,y,z = point
+    p=math.sqrt(x*x+y*y+z*z)
+    lon = math.acos(z/p)
+    if y>=0:
+      lat=math.acos(x/math.sqrt(x*x+y*y))
+    else:
+      lat=2 * math.pi - math.acos(x/math.sqrt(x*x+y*y))
+    return (lat+self.tailleMiniMap/2)*self.echelle, (z+self.tailleMiniMap/2)*self.echelle
     
   def enlevePoint(self, id):
     """
     Supprime un point de la carte
     id : le résultat produit lors de ajoutePoint ou ajoutePoint3D
     """
+    return
     if id==None:
       return
     if id not in self.points.keys():
