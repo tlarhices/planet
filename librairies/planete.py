@@ -447,7 +447,7 @@ class Planete:
     self.modeleEau = loader.loadModel("data/modeles/sphere.egg")
     self.modeleEau.reparentTo(self.racine)
     self.modeleEau.setTransparency(TransparencyAttrib.MAlpha )
-    #self.modeleEau.setColor(0.0,0.1,0.3,1.0)
+    self.modeleEau.setColor(0.0,0.0,0.0,0.5)
     tex = loader.loadTexture('data/textures/eau.jpg')
     self.modeleEau.setTexture(tex, 1)
         
