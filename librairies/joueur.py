@@ -68,6 +68,7 @@ class Joueur:
     seuilToucheSol=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "seuilToucheSol","0.01"))
     constanteGravitationelle=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "constanteGravitationelle","0.01"))
     vitesse=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "vitesse","0.01"))
+    nocturne=general.configuration.getConfiguration("sprites-"+type.strip().lower(), "nocturne","0")=="1"
     
     if modele==None or symbole==None:
       print "Joueur::ajouteSprite - type inconnu", type
@@ -75,7 +76,7 @@ class Joueur:
       return
     
     id = "["+self.nom+"]"+id+"-"+str(len(self.sprites)+1)
-    sprite = Sprite(id=id, position=position, modele=modele, symbole=symbole, distanceSymbole=distanceSymbole, vie=vie, terminalVelocity=terminalVelocity, distanceProche=distanceProche, seuilToucheSol=seuilToucheSol, constanteGravitationelle=constanteGravitationelle, vitesse=vitesse, planete=self.planetePrincipale, joueur=self)
+    sprite = Sprite(id=id, position=position, modele=modele, symbole=symbole, distanceSymbole=distanceSymbole, vie=vie, terminalVelocity=terminalVelocity, distanceProche=distanceProche, seuilToucheSol=seuilToucheSol, constanteGravitationelle=constanteGravitationelle, nocturne=nocturne, vitesse=vitesse, planete=self.planetePrincipale, joueur=self)
     self.planetePrincipale.sprites.append(sprite)
     self.sprites.append(sprite)
     sprite.fabriqueModel()

@@ -296,25 +296,25 @@ class Element:
     prct = (altitude-minAlt)/(maxAlt-minAlt)*100
 
     if prct < -10:
-      return self.subSubAquatique, "subsubaquatique" #Eau super profonde
+      return self.subSubAquatique, "subsubaquatique", 0 #Eau super profonde
     elif prct < 0:
-      return self.subAquatique, "subaquatique" #Eau
+      return self.subAquatique, "subaquatique", -1 #Eau
     elif prct < 35:
-      return self.sable, "sable" #Plage
+      return self.sable, "sable", 0 #Plage
     elif prct < 40:
-      return self.herbe, "champ" #Sol normal
+      return self.herbe, "champ", 1 #Sol normal
     elif prct < 50:
-      return self.herbe, "herbe" #Sol normal
+      return self.herbe, "herbe", 2 #Sol normal
     elif prct < 65:
-      return self.terre, "feuillesc" #Montagne
+      return self.terre, "feuillesc", 3 #Montagne
     elif prct < 70:
-      return self.terre, "feuillesb" #Montagne
+      return self.terre, "feuillesb", 3 #Montagne
     elif prct < 80:
-      return self.terre, "feuillesa" #Montagne
+      return self.terre, "feuillesa", 2 #Montagne
     elif prct < 90:
-      return self.terre, "cailloux" #Montagne
+      return self.terre, "cailloux", 0 #Montagne
     else:
-      return self.neige, "neige" #Haute montagne
+      return self.neige, "neige", 0 #Haute montagne
     
   def dessineLigne(self, couleur, depart, arrivee):
     """Dessine une ligne de depart vers arrivée et ne fait pas de doublons"""
@@ -326,6 +326,8 @@ class Element:
       ls.drawTo(arrivee[0], arrivee[1], arrivee[2])
       return ls.create()
     
+    
+  decideArbre = None
   def fabriqueTriangle(self, p1, p2, p3, forceCouleur=None):
     """Fabrique la géométrie de la face triangulaire définie par p1, p2 et p3"""
     #Prepare la création du triangle
@@ -345,13 +347,13 @@ class Element:
     
     #On attrape les couleurs pour chaque sommet
     if forceCouleur==None:
-      c1,t1=self.couleurSommet(p1)
-      c2,t2=self.couleurSommet(p2)
-      c3,t3=self.couleurSommet(p3)
+      c1,t1,h1=self.couleurSommet(p1)
+      c2,t2,h2=self.couleurSommet(p2)
+      c3,t3,h3=self.couleurSommet(p3)
     else:
-      c1,t1 = forceCouleur
-      c2,t2 = forceCouleur
-      c3,t3 = forceCouleur
+      c1,t1,h1 = forceCouleur
+      c2,t2,h2 = forceCouleur
+      c3,t3,h3 = forceCouleur
 
     #On calcule les normales à chaque sommet
     n1=self.calculNormale(p1)
@@ -407,6 +409,14 @@ class Element:
     if general.gui.menuCourant !=None:
       if general.gui.menuCourant.miniMap !=None:
         general.gui.menuCourant.miniMap.dessineCarte(p1,p2,p3,c1,c2,c3)
+        
+    if self.decideArbre==None:
+      if h1>0 and random.random()>0.5:
+        self.planete.ajouteSprite("palmier", p1, "palmier")
+      elif h2>0 and random.random()>0.5:
+        self.planete.ajouteSprite("palmier", p2, "palmier")
+      elif h3>0 and random.random()>0.5:
+        self.planete.ajouteSprite("palmier", p3, "palmier")
       
     return nd
     

@@ -42,7 +42,9 @@ class Sprite:
   terminalVelocity = None
   distanceProche = None
   
-  def __init__(self, id, position, modele, symbole, distanceSymbole, vie, terminalVelocity, distanceProche, seuilToucheSol, constanteGravitationelle, vitesse, planete, joueur):
+  nocturne = None #S'il est nocturne, la nuit ne le tue pas
+  
+  def __init__(self, id, position, modele, symbole, distanceSymbole, vie, terminalVelocity, distanceProche, seuilToucheSol, constanteGravitationelle, nocturne, vitesse, planete, joueur):
     """
     Fabrique un nouvel objet
     position : là où l'objet se trouve
@@ -59,6 +61,7 @@ class Sprite:
     self.aquatique = False
     self.id = id
     self.vie=vie
+    self.nocturne = nocturne
     self.rac = NodePath("racine-sprite")
     self.racine = NodePath("racine-sprite")
     #self.miseAJourPosition(general.multiplieVecteur(position, 2.0))

@@ -819,6 +819,34 @@ class Planete:
       #base.bufferViewer.toggleEnable()
     else:
       print "Type d'éclairage inconnu",type
+      
+  def ajouteSprite(self, id, position, type):
+    """
+    Ajoute un nouveau sprite
+    id : l'identifiant du sprite
+    position : sa position sur le terrain
+    type : le type de sprite à créer
+    """
+    modele=general.configuration.getConfiguration("sprites-"+type.strip().lower(), "modele",None)
+    symbole=general.configuration.getConfiguration("sprites-"+type.strip().lower(), "symbole",None)
+    vie=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "vie","100.0"))
+    distanceSymbole=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "distanceSymbole","3.0"))
+    terminalVelocity=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "terminalVelocity","0.03"))
+    distanceProche=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "distanceProche","0.002"))
+    seuilToucheSol=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "seuilToucheSol","0.01"))
+    constanteGravitationelle=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "constanteGravitationelle","0.01"))
+    vitesse=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "vitesse","0.01"))
+    nocturne=general.configuration.getConfiguration("sprites-"+type.strip().lower(), "nocturne","0")=="1"
+    
+    if modele==None or symbole==None:
+      print "Planete::ajouteSprite - type inconnu", type
+      raw_input()
+      return
+    
+    id = "[neutre]"+id+"-"+str(len(self.sprites)+1)
+    sprite = Sprite(id=id, position=position, modele=modele, symbole=symbole, distanceSymbole=distanceSymbole, vie=vie, terminalVelocity=terminalVelocity, distanceProche=distanceProche, seuilToucheSol=seuilToucheSol, constanteGravitationelle=constanteGravitationelle, nocturne=nocturne, vitesse=vitesse, planete=self, joueur=None)
+    self.sprites.append(sprite)
+    sprite.fabriqueModel()
 
   def ping(self, temps):
     general.startChrono("Planete::ping")
@@ -873,7 +901,8 @@ class Planete:
     #Met à jour les états des sprites
     for sprite in self.sprites[:]:
       if general.ligneCroiseSphere(sprite.position, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
-        sprite.tue("obscurite")
+        if not sprite.nocturne:
+          sprite.tue("obscurite")
       if not sprite.ping(temps):
         if sprite.joueur !=None:
           sprite.joueur.spriteMort(sprite)
@@ -1012,9 +1041,10 @@ class Planete:
     d2 = general.distanceCarree(general.normaliseVecteurCarre(pt2), general.normaliseVecteurCarre(point))
     d3 = general.distanceCarree(general.normaliseVecteurCarre(pt3), general.normaliseVecteurCarre(point))
     d=d1+d2+d3
-    d1=d1/d
-    d2=d2/d
-    d3=d3/d
+    if d!=0:
+      d1=d1/d
+      d2=d2/d
+      d3=d3/d
     #Attrape les altitude de chaque sommet
     r1=general.normeVecteurCarre(pt1)
     r2=general.normeVecteurCarre(pt2)
