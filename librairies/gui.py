@@ -813,12 +813,16 @@ class Interface:
     self.start = start
     self.gui = Gui(theme = theme.Theme())
     self.io = IO(self)
-    #On affiche l'écran de titre
-    self.menuCourant = MenuPrincipal(self)
     ##On place un bouton quitter en haut à droite de l'écran
     #self.quit = self.gui.add(Icon("theme/icones/x.png", x="right", y="top"))
     #self.quit.onClick = sys.exit
     taskMgr.add(self.ping, "Boucle GUI", 10)
+    self.makeMain()
+    
+  def lanceInterface(self):
+    self.removeMain()
+    #On affiche le manu principal
+    self.menuCourant = MenuPrincipal(self)    
     
   def add(self, pouet):
     """Racourcis pour gui.gui.add"""
@@ -843,6 +847,16 @@ class Interface:
     self.makeMain()
     self.start.fabriquePlanete(os.path.join(".", "configuration", "planete.cfg"))
     self.start.start()
+    
+  def removeMain(self):
+    """Supprime les éléments de l'interface utilisés lors du chargement"""
+    self.changeMenuVers(None)
+    if self.informations != None:
+      self.gui.remove(self.informations)
+      self.informations = None
+    if self.chargement != None:
+      self.gui.remove(self.chargement)
+      self.chargement = None
     
   def makeMain(self):
     """Construit les éléments de l'interface lors du chargement"""

@@ -59,6 +59,8 @@ class Start:
           print "[",type,"]",texte
         def ajouteJoueur(self, joueur):
           pass
+        def lanceInterface(self):
+          pass
       general.gui = DUMMY()
     
     if general.configuration.getConfiguration("general", "DEBUG_PANDA_VIA_PSTATS","0")=="1":
@@ -74,7 +76,8 @@ class Start:
     self.tmp.fabriqueModel()
     
     general.gui.io.positionneCamera(render)
-
+    #On affiche le menu principal
+    general.gui.lanceInterface()
     
   def start(self):
     """Lance le rendu et la boucle de jeu"""
