@@ -454,11 +454,8 @@ class MiniMap(Pane):
         self.blips[id] = self.add(Icon(self.points[id][1],x=self.points[id][0][0], y=self.points[id][0][1]))
     return task.cont
             
-class EnJeu(MenuCirculaire):
-  """Contient la liste des unitées que l'on peut construire"""
+class ListeUnite(MenuCirculaire):
   select = None #L'unité sélctionnée en ce moment
-  historique = None #La liste des icones d'information
-  miniMap = None #La carte
   
   def __init__(self, gui):
     MenuCirculaire.__init__(self, gui)
@@ -472,19 +469,12 @@ class EnJeu(MenuCirculaire):
       check.style = "DEFAULT"
       check.callback = self.clic
     self.fabrique()
-    self.historique = Historique(self.gui)
-    self.miniMap = self.gui.gui.add(MiniMap(self.gui))
-    
+            
   def anime(self, temps):
     MenuCirculaire.anime(self, temps)
     for composant, indice, cote in self.composants:
       composant.doPlacement({"x":composant.x-composant.width})
-    
-  def alerte(self, type, message, coord):
-    """Ajoute un nouveau message"""
-    self.historique.ajouteMessage(type, message, coord)
-    self.gui.informations.ajouteTexte(type, message)
- 
+
   def clic(self, bouton, etat):
     """
     On a cliqué sur un bouton de construction d'unité
@@ -492,19 +482,35 @@ class EnJeu(MenuCirculaire):
     etat : si True alors le bouton est actif (ce devrait toujours être le cas de figure)
     """
     self.select = bouton.lower()
+
+class EnJeu():
+  """Contient la liste des unitées que l'on peut construire"""
+  listeUnite = None #La liste des icone d'unités constructibles
+  historique = None #La liste des icones d'information
+  miniMap = None #La carte
+  
+  def __init__(self, gui):
+    self.gui = gui
+    self.historique = Historique(self.gui)
+    self.listeUnite = ListeUnite(self.gui)
+    self.miniMap = self.gui.gui.add(MiniMap(self.gui))
+    
+  def alerte(self, type, message, coord):
+    """Ajoute un nouveau message"""
+    self.historique.ajouteMessage(type, message, coord)
+    self.gui.informations.ajouteTexte(type, message)
     
   def MAJ(self, temps):
     self.historique.MAJ(temps)
-    MenuCirculaire.MAJ(self, temps)
+    self.listeUnite.MAJ(temps)
     
   def clear(self):
     self.historique.clear()
+    self.listeUnite.clear()
     #Purge tous les points de la carte
-    self.miniMap.changeEchelle(0.0)
+    self.miniMap.clear()
     self.gui.gui.remove(self.miniMap)
-    MenuCirculaire.clear(self)
         
-
 class Informations(Pane):
   """Boite de message"""
   style = "default"

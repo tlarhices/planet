@@ -18,7 +18,8 @@ class Sprite:
   position = None #La position dans l'espace de cet objet
   modele = None #Le modèle 3D de l'objet
   fichierModele = None #Le nom du fichier du modèle 3D (utilisé pour la sauvegarde)
-  fichierSymbole = None
+  fichierSymbole = None #Symbole remplaçant le modèle quand on dézoome
+  icone = None #Icone sur la minimap
   altCarre = None #L'altitude de cet objet
   symbole=None
   
@@ -44,7 +45,9 @@ class Sprite:
   
   nocturne = None #S'il est nocturne, la nuit ne le tue pas
   
-  def __init__(self, id, position, modele, symbole, distanceSymbole, vie, terminalVelocity, distanceProche, seuilToucheSol, constanteGravitationelle, nocturne, vitesse, planete, joueur):
+  blipid = None #L'id du blip sur la carte
+  
+  def __init__(self, id, position, modele, symbole, icone, distanceSymbole, vie, terminalVelocity, distanceProche, seuilToucheSol, constanteGravitationelle, nocturne, vitesse, planete, joueur):
     """
     Fabrique un nouvel objet
     position : là où l'objet se trouve
@@ -56,6 +59,7 @@ class Sprite:
     self.modele = None
     self.fichierModele = modele
     self.fichierSymbole = symbole
+    self.icone = icone
     self.marcheVersTab = []
     self.bouge = True
     self.aquatique = False
@@ -121,12 +125,12 @@ class Sprite:
     self.blip()
     return True
     
-  blipid = None
   def blip(self):
     if self.blipid!=None:
       general.gui.menuCourant.miniMap.enlevePoint(self.blipid)
     try:
-      self.blipid = general.gui.menuCourant.miniMap.ajoutePoint3D(self.position,"theme/icones/user.png")
+      if self.icone != None and self.icone != "none":
+        self.blipid = general.gui.menuCourant.miniMap.ajoutePoint3D(self.position,self.icone)
     except AttributeError:
       pass
   

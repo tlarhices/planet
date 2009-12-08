@@ -61,6 +61,7 @@ class Joueur:
     """
     modele=general.configuration.getConfiguration("sprites-"+type.strip().lower(), "modele",None)
     symbole=general.configuration.getConfiguration("sprites-"+type.strip().lower(), "symbole",None)
+    icone=general.configuration.getConfiguration("sprites-"+type.strip().lower(), "icone-inactif",None)
     vie=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "vie","100.0"))
     distanceSymbole=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "distanceSymbole","3.0"))
     terminalVelocity=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "terminalVelocity","0.03"))
@@ -76,7 +77,7 @@ class Joueur:
       return
     
     id = "["+self.nom+"]"+id+"-"+str(len(self.sprites)+1)
-    sprite = Sprite(id=id, position=position, modele=modele, symbole=symbole, distanceSymbole=distanceSymbole, vie=vie, terminalVelocity=terminalVelocity, distanceProche=distanceProche, seuilToucheSol=seuilToucheSol, constanteGravitationelle=constanteGravitationelle, nocturne=nocturne, vitesse=vitesse, planete=self.planetePrincipale, joueur=self)
+    sprite = Sprite(id=id, position=position, modele=modele, symbole=symbole, icone=icone, distanceSymbole=distanceSymbole, vie=vie, terminalVelocity=terminalVelocity, distanceProche=distanceProche, seuilToucheSol=seuilToucheSol, constanteGravitationelle=constanteGravitationelle, nocturne=nocturne, vitesse=vitesse, planete=self.planetePrincipale, joueur=self)
     self.planetePrincipale.sprites.append(sprite)
     self.sprites.append(sprite)
     sprite.fabriqueModel()
