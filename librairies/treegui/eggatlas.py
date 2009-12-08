@@ -96,7 +96,8 @@ class EggAtlas():
             image = self.images[name]
             return image.x,image.y,image.w,image.h
         except KeyError:
-            print "can't find",name,"in:",self.images.keys()
+            raw_input("EGG ATLAS :: can't find %s" %name)
+            print "in:",self.images.keys()
             return None
     
     def getChar(self,name):

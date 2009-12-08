@@ -67,16 +67,11 @@ class Start:
 
     if general.configuration.getConfiguration("affichage-general", "afficheFPS","0")=="1":
       base.setFrameRateMeter(True)
-    
     #Place une sphère à la place de la planète pendant la construction
     self.tmp = Planete()
     self.tmp.seuilSauvegardeAuto = -1
     self.tmp.fabriqueNouvellePlanete(tesselation=3, delta=0.2)
     self.tmp.fabriqueModel()
-#    self.tmp.reparentTo(render)
-#    self.tmp.setColor(0.0, 0.0, 0.8, 1.0)
-#    self.tmp.setScale(1.0)
-#    self.tmp.setLightOff()
     
     general.gui.io.positionneCamera(render)
 

@@ -22,7 +22,7 @@ class AINavigation:
 
   def __init__(self, planete):
     self.planete = planete
-    self.angleSolMax = float(general.configuration.getConfiguration("sprite-navigation", "angleSolMax","70.0"))
+    self.angleSolMax = float(general.configuration.getConfiguration("sprites-navigation", "angleSolMax","70.0"))
     
   # Création d'infos ---------------------------------------------------    
   def coutPassage(self, idxSommet1, idxSommet2):

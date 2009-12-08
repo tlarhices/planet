@@ -112,8 +112,13 @@ class Element:
     
   def textureMixer(self, t1, t2, t3):
     """Mixe les textures t1, t2 et t3"""
-    tailleTexture = 128
-    
+    tailleTexture = int(general.configuration.getConfiguration("affichage-general", "taille-texture","256"))
+    if t1 not in self.texturesValides:
+      print "Avertissement :: Texture non validee :",t1
+    if t2 not in self.texturesValides:
+      print "Avertissement :: Texture non validee :",t2
+    if t3 not in self.texturesValides:
+      print "Avertissement :: Texture non validee :",t3
     #On regarde si on a pas déjà calculé cette texture
     clef = t1+"-"+t2+"-"+t3
     if clef in self.textures.keys():
@@ -280,6 +285,9 @@ class Element:
     self.modele.setPythonTag("type","sol")
     return self.modele
     
+  texturesValides=["subsubaquatique", "subaquatique", "sable", "champ", "herbe",
+  "feuillesa", "feuillesb", "feuillesc", "cailloux", "neige"]
+    
   def couleurSommet(self, sommet):
     """Retourne une couleur et une texture suivant l'altitude du sommet"""
     minAlt = (1.0-self.planete.delta)*(1.0-self.planete.delta)
@@ -320,7 +328,6 @@ class Element:
     
   def fabriqueTriangle(self, p1, p2, p3, forceCouleur=None):
     """Fabrique la géométrie de la face triangulaire définie par p1, p2 et p3"""
-    
     #Prepare la création du triangle
     if general.TEXTURES:
       format = GeomVertexFormat.getV3n3t2() #On donne les vectrices, les normales et les textures
@@ -391,29 +398,11 @@ class Element:
     
     #On applique la texture
     tex = self.textureMixer(t1, t2, t3)
-    """tex1 = loader.loadTexture("data/textures/"+t1+".png")
-    #if self.posUV[1]==1:
-    tex2 = loader.loadTexture("data/textures/"+t2+"-1.png")
-    #elif self.posUV[1]==2:
-    #  tex2 = loader.loadTexture(t2, "data/textures/opacite-0.jpg")
-    #elif self.posUV[1]==3:
-    #  tex2 = loader.loadTexture(t2, "data/textures/opacite-0.jpg")
-    #else:
-    #  print "Étrange UV",  self.posUV[1]
-    tex3 = loader.loadTexture("data/textures/"+t3+"-2.png")
-    ts1 = TextureStage('ts1')
-    ts1.setMode(TextureStage.MDecal)
-    ts2 = TextureStage('ts2')
-    ts2.setMode(TextureStage.MDecal)
-    ts3 = TextureStage('ts3')
-    ts3.setMode(TextureStage.MDecal)
-    nd.setTransparency(TransparencyAttrib.MAlpha)  
-    #nd.setTexture(tex0)
-    nd.setTexture(ts1, tex1)
-    nd.setTexture(ts2, tex2)
-    nd.setTexture(ts3, tex3)"""
     nd.setTexture(tex)
-
+    if general.configuration.getConfiguration("affichage-effets", "normalmapping","0")=="1":
+      ts = TextureStage('ts')
+      ts.setMode(TextureStage.MNormal)
+      nd.setTexture(ts, tex)
     return nd
     
   def calculNormale(self, point=None):

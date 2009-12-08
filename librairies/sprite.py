@@ -65,7 +65,7 @@ class Sprite:
     self.miseAJourPosition(position)
     self.inertie = [0.0,0.0,0.0]
     self.terminalVelocity = terminalVelocity
-    self.angleSolMax = float(general.configuration.getConfiguration("sprite-navigation", "angleSolMax","70.0"))
+    self.angleSolMax = float(general.configuration.getConfiguration("sprites-navigation", "angleSolMax","70.0"))
     self.distanceProche = distanceProche
     self.seuilToucheSol = seuilToucheSol
     self.constanteGravitationelle = constanteGravitationelle

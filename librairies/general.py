@@ -241,8 +241,10 @@ def afficheStatChrono():
     print "Moyen :", tot/cpt
     print "########"
     
-    
-def map3dToAspect2d(node, point):
+from pandac.PandaModules import *
+
+
+def map3dToRender2d(node, point):
     """Maps the indicated 3-d point (a Point3), which is relative to
     the indicated NodePath, to the corresponding point in the aspect2d
     scene graph. Returns the corresponding Point3 in aspect2d.
@@ -254,7 +256,16 @@ def map3dToAspect2d(node, point):
     p2 = Point2()
     if not base.camLens.project(p3, p2):
        return None
-    r2d = Point3(p2[0], 0, p2[1])
+    return Point3(p2[0], 0, p2[1])
+
+def map3dToAspect2d(node, point):
+    """Maps the indicated 3-d point (a Point3), which is relative to
+    the indicated NodePath, to the corresponding point in the aspect2d
+    scene graph. Returns the corresponding Point3 in aspect2d.
+    Returns None if the point is not onscreen. """
+    r2d = map3dToRender2d(node, point)
+    if r2d==None:
+       return None
     # And then convert it to aspect2d coordinates
     a2d = aspect2d.getRelativePoint(render2d, r2d)
     return a2d 

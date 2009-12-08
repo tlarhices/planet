@@ -46,6 +46,7 @@ class Planete:
   
   #Paramètres éclairage
   soleil=None #Noeud du soleil (une caméra dans le cas de la projection d'ombre)
+  flare = None #Le lens flare
   distanceSoleil = None #Distance du soleil à la planète
   vitesseSoleil = None #Vitesse de rotation du soleil en pifometre/s
   angleSoleil = None
@@ -398,6 +399,22 @@ class Planete:
   def fabriqueModel(self):
     """Produit un modèle 3D à partir du nuage des faces"""
     general.startChrono("Planete::fabriqueModel")
+    
+    #Création du cache de texture si nécessaire
+    if general.configuration.getConfiguration("affichage-general", "force-cache-texture","1")=="1":
+      element = Element("", 0, 0, 0, self, 0, None)
+      totTex = len(element.texturesValides)*len(element.texturesValides)*len(element.texturesValides)
+      cpt=0
+      for t1 in element.texturesValides:
+        for t2 in element.texturesValides:
+          for t3 in element.texturesValides:
+            cpt+=1
+            if cpt%20==0:
+              self.afficheTexte("Création du cache de textures : %.2f%%" %((cpt*1.0)/totTex*100))
+            clef = t1+"-"+t2+"-"+t3
+            if not clef+".png" in os.listdir(os.path.join(".","data","cache")):
+              element.textureMixer(t1, t2, t3)
+              del element.textures[clef]
     self.racine.setScale(0.01)
     cpt=0.0
     totlen = len(self.elements)
@@ -457,14 +474,16 @@ class Planete:
     self.modeleCiel.reparentTo(self.racine)
     self.niveauCiel = 1.0+self.delta*1.25+0.0001
     
-    nuages = NodePath("nuage")
-    densite = int(general.configuration.getConfiguration("planete-nuages", "densite","15"))
-    taille = float(general.configuration.getConfiguration("planete-nuages", "taille","0.15"))
-    for i in range(0, 80):
-      a = Nuage(densite, taille, self)
-      a.fabriqueModel().reparentTo(nuages)
-      self.sprites.append(a)
-    nuages.reparentTo(self.modeleCiel)
+    if general.configuration.getConfiguration("planete-nuages", "affiche-nuages","1")=="1":
+      nuages = NodePath("nuage")
+      densite = int(general.configuration.getConfiguration("planete-nuages", "densite","15"))
+      taille = float(general.configuration.getConfiguration("planete-nuages", "taille","0.15"))
+      quantite = int(general.configuration.getConfiguration("planete-nuages", "quantite","80"))
+      for i in range(0, quantite):
+        a = Nuage(densite, taille, self)
+        a.fabriqueModel().reparentTo(nuages)
+        self.sprites.append(a)
+      nuages.reparentTo(self.modeleCiel)
       
     #Ciel bleu
     self.azure = loader.loadModel("data/modeles/sphere.egg")
@@ -814,6 +833,27 @@ class Planete:
     if self.soleil != None and self.soleil != 1:
       self.soleil.setPos(0.0, math.sin(self.angleSoleil)*self.distanceSoleil, math.cos(self.angleSoleil)*self.distanceSoleil)
       self.soleil.lookAt(0,0,0)
+      
+      if self.flare != None:
+        self.flare.detachNode()
+        self.flare.removeNode()
+        self.flare=None
+      #Calcule le lens flare
+      if general.ligneCroiseSphere(general.gui.io.camera.getPos(), self.soleil.getPos(), (0.0,0.0,0.0), 1.0) == None:
+        ptLum = general.map3dToRender2d(render, self.soleil.getPos())
+        if ptLum!=None:
+          pass
+          """self.flare = NodePath("flare")
+          for i in range(0, 3):
+            p=ptLum[0]*i/3.0, ptLum[1]*i/3.0, ptLum[2]*i/3.0
+            #Fabrique un carré
+            cardMaker = CardMaker('flare')
+            cardMaker.setFrame(0.1, 0.1, 0.1, 0.1)
+            cardMaker.setHasNormals(True)
+            flare = self.flare.attachNewNode(cardMaker.generate())
+            flare.setTexture("./data/textures/flare/lens-flare1.png")
+            flare.setPos(*p)
+          self.flare.reparentTo(render2d)"""        
       
     if self.azure != None:
       self.azure.lookAt(self.soleil)
