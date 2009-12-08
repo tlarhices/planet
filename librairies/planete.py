@@ -494,6 +494,9 @@ class Planete:
     self.azure.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullCounterClockwise))
     self.azure.reparentTo(self.modeleCiel)
     self.azure.setTexture("data/textures/EarthClearSky2.png", 1)
+    self.azure.setBin('background', 2)
+    self.azure.setDepthTest(False)
+    self.azure.setDepthWrite(False)
 
     #Fabrique une lumière ambiante pour que la nuit soit moins noire
     if general.configuration.getConfiguration("affichage-Effets", "typeEclairage","shader")!="none":
@@ -526,6 +529,10 @@ class Planete:
     etoiles.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullCounterClockwise))
     etoiles.reparentTo(self.modeleCiel)    
     etoiles.setLightOff()
+    etoiles.setBin('background', 1)
+    etoiles.setDepthTest(False)
+    etoiles.setDepthWrite(False)
+
     
     self.modeleCiel.setPythonTag("type","ciel")
     
