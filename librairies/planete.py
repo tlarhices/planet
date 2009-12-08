@@ -163,6 +163,7 @@ class Planete:
         
       #On remet le niveau de tesselation qu'il faut, le chargement aura tout pété
       self.tesselation = int(tesselation)
+      self.delta = float(delta)
 
       #On tesselate la sphère courante
       for i in range(last, self.tesselation):
@@ -173,9 +174,13 @@ class Planete:
           if general.DEBUG_GENERE_PLANETE:
             self.afficheTexte("Tesselation en cours... %i/%i::%i/%i" %(i+1, self.tesselation, cpt, tot))
           element.tesselate()
+        self.tesselation = int(tesselation)
+        self.delta = float(delta)
         #On sauvegarde la tesselation courante pour gagner du temps pour les prochains chargements
         self.sauvegarde(os.path.join(".","data","pre-tesselate",str(i+1)), i+1)
         
+    self.tesselation = int(tesselation)
+    self.delta = float(delta)
     self.fabriqueVoisinage()
         
     #Place un unique point sous lequel tous les objets 3D vont exister

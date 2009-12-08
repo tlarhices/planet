@@ -315,7 +315,7 @@ class Historique(MenuCirculaire):
 class MiniMap(Pane):
   """Affiche une carte miniature de la planète"""
   gui = None #l'instance de la classe Interface en cours d'utilisation
-  tailleMiniMap = 128 #La taille de la carte en pixels (la carte est carrée)
+  tailleMiniMap = 256 #La taille de la carte en pixels (la carte est carrée)
   points = None #La liste des points à afficher
   blips = None #La liste des composants représentants les points
   
@@ -323,6 +323,9 @@ class MiniMap(Pane):
   
   derniereMAJ = None #l'heure de la dernière MAJ
   carteARedessiner = None #vaut True si la carte a été modifiée
+  
+  fond = None
+  fondFlou = None
   
   def __init__(self, gui):
     Pane.__init__(self)
@@ -345,7 +348,9 @@ class MiniMap(Pane):
     #L'image de fond
     self.fond = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
     self.fond.fillVal(0, 0, 0)
-    
+    self.fondFlou = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
+    self.fondFlou.fillVal(0, 0, 0)
+        
     taskMgr.add(self.ping, "Boucle minimap")
     
   def ajoutePoint(self, point, icone):
@@ -393,17 +398,18 @@ class MiniMap(Pane):
       return
     for x in range(int(minx+0.5), int(maxx+0.5)):
       for y in range(int(miny+0.5), int(maxy+0.5)):
+        d1=general.distance((x,y,0),(p1[0], p1[1], 0))
+        d2=general.distance((x,y,0),(p2[0], p2[1], 0))
+        d3=general.distance((x,y,0),(p3[0], p3[1], 0))
+        fact=(d1+d2+d3)/2
+        d1=1-d1/fact
+        d2=1-d2/fact
+        d3=1-d3/fact
+        couleur=c1[0]*d1+c2[0]*d2+c3[0]*d3, c1[1]*d1+c2[1]*d2+c3[1]*d3, c1[2]*d1+c2[2]*d2+c3[2]*d3
+        self.fondFlou.setXel(x, y, couleur[0], couleur[1], couleur[2])
         if estDansTriangle((x,y),p1,p2,p3):
-          d1=general.distance((x,y,0),(p1[0], p1[1], 0))
-          d2=general.distance((x,y,0),(p2[0], p2[1], 0))
-          d3=general.distance((x,y,0),(p3[0], p3[1], 0))
-          fact=(d1+d2+d3)/2
-          d1=1-d1/fact
-          d2=1-d2/fact
-          d3=1-d3/fact
-          couleur=c1[0]*d1+c2[0]*d2+c3[0]*d3, c1[1]*d1+c2[1]*d2+c3[1]*d3, c1[2]*d1+c2[2]*d2+c3[2]*d3
-          self.carteARedessiner = True
           self.fond.setXel(x, y, couleur[0], couleur[1], couleur[2])
+          self.carteARedessiner = True
     
   def ajoutePoint3D(self, point, icone):
     """Ajout un point3D à la carte, retourne un indice servant à l'effacer plus tard"""
@@ -421,7 +427,7 @@ class MiniMap(Pane):
       lat=2 * math.pi - math.acos(x/math.sqrt(x*x+y*y))
     lat=lat*float(self.tailleMiniMap)/(2*math.pi)
     z=(-z*self.tailleMiniMap/2+self.tailleMiniMap/2)
-    return lat, z
+    return int(lat+0.5), int(z+0.5)
     
   def enlevePoint(self, id):
     """
@@ -442,7 +448,16 @@ class MiniMap(Pane):
     """Boucle qui met à jour la carte"""
     if self.derniereMAJ==None or task.time-self.derniereMAJ>10.0:
       if self.carteARedessiner:
-        #self.fond.write(Filename("./carte.png"))
+        fond = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
+        for x in range(0, self.tailleMiniMap):
+          for y in range(0, self.tailleMiniMap):
+            px = self.fond.getXel(x,y)
+            if px[0]==0.0 and px[1]==0.0 and px[2]==0.0:
+              fond.setXel(x,y, self.fondFlou.getXel(x,y))
+            else:
+              fond.setXel(x,y, px)
+        fond.gaussianFilter(2.0)
+        fond.write(Filename("./carte.png"))
         self.carteARedessiner = False
       self.derniereMAJ=task.time
       

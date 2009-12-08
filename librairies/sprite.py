@@ -275,6 +275,7 @@ class Sprite:
       tmp = self.fabriqueSprite(self.fichierModele)
     else:
       tmp = loader.loadModel(self.fichierModele)
+      tmp.setScale(3.0)
     tmp.reparentTo(self.modele)
     self.modele.node().addSwitch(self.distanceSymbole, 0) 
     

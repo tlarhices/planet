@@ -135,8 +135,8 @@ class IO:
     
     #La caméra regarde toujours le centre de la planète
     self.camera.lookAt(Point3(0,0,0), racine.getRelativeVector(self.camera, Vec3(0,0,1)))
-    angle = self.cameraAngleSurface-self.cameraAngleSurface*(-0.5+(self.cameraRayon-1.0)/(2*delta))
-    angle = max(0.0, angle)
+    angle = self.cameraAngleSurface-self.cameraAngleSurface*(-0.5+(self.cameraRayon-1.0)/(1.2))
+    angle = min(max(0.0, angle),self.cameraAngleSurface)
     base.camera.setP(angle)
 
   def zoomPlus(self):

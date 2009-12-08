@@ -414,13 +414,16 @@ class Element:
         pass
         
     if self.decideArbre==None:
-      if h1>0 and random.random()>0.5:
-        self.planete.ajouteSprite("palmier", p1, "palmier")
-      elif h2>0 and random.random()>0.5:
-        self.planete.ajouteSprite("palmier", p2, "palmier")
-      elif h3>0 and random.random()>0.5:
-        self.planete.ajouteSprite("palmier", p3, "palmier")
-      
+      self.decideArbre = True
+      if h1>0 or h2>0 or h3>0:
+        if random.random()>0.8:
+          r1=random.random()
+          r2=random.random()
+          if r1+r2>=1.0:
+            r2=1.0-r1
+          r3=1.0-r1-r2
+          p = p1[0]*r1+p2[0]*r2+p3[0]*r3, p1[1]*r1+p2[1]*r2+p3[1]*r3, p1[2]*r1+p2[2]*r2+p3[2]*r3
+          self.planete.ajouteSprite("palmier", p, "palmier")      
     return nd
     
   def calculNormale(self, point=None):
