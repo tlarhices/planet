@@ -426,7 +426,7 @@ class Nuage(Sprite):
   densite = None
   
   def __init__(self, densite, taille, planete):
-    Sprite.__init__(self, id="nuage", position=(0.01,0.01,0.01), modele="none", symbole="none", distanceSymbole=999999, vie=100, terminalVelocity=1000, distanceProche=1000, seuilToucheSol=1000, constanteGravitationelle=1000, vitesse=1000, planete=planete, joueur=None)
+    Sprite.__init__(self, id="nuage", position=(0.01,0.01,0.01), modele="none", symbole="none", icone="none", distanceSymbole=999999, vie=100, terminalVelocity=1000, distanceProche=1000, seuilToucheSol=1000, constanteGravitationelle=1000, nocturne=True, vitesse=1000, planete=planete, joueur=None)
     self.densite = densite
     self.taille = taille
     self.planete = planete

@@ -407,8 +407,11 @@ class Element:
       nd.setTexture(ts, tex)
       
     if general.gui.menuCourant !=None:
-      if general.gui.menuCourant.miniMap !=None:
-        general.gui.menuCourant.miniMap.dessineCarte(p1,p2,p3,c1,c2,c3)
+      try:
+        if general.gui.menuCourant.miniMap !=None:
+          general.gui.menuCourant.miniMap.dessineCarte(p1,p2,p3,c1,c2,c3)
+      except AttributeError:
+        pass
         
     if self.decideArbre==None:
       if h1>0 and random.random()>0.5:

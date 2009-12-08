@@ -855,6 +855,7 @@ class Planete:
     sprite = Sprite(id=id, position=position, modele=modele, symbole=symbole, icone=icone, distanceSymbole=distanceSymbole, vie=vie, terminalVelocity=terminalVelocity, distanceProche=distanceProche, seuilToucheSol=seuilToucheSol, constanteGravitationelle=constanteGravitationelle, nocturne=nocturne, vitesse=vitesse, planete=self, joueur=None)
     self.sprites.append(sprite)
     sprite.fabriqueModel()
+    sprite.bouge = False
 
   def ping(self, temps):
     general.startChrono("Planete::ping")
