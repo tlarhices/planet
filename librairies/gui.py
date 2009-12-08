@@ -315,26 +315,37 @@ class Historique(MenuCirculaire):
 class MiniMap(Pane):
   """Affiche une carte miniature de la planète"""
   gui = None #l'instance de la classe Interface en cours d'utilisation
-  tailleMiniMap = 150 #La taille de la carte en pixels (la carte est carrée)
+  tailleMiniMap = 128 #La taille de la carte en pixels (la carte est carrée)
   points = None #La liste des points à afficher
   blips = None #La liste des composants représentants les points
-  echelle = None #Le facteur d'échelle entre le monde réel et la miniCarte
   
-  camBlip = None
+  camBlip = None #Le blip laissé par la caméra
+  
+  derniereMAJ = None #l'heure de la dernière MAJ
+  carteARedessiner = None #vaut True si la carte a été modifiée
   
   def __init__(self, gui):
     Pane.__init__(self)
     self.gui = gui
-    self.echelle = 0.75
     
     #On positionne la carte
     self.x = "right" 
-    self.y = "top" 
+    self.y = "top"
+    #Force la carte à une puissance de 2
+    self.tailleMiniMap = 2**int(math.log(self.tailleMiniMap, 2)+0.5)
     self.width = self.tailleMiniMap
     self.height = self.tailleMiniMap
     
     self.points={}
     self.blips={}
+    
+    self.derniereMAJ = None
+    self.carteARedessiner = True
+    
+    #L'image de fond
+    self.fond = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
+    self.fond.fillVal(0, 0, 0)
+    
     taskMgr.add(self.ping, "Boucle minimap")
     
   def ajoutePoint(self, point, icone):
@@ -353,36 +364,64 @@ class MiniMap(Pane):
     self.points[len(self.points)+1]=(point, icone)
     return len(self.points)
     
+  def dessineCarte(self, p1, p2, p3, c1, c2, c3):
+    if general.normeVecteur(p1)<=self.gui.start.planete.niveauEau:
+      c1=(0.0,0.0,1.0)
+    if general.normeVecteur(p2)<=self.gui.start.planete.niveauEau:
+      c2=(0.0,0.0,1.0)
+    if general.normeVecteur(p3)<=self.gui.start.planete.niveauEau:
+      c3=(0.0,0.0,1.0)
+    p1 = self.point3DVersCarte(p1)
+    p2 = self.point3DVersCarte(p2)
+    p3 = self.point3DVersCarte(p3)
+    minx = min(p1[0], p2[0], p3[0])
+    maxx = max(p1[0], p2[0], p3[0])
+    miny = min(p1[1], p2[1], p3[1])
+    maxy = max(p1[1], p2[1], p3[1])
+    
+    def signe(p1, p2, p3):
+      return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1]);
+    def estDansTriangle(pt, s1, s2, s3):
+      b1 = signe(pt, s1, s2) < 0.0
+      b2 = signe(pt, s2, s3) < 0.0
+      b3 = signe(pt, s3, s1) < 0.0
+      return ((b1 == b2) and (b2 == b3))
+    
+    if maxx-minx>float(self.tailleMiniMap)/2.0:
+      return
+    if maxy-miny>float(self.tailleMiniMap)/2.0:
+      return
+    for x in range(int(minx+0.5), int(maxx+0.5)):
+      for y in range(int(miny+0.5), int(maxy+0.5)):
+        if estDansTriangle((x,y),p1,p2,p3):
+          d1=general.distance((x,y,0),(p1[0], p1[1], 0))
+          d2=general.distance((x,y,0),(p2[0], p2[1], 0))
+          d3=general.distance((x,y,0),(p3[0], p3[1], 0))
+          fact=(d1+d2+d3)/2
+          d1=1-d1/fact
+          d2=1-d2/fact
+          d3=1-d3/fact
+          couleur=c1[0]*d1+c2[0]*d2+c3[0]*d3, c1[1]*d1+c2[1]*d2+c3[1]*d3, c1[2]*d1+c2[2]*d2+c3[2]*d3
+          self.carteARedessiner = True
+          self.fond.setXel(x, y, couleur[0], couleur[1], couleur[2])
+    
   def ajoutePoint3D(self, point, icone):
     """Ajout un point3D à la carte, retourne un indice servant à l'effacer plus tard"""
     return self.ajoutePoint(self.point3DVersCarte(point), icone)
-    
-    #On calcul le point derrière la caméra, super loin
-    camNorm = general.normaliseVecteur(self.gui.io.camera.getPos())
-    mCam = general.multiplieVecteur(camNorm, self.gui.start.planete.distanceSoleil)
-    #On regarde si le point est bien en vue et pas derrière la planète
-    if general.ligneCroiseSphere(point, mCam, (0.0,0.0,0.0), 1.0)==None:
-      test = NodePath("cam")
-      test.reparentTo(self.gui.start.planete.racine)
-      test.setPos(*mCam)
-      test.lookAt(self.gui.start.planete.racine)
-      pt = test.getRelativePoint(self.gui.start.planete.racine, Point3(*point))
-      test.detachNode()
-      test.removeNode()
-      return self.ajoutePoint((pt[0] ,pt[2]), icone)
-    else:
-      return None
       
   def point3DVersCarte(self, point):
-    x,y,z = point
-    p=math.sqrt(x*x+y*y+z*z)
-    lon = math.acos(z/p)
+    x,y,z = general.normaliseVecteur(point)
+    lon = math.acos(z)
     if y>=0:
-      lat=math.acos(x/math.sqrt(x*x+y*y))
+      if x==0:
+        lat=math.acos(0.0)
+      else:
+        lat=math.acos(x/math.sqrt(x*x+y*y))
     else:
       lat=2 * math.pi - math.acos(x/math.sqrt(x*x+y*y))
-    lat=lat*20
-    return lat*self.echelle, (z+self.tailleMiniMap/2)*self.echelle
+    lat=lat*float(self.tailleMiniMap)/(2*math.pi)
+    z=(-z*self.tailleMiniMap/2+self.tailleMiniMap/2)
+    return lat, z
     
   def enlevePoint(self, id):
     """
@@ -401,23 +440,20 @@ class MiniMap(Pane):
 
   def ping(self, task):
     """Boucle qui met à jour la carte"""
+    if self.derniereMAJ==None or task.time-self.derniereMAJ>10.0:
+      if self.carteARedessiner:
+        #self.fond.write(Filename("./carte.png"))
+        self.carteARedessiner = False
+      self.derniereMAJ=task.time
+      
     self.enlevePoint(self.camBlip)
-    pt = self.point3DVersCarte(general.normaliseVecteur(self.gui.io.camera.getPos()))
-    #print pt
-    self.camBlip = self.ajoutePoint(pt,"theme/icones/camera.png")
+    self.camBlip = self.ajoutePoint3D(self.gui.io.camera.getPos(),"theme/icones/camera.png")
     for id in self.points.keys():
       if id not in self.blips.keys():
         #Ce point n'a pas de représentation sur la carte, on en fabrique un nouveau
-        self.blips[id] = self.add(Icon(self.points[id][1],x=self.points[id][0][0]*self.echelle+self.tailleMiniMap/2, y=-self.points[id][0][1]*self.echelle+self.tailleMiniMap/2))
+        self.blips[id] = self.add(Icon(self.points[id][1],x=self.points[id][0][0], y=self.points[id][0][1]))
     return task.cont
-        
-  def changeEchelle(self, nouvelleEchelle):
-    """Change l'échelle de la carte"""
-    self.echelle = nouvelleEchelle
-    for blib in self.blips.values():
-      self.remove(blib)
-    self.blips = {}
-    
+            
 class EnJeu(MenuCirculaire):
   """Contient la liste des unitées que l'on peut construire"""
   select = None #L'unité sélctionnée en ce moment

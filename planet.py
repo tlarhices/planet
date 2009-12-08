@@ -86,12 +86,6 @@ class Start:
       print "Vous devez créer une planète avant !"
       return
       
-    #On construit le modèle 3D de la planète
-    self.planete.fabriqueModel()
-    self.tmp.detruit()
-    self.tmp = None
-    general.gui.io.positionneCamera()
-    
     #On ajoute les joueurs
     j1 = JoueurLocal("Joueur 1", (1.0, 0.0, 0.0, 1.0), self.planete)
     self.joueur = j1
@@ -105,6 +99,13 @@ class Start:
     j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
     j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
     j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
+
+    #On construit le modèle 3D de la planète
+    self.planete.fabriqueModel()
+    self.tmp.detruit()
+    self.tmp = None
+    general.gui.io.positionneCamera()
+    
 
   def afficheStat(self):
     general.afficheStatChrono()
@@ -138,7 +139,6 @@ class Start:
     general.configuration.charge(fichierPlanete)
     tesselation = int(general.configuration.getConfiguration("generation", "tesselation", "4"))
     delta = float(general.configuration.getConfiguration("generation", "delta", "0.2"))
-    print delta
     self.planete.fabriqueNouvellePlanete(tesselation=tesselation, delta=delta)
     #self.camera.reparentTo(self.planete.racine)
     

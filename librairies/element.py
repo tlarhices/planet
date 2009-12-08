@@ -290,7 +290,7 @@ class Element:
     
   def couleurSommet(self, sommet):
     """Retourne une couleur et une texture suivant l'altitude du sommet"""
-    minAlt = (1.0-self.planete.delta)*(1.0-self.planete.delta)
+    minAlt = self.planete.niveauEau#(1.0-self.planete.delta)*(1.0-self.planete.delta)
     maxAlt = (1.0+self.planete.delta)*(1.0+self.planete.delta)
     altitude = general.normeVecteurCarre(sommet)
     prct = (altitude-minAlt)/(maxAlt-minAlt)*100
@@ -403,6 +403,11 @@ class Element:
       ts = TextureStage('ts')
       ts.setMode(TextureStage.MNormal)
       nd.setTexture(ts, tex)
+      
+    if general.gui.menuCourant !=None:
+      if general.gui.menuCourant.miniMap !=None:
+        general.gui.menuCourant.miniMap.dessineCarte(p1,p2,p3,c1,c2,c3)
+      
     return nd
     
   def calculNormale(self, point=None):
