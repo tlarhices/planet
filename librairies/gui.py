@@ -329,8 +329,6 @@ class MiniMap(Pane):
   
   fond = None
   fondFlou = None
-  soleil = None
-  soleilFlou = None
   
   def __init__(self, gui):
     Pane.__init__(self)
@@ -355,11 +353,7 @@ class MiniMap(Pane):
     self.fond.fillVal(0, 0, 0)
     self.fondFlou = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
     self.fondFlou.fillVal(0, 0, 0)
-    self.soleilFlou = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
-    self.soleilFlou.fillVal(255, 255, 255)
-    self.soleil = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
-    self.soleil.fillVal(255, 255, 255)
-    
+        
     taskMgr.add(self.ping, "Boucle minimap")
     
   def ajoutePoint(self, point, icone):
@@ -378,7 +372,7 @@ class MiniMap(Pane):
     self.points[len(self.points)+1]=(point, icone)
     return len(self.points)
     
-  def dessineCarte(self, p1, p2, p3, c1, c2, c3, estSoleil=False):
+  def dessineCarte(self, p1, p2, p3, c1, c2, c3):
     if general.normeVecteur(p1)<=self.gui.start.planete.niveauEau:
       c1=(0.0,0.0,1.0)
     if general.normeVecteur(p2)<=self.gui.start.planete.niveauEau:
@@ -415,15 +409,9 @@ class MiniMap(Pane):
         d2=1-d2/fact
         d3=1-d3/fact
         couleur=c1[0]*d1+c2[0]*d2+c3[0]*d3, c1[1]*d1+c2[1]*d2+c3[1]*d3, c1[2]*d1+c2[2]*d2+c3[2]*d3
-        if not estSoleil:
-          self.fondFlou.setXel(x, y, couleur[0], couleur[1], couleur[2])
-        else:
-          self.soleilFlou.setXel(x, y, couleur[0], couleur[1], couleur[2])
+        self.fondFlou.setXel(x, y, couleur[0], couleur[1], couleur[2])
         if estDansTriangle((x,y),p1,p2,p3):
-          if not estSoleil:
-            self.fond.setXel(x, y, couleur[0], couleur[1], couleur[2])
-          else:
-            self.soleil.setXel(x, y, couleur[0], couleur[1], couleur[2])
+          self.fond.setXel(x, y, couleur[0], couleur[1], couleur[2])
           self.carteARedessiner = True
     
   def ajoutePoint3D(self, point, icone):
@@ -473,30 +461,15 @@ class MiniMap(Pane):
     if self.derniereMAJ==None or task.time-self.derniereMAJ>10.0:
       if self.carteARedessiner:
         fond = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
-        soleil = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
         for x in range(0, self.tailleMiniMap):
           for y in range(0, self.tailleMiniMap):
             px = self.fond.getXel(x,y)
-            spx = self.soleil.getXel(x,y)
             if px[0]==0.0 and px[1]==0.0 and px[2]==0.0:
               fond.setXel(x,y, self.fondFlou.getXel(x,y))
             else:
               fond.setXel(x,y, px)
-            if spx[0]==1.0 and spx[1]==1.0 and spx[2]==1.0:
-              fond.setXel(x,y, self.soleilFlou.getXel(x,y))
-            else:
-              soleil.setXel(x,y, spx)
         fond.gaussianFilter(2.0)
         fond.write(Filename("./carte.png"))
-        soleil.gaussianFilter(2.0)
-        soleil.write(Filename("./soleil.png"))
-        fusion = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
-        for x in range(0, self.tailleMiniMap):
-          for y in range(0, self.tailleMiniMap):
-            px = fond.getXel(x,y)
-            spx = soleil.getXel(x,y)
-            fusion.setXel((px[0]+spx[0])/2, (px[1]+spx[1])/2, (px[2]+spx[2])/2)
-        soleil.write(Filename("./fusion.png"))
         self.carteARedessiner = False
       self.derniereMAJ=task.time
       

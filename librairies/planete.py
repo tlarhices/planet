@@ -401,7 +401,10 @@ class Planete:
       self.sommets[sommet] = general.multiplieVecteur(general.normaliseVecteur(self.sommets[sommet]),tot)
     general.stopChrono("Planete::flouifieSol")
       
-  def fabriqueCacheTexture(self):
+  def fabriqueModel(self):
+    """Produit un modèle 3D à partir du nuage des faces"""
+    general.startChrono("Planete::fabriqueModel")
+    
     #Création du cache de texture si nécessaire
     if general.configuration.getConfiguration("affichage-general", "force-cache-texture","1")=="1":
       element = Element("", 0, 0, 0, self, 0, None)
@@ -417,11 +420,6 @@ class Planete:
             if not clef+".png" in os.listdir(os.path.join(".","data","cache")):
               element.textureMixer(t1, t2, t3)
               del element.textures[clef]
-      
-  def fabriqueModel(self):
-    """Produit un modèle 3D à partir du nuage des faces"""
-    general.startChrono("Planete::fabriqueModel")
-    
     self.racine.setScale(0.01)
     cpt=0.0
     totlen = len(self.elements)
@@ -887,15 +885,7 @@ class Planete:
         ptLum = general.map3dToRender2d(render, self.soleil.getPos())
         if ptLum!=None:
           pass
-          """
-          Primary Flare  	length  	1.0
-          First Halo 	length/2 	.5
-          Small Burst 	length/3 	.25
-          Next Halo 	length/8 	1.0
-          Next Burst 	-(length/2) 	.5
-          Next Halo 	-(length/4) 	.25
-          Next Burst 	-(length/5.5) 	.25
-          self.flare = NodePath("flare")
+          """self.flare = NodePath("flare")
           for i in range(0, 3):
             p=ptLum[0]*i/3.0, ptLum[1]*i/3.0, ptLum[2]*i/3.0
             #Fabrique un carré
@@ -905,38 +895,7 @@ class Planete:
             flare = self.flare.attachNewNode(cardMaker.generate())
             flare.setTexture("./data/textures/flare/lens-flare1.png")
             flare.setPos(*p)
-          self.flare.reparentTo(render2d)"""  
-          
-    """try:
-      def procFace(face):
-        if face.enfants == None:
-          p1 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[0]]), 1.5)
-          if general.ligneCroiseSphere(p1, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
-            c1=(0,0,0)
-          else:
-            c1=(1.0,1.0,1.0)
-          p2 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[1]]), 1.5)
-          if general.ligneCroiseSphere(p2, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
-            c2=(0,0,0)
-          else:
-            c2=(1.0,1.0,1.0)
-          p3 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[2]]), 1.5)
-          if general.ligneCroiseSphere(p3, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
-            c3=(0,0,0)
-          else:
-            c3=(1.0,1.0,1.0)
-          general.gui.menuCourant.miniMap.dessineCarte(p1, p2, p3, c1, c2, c3, True)
-      def recur(face):
-        if face.enfants==None:
-          procFace(face)
-        else:
-          for enfant in face.enfants:
-            recur(enfant)
-      for face in self.elements:
-        recur(face)
-        
-    except AttributeError:
-      pass"""
+          self.flare.reparentTo(render2d)"""        
       
     if self.azure != None:
       self.azure.lookAt(self.soleil)

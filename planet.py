@@ -101,7 +101,6 @@ class Start:
     j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
 
     #On construit le modèle 3D de la planète
-    self.planete.fabriqueCacheTexture()
     self.planete.fabriqueModel()
     self.tmp.detruit()
     self.tmp = None
