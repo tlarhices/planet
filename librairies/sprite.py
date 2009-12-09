@@ -127,12 +127,16 @@ class Sprite:
     
   def blip(self):
     if self.blipid!=None:
-      general.gui.menuCourant.miniMap.enlevePoint(self.blipid)
-    try:
-      if self.icone != None and self.icone != "none":
-        self.blipid = general.gui.menuCourant.miniMap.ajoutePoint3D(self.position,self.icone)
-    except AttributeError:
-      pass
+      try:
+        general.gui.menuCourant.miniMap.majBlip(self.blipid,self.position,self.icone)
+      except AttributeError:
+        self.blipid=None
+    else:
+      try:
+        if self.icone != None and self.icone != "none":
+          self.blipid = general.gui.menuCourant.miniMap.ajoutePoint3D(self.position,self.icone)
+      except AttributeError:
+        pass
   
   def testeSol(self, temps):
     """Regarde l'angle entre la normale de la face et le sprite qui s'y tient"""

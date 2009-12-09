@@ -217,7 +217,7 @@ class IO:
   def lierActionsFonctions(self):
     """On donne des noms gentils à des appels de fonction moins sympas"""
     self.actions = {}
-    self.actions["quitter"] = (sys.exit,(0,))
+    self.actions["quitter"] = (self.quitter,None)
     self.actions["tournecameraverslagauche"] = (self.tourneCamera,(self.cameraPasRotation,0.0))
     self.actions["tournecameraversladroite"] = (self.tourneCamera,(-self.cameraPasRotation,0.0))
     self.actions["tournecameraverslehaut"] = (self.tourneCamera,(0.0,-self.cameraPasRotation))
@@ -241,6 +241,10 @@ class IO:
       print "ERREUR : Start.appelFonction, parametres doit être None, un tuple, une liste ou un dictionnaire"
       fonction[parametre]
   ### Fin gestion du clavier/souris ------------------------------------
+  
+  def quitter(self):
+    """Quitte l'application"""
+    general.gui.quitter()
   
   def testeSouris(self):
     """Teste ce qui se trouve sous le curseur de la souris"""

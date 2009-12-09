@@ -140,7 +140,10 @@ class MenuCirculaire:
       self.animation=120.0
       if self.exit != None:
         self.clear()
-        self.gui.menuCourant = self.exit(self.gui)
+        if isinstance(self.gui.menuCourant, EnJeu):
+          self.gui.menuCourant.listeUnite = self.exit(self.gui)
+        else:
+          self.gui.menuCourant = self.exit(self.gui)
 
     bg, bd = self.boutons
     nbBoutonsG = len(bg)
@@ -441,8 +444,17 @@ class MiniMap(Pane):
       return
     del self.points[id]
     if id in self.blips.keys():
-      self.remove(self.blips[id])
+      if self.blips[id] in self.children:
+        self.remove(self.blips[id])
       del self.blips[id]
+      
+  def majBlip(self, blipid, point, icone):
+    """Change les coordonnées d'un point"""
+    point = self.point3DVersCarte(point)
+    self.points[blipid]=(point, icone)
+    if blipid in self.blips.keys():
+      self.blips[blipid].doPlacement({"x":point[0], "y":point[1]})
+      self.blips[blipid].icon = icone
 
   def ping(self, task):
     """Boucle qui met à jour la carte"""
@@ -519,12 +531,22 @@ class EnJeu():
     self.historique.MAJ(temps)
     self.listeUnite.MAJ(temps)
     
+  def efface(self, classe):
+    self.clear()
+    self.gui.menuCourant = classe(self.gui)
+    
   def clear(self):
     self.historique.clear()
     self.listeUnite.clear()
     #Purge tous les points de la carte
     self.miniMap.clear()
     self.gui.gui.remove(self.miniMap)
+    
+  def changeMenu(self):
+    if isinstance(self.listeUnite, ListeUnite):
+      self.gui.changeMenuVers(MenuPrincipal)
+    else:
+      self.gui.changeMenuVers(ListeUnite)
         
 class Informations(Pane):
   """Boite de message"""
@@ -680,22 +702,27 @@ class Chargement(Pane):
     
 class MenuPrincipal(MenuCirculaire):
   """Le menu principal"""
+  enJeu = None
   
   def __init__(self, gui):
     MenuCirculaire.__init__(self, gui)
     self.besoinRetour = False
     
-    self.ajouteGauche(Button(u"Nouvelle planète", self.gui.nouvellePlanete, width=LARGEUR_BOUTON))
+    self.enJeu = isinstance(self.gui.menuCourant, EnJeu)
     
-    cpt = 0
-    for fich in os.listdir(os.path.join(".", "data", "planetes")):
-      if fich.endswith(".pln"):
-        cpt+=1
-    if cpt==0:
-      self.ajouteGauche(Label(u"Utiliser un planète vierge", width=LARGEUR_BOUTON))
-    else:
-      self.ajouteGauche(Button(u"Utiliser un planète vierge", self.gui.planeteVierge, width=LARGEUR_BOUTON))
+    if not self.enJeu:
+      self.ajouteGauche(Button(u"Nouvelle planète", self.gui.nouvellePlanete, width=LARGEUR_BOUTON))
     
+    if not self.enJeu:
+      cpt = 0
+      for fich in os.listdir(os.path.join(".", "data", "planetes")):
+        if fich.endswith(".pln"):
+          cpt+=1
+      if cpt==0:
+        self.ajouteGauche(Label(u"Utiliser un planète vierge", width=LARGEUR_BOUTON))
+      else:
+        self.ajouteGauche(Button(u"Utiliser un planète vierge", self.gui.planeteVierge, width=LARGEUR_BOUTON))
+      
     cpt = 0
     for fich in os.listdir(os.path.join(".", "sauvegardes")):
       if fich.endswith(".pln"):
@@ -704,8 +731,17 @@ class MenuPrincipal(MenuCirculaire):
       self.ajouteGauche(Label(u"Charger une partie", width=LARGEUR_BOUTON))
     else:
       self.ajouteGauche(Button(u"Charger une partie", self.gui.chargerPartie, width=LARGEUR_BOUTON))
+      
+    if self.enJeu:
+      self.ajouteGauche(Button(u"Sauvegarder la partie", self.gui.sauvegarderPartie, width=LARGEUR_BOUTON))
 
     self.ajouteGauche(Button(u"Configuration", self.gui.configurer, width=LARGEUR_BOUTON))
+
+    if self.enJeu:
+      self.ajouteGauche(Button(u"Retour en Jeu", self.gui.retourJeu, width=LARGEUR_BOUTON))
+      self.ajouteGauche(Button(u"Quitter la partie", self.gui.retourPrincipal, width=LARGEUR_BOUTON))
+    if not self.enJeu:
+      self.ajouteGauche(Button(u"Quitter le jeu", self.gui.quitter, width=LARGEUR_BOUTON))
     self.fabrique()
     
   def anime(self, temps):
@@ -889,6 +925,13 @@ class Interface:
     """Racourcis pour gui.gui.remove"""
     return self.gui.remove(pouet)
     
+  def quitter(self):
+    """Quitte l'application"""
+    if not isinstance(self.menuCourant, EnJeu):
+      sys.exit(0)
+    else:
+      self.menuCourant.changeMenu()
+    
   def ping(self, task):
     if self.menuCourant!=None:
       self.menuCourant.MAJ(task.time)
@@ -897,7 +940,10 @@ class Interface:
   def changeMenuVers(self, classe):
     """Passe d'un menu à un autre"""
     if self.menuCourant != None:
-      self.menuCourant.efface(classe)
+      if isinstance(self.menuCourant, EnJeu):
+        self.menuCourant.listeUnite.efface(classe)
+      else:
+        self.menuCourant.efface(classe)
       
   def nouvellePlanete(self):
     """Construit une nouvelle planète aléatoirement"""
@@ -935,6 +981,12 @@ class Interface:
     self.start.chargePlanete(os.path.join(".", "data", "planetes", fichier))
     self.start.start()
     
+  def sauvegarderPartie(self):
+    self.changeMenuVers(MenuPrincipal)
+    
+  def sauvegarderPartie(self):
+    self.changeMenuVers(MenuPrincipal)
+
   def chargerPartie(self):
     """Charge un partie sauvegardée"""
     self.changeMenuVers(MenuCharge)
@@ -944,6 +996,20 @@ class Interface:
     self.makeMain()
     self.start.chargePlanete(os.path.join(".", "sauvegardes", fichier))
     self.start.start()
+    
+  def retourJeu(self):
+    """Ferme le menu en jeu et retourne à la partie"""
+    self.changeMenuVers(ListeUnite)
+    
+  def retourPrincipal(self):
+    """Quitte la partie et retour au menu principal"""
+    jeu = self.menuCourant
+    self.menuCourant = None
+    
+    #On indique que la planète à l'écran n'est pas en jeu, mais est un fond de menu
+    self.start.tmp = self.start.planete
+    self.start.planete = None
+    jeu.efface(MenuPrincipal)
     
   def ajouteJoueur(self, joueur):
     """Indique qu'on passe du mode chargement au mode joueur"""
