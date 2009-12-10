@@ -767,7 +767,7 @@ class MenuConfiguration(MenuCirculaire):
     self.clear()
     
     for section in general.configuration.configuration.keys():
-      aAfficher = general.configuration.getConfiguration(section, "gui", "dansGUI", "0")=="1"
+      aAfficher = general.configuration.getConfiguration(section, "gui", "dansGUI", "f")=="t"
       if aAfficher:
         iconeactif=general.configuration.getConfiguration(section, "gui", "icone-actif", "theme/icones/q-over.png")
         iconeinactif=general.configuration.getConfiguration(section, "gui", "icone-inactif", "theme/icones/q.png")

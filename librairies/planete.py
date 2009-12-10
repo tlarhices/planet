@@ -66,8 +66,8 @@ class Planete:
     self.vitesseSoleil = float(general.configuration.getConfiguration("planete", "Univers", "vitesseSoleil","1.0"))
     self.angleSoleil = 0.0
     
-    general.WIREFRAME = general.configuration.getConfiguration("affichage", "general", "fildefer","0")=="1"
-    general.TEXTURES = general.configuration.getConfiguration("affichage", "general", "utilise-textures","1")=="1"
+    general.WIREFRAME = general.configuration.getConfiguration("affichage", "general", "fildefer","f")=="t"
+    general.TEXTURES = general.configuration.getConfiguration("affichage", "general", "utilise-textures","t")=="t"
     
   def fabriqueVoisinage(self):
     """
@@ -406,7 +406,7 @@ class Planete:
     general.startChrono("Planete::fabriqueModel")
     
     #Création du cache de texture si nécessaire
-    if general.configuration.getConfiguration("affichage", "general", "force-cache-texture","1")=="1":
+    if general.configuration.getConfiguration("affichage", "general", "force-cache-texture","t")=="t":
       element = Element("", 0, 0, 0, self, 0, None)
       totTex = len(element.texturesValides)*len(element.texturesValides)*len(element.texturesValides)
       cpt=0
@@ -479,7 +479,7 @@ class Planete:
     self.modeleCiel.reparentTo(self.racine)
     self.niveauCiel = 1.0+self.delta*1.25+0.0001
     
-    if general.configuration.getConfiguration("planete", "nuages", "affiche-nuages", "1")=="1":
+    if general.configuration.getConfiguration("planete", "nuages", "affiche-nuages", "t")=="t":
       nuages = NodePath("nuage")
       densite = int(general.configuration.getConfiguration("planete", "nuages", "densite", "15"))
       taille = float(general.configuration.getConfiguration("planete", "nuages", "taille", "0.15"))

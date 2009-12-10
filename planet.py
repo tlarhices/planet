@@ -45,11 +45,11 @@ class Start:
     #render.setShaderAuto()
     
     #Configuration de DEBUG
-    general.DEBUG_GENERE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_genere_planete","0")=="1"
-    general.DEBUG_CHARGE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_charge_planete","0")=="1"
-    general.DEBUG_CHARGE_PLANETE_VERBOSE = general.configuration.getConfiguration("debug", "planete", "debug_charge_planete_verbose","0")=="1"
-    general.DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION = general.configuration.getConfiguration("debug", "ai", "debug_ai_graphe_deplacement_construction","0")=="1"
-    general.DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE = general.configuration.getConfiguration("debug", "ai", "debug_ai_graphe_deplacement_promenade","0")=="1"
+    general.DEBUG_GENERE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_genere_planete","f")=="t"
+    general.DEBUG_CHARGE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_charge_planete","f")=="t"
+    general.DEBUG_CHARGE_PLANETE_VERBOSE = general.configuration.getConfiguration("debug", "planete", "debug_charge_planete_verbose","f")=="t"
+    general.DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION = general.configuration.getConfiguration("debug", "ai", "debug_ai_graphe_deplacement_construction","f")=="t"
+    general.DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE = general.configuration.getConfiguration("debug", "ai", "debug_ai_graphe_deplacement_promenade","f")=="t"
     
     if base.camLens != None:
       general.gui = Interface(self)
@@ -63,11 +63,11 @@ class Start:
           pass
       general.gui = DUMMY()
     
-    if general.configuration.getConfiguration("debug", "panda", "DEBUG_PANDA_VIA_PSTATS","0")=="1":
+    if general.configuration.getConfiguration("debug", "panda", "DEBUG_PANDA_VIA_PSTATS","f")=="t":
       #Profile du code via PStat
       PStatClient.connect()
 
-    if general.configuration.getConfiguration("affichage", "general", "afficheFPS","0")=="1":
+    if general.configuration.getConfiguration("affichage", "general", "afficheFPS","f")=="t":
       base.setFrameRateMeter(True)
     #Place une sphère à la place de la planète pendant la construction
     self.tmp = Planete()

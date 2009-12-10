@@ -235,7 +235,7 @@ class AI:
     print "TODO AI::Charge comportement type", type
     
   def ping(self, temps):
-    self.comportement.ping()
+    self.comportement.ping(temps)
     acceleration = self.comportement.steeringForce / self.sprite.masse;
     self.sprite.inertieSteering = acceleration
     self.sprite.direction = general.normaliseVecteur(self.comportement.steeringForce)
@@ -249,15 +249,122 @@ class AIComportementUnitaire:
   comportement = None
   priorite = None
   force = None
+  fini = True
   
-  def __init__(self, comportement):
+  def __init__(self, comportement, priorite):
     self.comportement = comportement
-    self.priorite = 0.5
+    self.priorite = priorite
     self.force = [0.0, 0.0, 0.0]
     
   def ping(self, temps):
-    self.comportement.comportements.remove(self)
+    self.supprime()
+    
+  def supprime(self):
     self.comportement = None
+    self.fini = True
+    
+class SuitChemin(AIComportementUnitaire):
+  chemin = None
+  courant = None
+  
+  def __init__(self, chemin, comportement, priorite):
+    SuitChemin.__init__(self, comportement, priorite)
+    self.chemin = chemin
+    
+  def ping(self, temps):
+    if self.chemin == None:
+      #On a pas de chemin à suivre
+      self.supprime()
+      return
+      
+    if len(self.chemin) < 1:
+      #On est arrivé au bout du chemin
+      self.supprime()
+      return
+      
+    if self.courant == None:
+      #Comme on a pas de cible au chemin pour le moment
+      #On prend le point suivant sur le chemin
+      cible = self.chemin.pop(0)
+      #On fait un nouveau comportement pour y aller
+      self.courant = VaVers(cible, self.comportement, priorite)
+      #On ajoute le comportement à l'IA
+      self.comportement.comportements.append(self.courant)
+    elif self.courant.fini:
+      #On a fini d'aller au point courant
+      self.courant = None
+    
+class VaVers(AIComportementUnitaire):
+  cible = None
+  fini = False
+  
+  def __init__(self, cible, comportement, priorite):
+    SuitChemin.__init__(self, comportement, priorite)
+    self.cible = cible
+    
+  def ping(self, temps):
+    if self.cible == None:
+      #on a nulle part où aller
+      self.supprime()
+      return
+    
+    position = self.comportement.ai.sprite.position
+    if general.distance(position, self.cible)<=self.comportement.ai.sprite.distanceProche:
+      #on est arrivé
+      self.cible=None
+      self.supprime()
+      return
+      
+    #on n'est pas encore arrivé
+    #vecteur -position-cible->
+    v = cible[0]-position[0], cible[1]-position[1], cible[2]-position[2]
+    #la force de steering ici est le vecteur vitesse selon ce vecteur
+    self.force = general.multiplieVecteur(general.normaliseVecteur(v), self.comportement.ai.sprite.vitesse*temps)
+    
+class Routine(AIComportementUnitaire):
+  elements = None
+  courant = None
+  
+  def __init__(self, comportement):
+    SuitChemin.__init__(self, comportement, 0.5)
+    self.elements = []
+    
+  def ajouteCheck(self, element, cyclique, priorite):
+    self.elements.append((element, cyclique, priorite))
+    
+  def ping(self, temps):
+    if self.elements == None:
+      #on a rien à faire
+      self.supprime()
+      return
+    if len(self.elements)<1:
+      #on a rien à faire
+      self.supprime()
+      return
+      
+    if courant==None:
+      #On fait rien en ce moment, on attrape un nouvelle tache
+      tache, cyclique, priorite = self.elements.pop(0)
+      self.priorite = priorite
+      #Si la tache est cyclique, on la remet à la fin de la liste
+      if cyclique:
+        self.ajouteCheck(tache, cyclique, priorite)
+      #On en fait un nouveau comportement
+      courant=self.produitTache(tache, priorite)
+      #On ajoute le comportement à l'IA
+      self.comportement.comportements.append(self.courant)
+    elif courant.fini:
+      #On a fini la tâche courante
+      self.courant = None
+      
+  def produitTache(self, tache, priorite):
+    print "TODO IA::produitTache", tache, priorite
+    return VaVers(self.comportement.ai.sprite.position, comportement, priorite)
+      
+  def supprime(self):
+    AIComportementUnitaire.supprime(self)
+    self.elements = None
+    self.courant = None
     
 class AIComportement:
   ai = None
@@ -282,7 +389,10 @@ class AIComportement:
       force = force[0]+comportement.force[0]*comportement.priorite, force[1]+comportement.force[1]*comportement.priorite, force[2]+comportement.force[2]*comportement.priorite
       facteurs+=comportement.priorite
       
-    delta = 1.0/facteurs
+    if facteurs!=0:
+      delta = 1.0/facteurs
+    else:
+      delta = 0.0
     force = force[0]*delta, force[1]*delta, force[2]*delta
     self.steeringForce = force
     
@@ -304,9 +414,6 @@ class AIComportement:
   def reconnaissance(self, rayonZone, rayonChangeDirection, priorite):
     self.comportements.append(Reconnaissance(self, rayonZone, rayonChangeDirection, priorite))
 
-  def cherche(self, cible, priorite):
-    self.comportements.append(Cherche(self, cible, priorite))
-    
   def routine(self, checklist, priorite):
     routine = None
     for comportement in self.comportements:

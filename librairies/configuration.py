@@ -54,13 +54,18 @@ class Configuration:
     
   def sauve(self, fichier):
     """Sauvegarde un fichier de configuration (ne garde pas les commentaires)"""
+    def versStr(valeur):
+      if isinstance(valeur, bool):
+        return str(valeur)[0]
+      return str(valeur)
+      
     fichier = open(fichier, "w")
     for section in self.configuration.keys():
       fichier.write("[["+str(section)+"]]\r\n")
       for soussection in self.configuration[section].keys():
         fichier.write(str(soussection)+":\r\n")
         for element in self.configuration[section][soussection].keys():
-          fichier.write(str(element)+" = "+str(self.configuration[section][soussection][element])+"\r\n")
+          fichier.write(str(element)+" = "+versStr(self.configuration[section][soussection][element])+"\r\n")
         fichier.write("\r\n")
     fichier.write("\r\n")
     
@@ -100,16 +105,16 @@ class Configuration:
     sprite["icone-actif"] = config(sprite, "icone-actif", str, "theme/icones/q-over.png")
     sprite["icone-inactif"] = config(sprite, "icone-inactif", str, "theme/icones/q.png")
     sprite["vie"] = config(sprite, "vie", float, 100.0)
-    sprite["nocturne"] = config(sprite, "nocturne", str, "0")=="1"
+    sprite["nocturne"] = config(sprite, "nocturne", str, "f")=="t"
     sprite["terminalvelocity"] = config(sprite, "terminalvelocity", float, 0.03)
     sprite["distanceProche"] = config(sprite, "distanceProche", float, 0.002)
     sprite["seuilToucheSol"] = config(sprite, "seuilToucheSol", float, 0.01)
     sprite["constanteGravitationelle"] = config(sprite, "constanteGravitationelle", float, 0.01)
     sprite["vitesse"] = config(sprite, "vitesse", float, 0.01)
     sprite["distancesymbole"] = config(sprite, "distancesymbole", float, 3.0)
-    sprite["bouge"] = config(sprite, "bouge", str, "1")=="1"
-    sprite["aquatique"] = config(sprite, "aquatique", str, "0")=="1"
-    sprite["constructible"] = config(sprite, "constructible", str, "0")=="1"
+    sprite["bouge"] = config(sprite, "bouge", str, "t")=="t"
+    sprite["aquatique"] = config(sprite, "aquatique", str, "f")=="t"
+    sprite["constructible"] = config(sprite, "constructible", str, "f")=="t"
     sprite["ai"] = config(sprite, "ai", str, "standard")
     sprite["seuilrecalculphysique"] = config(sprite, "seuilrecalculphysique", float, 2.0)
       

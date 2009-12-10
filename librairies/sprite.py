@@ -210,10 +210,10 @@ class Sprite:
       self.inertie = (0.0,0.0,0.0)
       
   def appliqueInertie(self, temps):
-    self.inertie = self.inertie[0] + self.inertieSteering[0], self.inertie[1] + self.inertieSteering[1], self.inertie[2] + self.inertieSteering[2]
-    self.inertieSteering = [0.0,0.0,0.0]
     if general.normeVecteur(self.inertie)>self.terminalVelocity:
       self.inertie = general.multiplieVecteur(general.normaliseVecteur(self.inertie), self.terminalVelocity)
+    self.inertie = self.inertie[0] + self.inertieSteering[0], self.inertie[1] + self.inertieSteering[1], self.inertie[2] + self.inertieSteering[2]
+    self.inertieSteering = [0.0,0.0,0.0]
     self.miseAJourPosition((self.position[0]+self.inertie[0]*temps, self.position[1]+self.inertie[1]*temps, self.position[2]+self.inertie[2]*temps))
 
     
