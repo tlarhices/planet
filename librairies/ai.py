@@ -245,6 +245,19 @@ class AI:
     self.comportement.clear()
     self.comportement = None
     
+class AIComportementUnitaire:
+  comportement = None
+  priorite = None
+  force = None
+  
+  def __init__(self, comportement):
+    self.comportement = comportement
+    self.priorite = 0.5
+    self.force = [0.0, 0.0, 0.0]
+    
+  def ping(self, temps):
+    pass
+    
 class AIComportement:
   ai = None
   leader = None
