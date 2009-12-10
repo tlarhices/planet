@@ -40,6 +40,7 @@ class Sprite:
   racine = None #Ce qui fait que le sprite garde la tête en haut
   
   inertie = None
+  inertieSteering = None
   terminalVelocity = None
   distanceProche = None
   
@@ -64,6 +65,7 @@ class Sprite:
     self.modele = None
     self.marcheVersTab = []
     self.inertie = [0.0,0.0,0.0]
+    self.inertieSteering = [0.0,0.0,0.0]
     self.rac = NodePath("racine-sprite")
     self.racine = NodePath("racine-sprite")
 

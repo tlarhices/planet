@@ -222,69 +222,152 @@ class AINavigation:
       return [fin]
        
   # Fin Recherche d'itinéraire -----------------------------------------
-
-#Basé sur http://www.red3d.com/cwr/steer/
-class ComportementAIUnitaire:
-  def __init__(self, personnage):
-    self.personnage = personnage
   
-class ComportementAIFuite(ComportementAIUnitaire):
-  #Définit les règles de quand un personnage abandonne ce qu'il fait pour fuir
-  def __init__(self, personnage):
-    ComportementAI.__init__(self, personnage)
-
-class ComportementAIManoeuvreDeGroupe(ComportementAIUnitaire):
-  #Définit les règles de quand un personnage se déplace au sein d'un groupe
-  #(suivit du chef, organisation spatiale, ...)
-  def __init__(self, personnage):
-    ComportementAI.__init__(self, personnage)
-
-class ComportementAIFileAttente(ComportementAIUnitaire):
-  #Définit les règles de quand un personnage doit attendre dans une file (toilettes occupées)
-  def __init__(self, personnage):
-    ComportementAI.__init__(self, personnage)
-    
-class ComportementAIReconnaissance(ComportementAIUnitaire):
-  #Définit les règles de quand un personnage se promène pour découvrir le coin
-  def __init__(self, personnage):
-    ComportementAI.__init__(self, personnage)
-    
-class ComportementAITraqueur(ComportementAIUnitaire):
-  #Définit les règles de quand un personnage poursuit quelque chose / quelqu'un
-  def __init__(self, personnage):
-    ComportementAI.__init__(self, personnage)
-    
-
-class ComportementAI:
-  #Le blob qui gère le comportement d'une IA
-  personnage = None
+class AI:
+  sprite = None
+  comportement = None
   
-  def __init__(self, personnage):
-    self.personnage = personnage
+  def __init__(self, sprite):
+    self.sprite = sprite
+    self.comportement = AIComportement(self)
+    
+  def choisitComportement(self, type):
+    print "AI::Charge comportement type"
     
   def ping(self, temps):
-    pass
+    self.comportement.ping()
+    acceleration = self.comportement.steeringForce / self.sprite.masse;
+    self.sprite.inertieSteering = acceleration
+    self.sprite.direction = general.normaliseVecteur(self.comportement.steeringForce)
     
-class ComportementAIRecolteur(ComportementAI):
-  #Un gars qui va choper des ressources et les ramène au bâtiment le plus proche
-  dernierRessource = None
-  dernierBatiment = None
+  def clear(self):
+    self.sprite = None
+    self.comportement.clear()
+    self.comportement = None
+    
+class AIComportement:
+  ai = None
+  leader = None
+  recrues = None
+  checklist = None
+  steeringForce = None
   
-  def __init__(self, personnage):
-    ComportementAI.__init__(self, personnage)
+  _vaVers = None
+  _fuit = None
+  _poursuit = None
+  _reconnaissance = None
+  _cherche = None
+  _routine = None
+  _suitChemin = None
+  
+  def __init__(self, AI):
+    self.ai = AI
+    self.recrues = []
+    self.checklist=[]
+    self.steeringForce = [0.0, 0.0, 0.0]
     
   def ping(self, temps):
-    pass
+    force = [0.0,0.0,0.0]
+    facteurs = 0.0
+    if self._vaVers != None:
+      composant = self._vaVers
+      composant.ping(temps)
+      force = force[0]+composant.force[0]*composant.priorite, force[1]+composant.force[1]*composant.priorite, force[2]+composant.force[2]*composant.priorite
+      facteurs+=composant.priorite
+    if self._fuit != None:
+      composant = self._fuit
+      composant.ping(temps)
+      force = force[0]+composant.force[0]*composant.priorite, force[1]+composant.force[1]*composant.priorite, force[2]+composant.force[2]*composant.priorite
+      facteurs+=composant.priorite
+    if self._poursuit != None:
+      composant = self._poursuit
+      composant.ping(temps)
+      force = force[0]+composant.force[0]*composant.priorite, force[1]+composant.force[1]*composant.priorite, force[2]+composant.force[2]*composant.priorite
+      facteurs+=composant.priorite
+    if self._reconnaissance != None:
+      composant = self._reconnaissance
+      composant.ping(temps)
+      force = force[0]+composant.force[0]*composant.priorite, force[1]+composant.force[1]*composant.priorite, force[2]+composant.force[2]*composant.priorite
+      facteurs+=composant.priorite
+    if self._cherche != None:
+      composant = self._cherche
+      composant.ping(temps)
+      force = force[0]+composant.force[0]*composant.priorite, force[1]+composant.force[1]*composant.priorite, force[2]+composant.force[2]*composant.priorite
+      facteurs+=composant.priorite
+    if self._routine != None:
+      composant = self._routine
+      composant.ping(temps)
+      force = force[0]+composant.force[0]*composant.priorite, force[1]+composant.force[1]*composant.priorite, force[2]+composant.force[2]*composant.priorite
+      facteurs+=composant.priorite
+    if self._suitChemin != None:
+      composant = self._suitChemin
+      composant.ping(temps)
+      force = force[0]+composant.force[0]*composant.priorite, force[1]+composant.force[1]*composant.priorite, force[2]+composant.force[2]*composant.priorite
+      facteurs+=composant.priorite
+      
+    delta = 1.0/facteurs
+    force = force[0]*delta, force[1]*delta, force[2]*delta
+    self.steeringForce = force
     
-  def rechercheRessource(self, typeRessource=[]):
-    pass
+  def clear(self):
+    self.ai = None
     
-  def rechercheBatiment(self, typeBatiment=[]):
-    pass
+  def suitChemin(self, chemin, priorite):
+    self._suitChemin = SuitChemin(self, chemin, priorite)
     
-  def recolte(self):
-    pass
-    
-  def ramene(self):
-    pass
+  def vaVers(self, cible, priorite):
+    self._vaVers = VaVers(self, cible, priorite)
 
+  def fuit(self, cible, distancePanique, distanceOK, priorite):
+    self._fuit = _fuit(self, cible, distancePanique, distanceOK, priorite)
+
+  def poursuit(self, cible, distanceMax, priorite):
+    self._poursuit = Poursuit(self, cible, distanceMax, priorite)
+
+  def reconnaissance(self, rayonZone, rayonChangeDirection, priorite):
+    self._reconnaissance = Reconnaissance(self, rayonZone, rayonChangeDirection, priorite)
+
+  def cherche(self, cible, priorite):
+    self._cherche = Cherche(self, cible, priorite)
+    
+  def routine(self, checklist, priorite):
+    if self._routine ==None:
+      self._routine = Routine(self)
+      
+    for element in checklist:
+      self._routine.ajouteCheck(element, priorite)
+    
+  def devientChef(self):
+    self.leader = self
+    
+  def recrute(self, ai):
+    if self.leader!=None and self.leader!=self:
+      self.leader.recrute(ai)
+    else:
+      elif self.leader==None:
+        self.devientChef()
+      ai.leader=self
+      ai.comportement.poursuit(self, -1, 0.75)
+      self.recrues.append(ai)
+      
+  def dissolution(self):
+    for ai in self.recrues:
+      ai.dissolution()
+      ai.comportement._poursuit = None
+    self.recrues = []
+    self.leader = None
+    
+  def clear(self):
+    self._vaVers = None
+    self._fuit = None
+    self._poursuit = None
+    self._reconnaissance = None
+    self._cherche = None
+    self._routine = None
+    self._suitChemin = None
+    if len(self.recrues)>1:
+      leader = self.recrues[0]
+      leader.dissolution()
+      for ai in self.recrues:
+        leader.recrute(ai)
+    self.dissolution()
