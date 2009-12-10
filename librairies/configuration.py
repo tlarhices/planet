@@ -95,7 +95,7 @@ class Configuration:
     def config(tab, clef, type, defaut):
       clef=clef.lower().strip()
       if not clef in tab.keys():
-        return defaut.lower().strip()
+        return defaut
       else:
         return type(tab[clef])
         
@@ -117,6 +117,7 @@ class Configuration:
     sprite["constructible"] = config(sprite, "constructible", str, "f")=="t"
     sprite["ai"] = config(sprite, "ai", str, "standard")
     sprite["seuilrecalculphysique"] = config(sprite, "seuilrecalculphysique", float, 2.0)
+    sprite["masse"] = config(sprite, "masse", float, 1.0)
       
     return sprite
     

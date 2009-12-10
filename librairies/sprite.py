@@ -52,6 +52,8 @@ class Sprite:
   ai = None
   pileTempsAppliqueGraviteObjetsFixes = None
   seuilRecalculPhysique = None
+  
+  masse = None
 
   
   def __init__(self, id, position, fichierDefinition, planete, joueur):
@@ -66,9 +68,6 @@ class Sprite:
     self.id = id
     self.miseAJourPosition(position)
     
-
-    definition = general.configuration.parseSprite(fichierDefinition)
-    
     self.modele = None
     self.marcheVersTab = []
     self.inertie = [0.0,0.0,0.0]
@@ -77,24 +76,27 @@ class Sprite:
     self.racine = NodePath("racine-sprite")
     self.pileTempsAppliqueGraviteObjetsFixes = 1000.0
 
-    self.fichierModele = definition["modele"]
-    self.fichierSymbole = definition["symbole"]
-    self.icone = definition["icone"]
-    self.vie=definition["vie"]
-    self.nocturne = definition["nocturne"]
-    self.terminalVelocity = definition["terminalvelocity"]
-    self.angleSolMax = general.configuration.getConfiguration("ai", "navigation", "angleSolMax", "70.0")
-    self.distanceProche = definition["distanceProche"]
-    self.seuilToucheSol = definition["seuilToucheSol"]
-    self.constanteGravitationelle = definition["constanteGravitationelle"]
-    self.vitesse = definition["vitesse"]
-    self.distanceSymbole = definition["distancesymbole"]
-    self.bouge = definition["bouge"]
-    self.aquatique = definition["aquatique"]
-    if definition["ai"] != "none" and self.bouge:
-      self.ai = AI(self)
-      self.ai.choisitComportement(definition["ai"])
-    self.seuilRecalculPhysique = definition["seuilrecalculphysique"]
+    if fichierDefinition!=None:
+      definition = general.configuration.parseSprite(fichierDefinition)
+      self.fichierModele = definition["modele"]
+      self.fichierSymbole = definition["symbole"]
+      self.icone = definition["icone"]
+      self.vie=definition["vie"]
+      self.nocturne = definition["nocturne"]
+      self.terminalVelocity = definition["terminalvelocity"]
+      self.angleSolMax = general.configuration.getConfiguration("ai", "navigation", "angleSolMax", "70.0")
+      self.distanceProche = definition["distanceProche"]
+      self.seuilToucheSol = definition["seuilToucheSol"]
+      self.constanteGravitationelle = definition["constanteGravitationelle"]
+      self.vitesse = definition["vitesse"]
+      self.distanceSymbole = definition["distancesymbole"]
+      self.bouge = definition["bouge"]
+      self.aquatique = definition["aquatique"]
+      if definition["ai"] != "none" and self.bouge:
+        self.ai = AI(self)
+        self.ai.choisitComportement(definition["ai"])
+      self.seuilRecalculPhysique = definition["seuilrecalculphysique"]
+      self.masse = definition["masse"]
     
   def pointeRacineSol(self):
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""
@@ -482,10 +484,11 @@ class Nuage(Sprite):
   densite = None
   
   def __init__(self, densite, taille, planete):
-    Sprite.__init__(self, id="nuage", position=(0.01,0.01,0.01), modele="none", symbole="none", icone="none", distanceSymbole=999999, vie=100, terminalVelocity=1000, distanceProche=1000, seuilToucheSol=1000, constanteGravitationelle=1000, nocturne=True, vitesse=1000, planete=planete, joueur=None)
+    Sprite.__init__(self, id="nuage", position=(0.01,0.01,0.01), fichierDefinition=None, planete=planete, joueur=None)
     self.densite = densite
     self.taille = taille
     self.planete = planete
+    self.vie=100
     
   def tue(self, type):
     """Un nuage ne peut pas mourrir"""
@@ -500,7 +503,7 @@ class Nuage(Sprite):
     self.deplace(temps)
     #self.blip()
     if self.vie<=0:
-      return False
+      return True
     return True
     
   def blip(self):
@@ -512,12 +515,12 @@ class Nuage(Sprite):
     if self.racine == None or self.modele==None:
       return
     #Modele est centré sur la planète, donc les rotations le promènent un peu tout autour
-    f = random.random()*2.0
+    f = random.random()*3 -1.0
     self.modele.setH(self.modele.getH()+random.random()*temps*f)
     self.modele.setP(self.modele.getP()+random.random()*temps*f)
     self.modele.setR(self.modele.getR()+random.random()*temps*f)
     #Faire tourner la racine change le profile du nuage présenté à la caméra et donc sa forme pour donner l'impression qu'il évolue
-    f=1
+    f=2.5
     self.racine.setH(self.racine.getH()+random.random()*temps*f)
     self.racine.setP(self.racine.getP()+random.random()*temps*f)
     self.racine.setR(self.racine.getR()+random.random()*temps*f)

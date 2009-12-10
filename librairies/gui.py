@@ -329,7 +329,9 @@ class MiniMap(Pane):
   
   fond = None
   fondFlou = None
-  
+  soleil = None
+  soleilFlou = None
+
   def __init__(self, gui):
     Pane.__init__(self)
     self.gui = gui
@@ -353,11 +355,26 @@ class MiniMap(Pane):
     self.fond.fillVal(0, 0, 0)
     self.fondFlou = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
     self.fondFlou.fillVal(0, 0, 0)
-        
+    self.soleilFlou = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
+    self.soleilFlou.fillVal(255, 255, 255)
+    self.soleil = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
+    self.soleil.fillVal(255, 255, 255)
+    
     taskMgr.add(self.ping, "Boucle minimap")
+    
+  def onClick(self):
+    self.gui.io.placeCameraAuDessusDe(self.carteVersPoint3D(self.souris))
+    
+  souris = [-1,-1]
+  def mouseEvent(self,event,x,y):
+    self.souris=[x,y]
+    Pane.mouseEvent(self, event, x, y)
     
   def ajoutePoint(self, point, icone):
     """Ajout un point2D à la carte, retourne un indice servant à l'effacer plus tard"""
+    if point==None:
+      print "Point sur un pôle, coordonnées non calculables..."
+      return None
     if len(point)!=2:
       print "La mini carte n'accepte que des points en 2D !"
       return None
@@ -372,7 +389,7 @@ class MiniMap(Pane):
     self.points[len(self.points)+1]=(point, icone)
     return len(self.points)
     
-  def dessineCarte(self, p1, p2, p3, c1, c2, c3):
+  def dessineCarte(self, p1, p2, p3, c1, c2, c3, estSoleil=False):
     if general.normeVecteur(p1)<=self.gui.start.planete.niveauEau:
       c1=(0.0,0.0,1.0)
     if general.normeVecteur(p2)<=self.gui.start.planete.niveauEau:
@@ -382,6 +399,8 @@ class MiniMap(Pane):
     p1 = self.point3DVersCarte(p1)
     p2 = self.point3DVersCarte(p2)
     p3 = self.point3DVersCarte(p3)
+    if p1==None or p2==None or p3==None:
+      return
     minx = min(p1[0], p2[0], p3[0])
     maxx = max(p1[0], p2[0], p3[0])
     miny = min(p1[1], p2[1], p3[1])
@@ -409,9 +428,15 @@ class MiniMap(Pane):
         d2=1-d2/fact
         d3=1-d3/fact
         couleur=c1[0]*d1+c2[0]*d2+c3[0]*d3, c1[1]*d1+c2[1]*d2+c3[1]*d3, c1[2]*d1+c2[2]*d2+c3[2]*d3
-        self.fondFlou.setXel(x, y, couleur[0], couleur[1], couleur[2])
+        if not estSoleil:
+          self.fondFlou.setXel(x, y, couleur[0], couleur[1], couleur[2])
+        else:
+          self.soleilFlou.setXel(x, y, couleur[0], couleur[1], couleur[2])
         if estDansTriangle((x,y),p1,p2,p3):
-          self.fond.setXel(x, y, couleur[0], couleur[1], couleur[2])
+          if not estSoleil:
+            self.fond.setXel(x, y, couleur[0], couleur[1], couleur[2])
+          else:
+            self.soleil.setXel(x, y, couleur[0], couleur[1], couleur[2])
           self.carteARedessiner = True
     
   def ajoutePoint3D(self, point, icone):
@@ -421,7 +446,12 @@ class MiniMap(Pane):
   def point3DVersCarte(self, point):
     x,y,z = general.normaliseVecteur(point)
     lon = math.acos(z)
-    if y>=0:
+    
+    x,y,p = general.normaliseVecteur((x,y,0.0))
+    
+    if x==0.0 and y==0.0:
+      lat=0.0
+    elif y>=0:
       if x==0:
         lat=math.acos(0.0)
       else:
@@ -429,9 +459,25 @@ class MiniMap(Pane):
     else:
       lat=2 * math.pi - math.acos(x/math.sqrt(x*x+y*y))
     lat=lat*float(self.tailleMiniMap)/(2*math.pi)
+    
     z=(-z*self.tailleMiniMap/2+self.tailleMiniMap/2)
     return int(lat+0.5), int(z+0.5)
     
+  def carteVersPoint3D(self, point):
+    if point==None:
+      return None
+      
+    lat, z = point
+    z=-(float(z)-float(self.tailleMiniMap)/2)/(float(self.tailleMiniMap)/2)
+    
+    lat = float(lat)*(2*math.pi)/float(self.tailleMiniMap)
+    x=math.cos(lat)
+    y=math.sin(lat)
+    if z==1.0 or z==-1.0:
+      x=0.0
+      y=0.0
+    return (x, y, z)
+  
   def enlevePoint(self, id):
     """
     Supprime un point de la carte
@@ -461,15 +507,33 @@ class MiniMap(Pane):
     if self.derniereMAJ==None or task.time-self.derniereMAJ>10.0:
       if self.carteARedessiner:
         fond = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
+        soleil = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
         for x in range(0, self.tailleMiniMap):
           for y in range(0, self.tailleMiniMap):
             px = self.fond.getXel(x,y)
+            spx = self.soleil.getXel(x,y)
             if px[0]==0.0 and px[1]==0.0 and px[2]==0.0:
               fond.setXel(x,y, self.fondFlou.getXel(x,y))
             else:
               fond.setXel(x,y, px)
-        fond.gaussianFilter(2.0)
+            if spx[0]==1.0 and spx[1]==1.0 and spx[2]==1.0:
+              soleil.setXel(x,y, self.soleilFlou.getXel(x,y))
+            else:
+              soleil.setXel(x,y, spx)
+        #fond.gaussianFilter(2.0)
         fond.write(Filename("./carte.png"))
+        #soleil.gaussianFilter(2.0)
+        soleil.write(Filename("./soleil.png"))
+        fusion = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
+        for x in range(0, self.tailleMiniMap):
+          for y in range(0, self.tailleMiniMap):
+            px = fond.getXel(x,y)
+            spx = soleil.getXel(x,y)
+            if spx[0]==1.0 and spx[1]==1.0 and spx[2]==1.0:
+              fusion.setXel(x, y, px[0], px[1], px[2])
+            else:
+              fusion.setXel(x, y, px[0]/4.0, px[1]/4.0, px[2]/4.0)
+        fusion.write(Filename("./fusion.png"))
         self.carteARedessiner = False
       self.derniereMAJ=task.time
       
@@ -479,6 +543,7 @@ class MiniMap(Pane):
       if id not in self.blips.keys():
         #Ce point n'a pas de représentation sur la carte, on en fabrique un nouveau
         self.blips[id] = self.add(Icon(self.points[id][1],x=self.points[id][0][0], y=self.points[id][0][1]))
+        self.blips[id].onClick = self.onClick
     return task.cont
             
 class ListeUnite(MenuCirculaire):

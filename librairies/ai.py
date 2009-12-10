@@ -236,7 +236,7 @@ class AI:
     
   def ping(self, temps):
     self.comportement.ping(temps)
-    acceleration = self.comportement.steeringForce / self.sprite.masse;
+    acceleration = self.comportement.steeringForce[0] / self.sprite.masse, self.comportement.steeringForce[1] / self.sprite.masse, self.comportement.steeringForce[2] / self.sprite.masse
     self.sprite.inertieSteering = acceleration
     self.sprite.direction = general.normaliseVecteur(self.comportement.steeringForce)
     

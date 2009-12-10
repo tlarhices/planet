@@ -65,7 +65,6 @@ class Joueur:
       print "Sprite inconnu",type, "->", fichier
     id = "["+self.nom+"]"+id+"-"+str(len(self.sprites)+1)
     sprite = Sprite(id=id, position=position, fichierDefinition=fichier, planete=self.planetePrincipale, joueur=self)
-
     self.planetePrincipale.sprites.append(sprite)
     self.sprites.append(sprite)
     
