@@ -791,9 +791,7 @@ class MenuConfiguration(MenuCirculaire):
               btn.downStyle = "button_down"
               for element in general.configuration.configuration[section][soussection].keys():
                 valeur = general.configuration.getConfiguration(section, soussection, element,"Erreur 164")
-                print valeur, "t", "f",
                 if valeur=="t" or valeur=="f":
-                  print "bool"
                   btnD = self.ajouteDroite(PictureCheck("theme/icones/checkmark.png","theme/icones/blank.png",element.capitalize()+" : "+valeur, width=LARGEUR_BOUTON))
                   if valeur=="t":
                     btnD.value = True
