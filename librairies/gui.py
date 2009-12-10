@@ -489,12 +489,15 @@ class ListeUnite(MenuCirculaire):
     self.angleOuverture = 80.0
     self.besoinRetour = False
     
-    liste=general.configuration.getConfigurationSprite()
-    for elem in liste:
-      check = self.ajouteGauche(PictureRadio(elem[3], elem[4], elem[0].capitalize(), width=LARGEUR_BOUTON))
-      check.alpha = 0.5
-      check.style = "DEFAULT"
-      check.callback = self.clic
+    tmp=os.listdir(os.path.join(".","data","sprites"))
+    for elem in tmp:
+      if elem.endswith(".spr"):
+        sprite = general.configuration.parseSprite(os.path.join(".","data","sprites", elem))
+        if sprite["constructible"]:
+          check = self.ajouteGauche(PictureRadio(sprite["icone-actif"], sprite["icone-inactif"], sprite["nom"].capitalize(), width=LARGEUR_BOUTON))
+          check.alpha = 0.5
+          check.style = "DEFAULT"
+          check.callback = self.clic
     self.fabrique()
             
   def anime(self, temps):
@@ -756,49 +759,49 @@ class MenuConfiguration(MenuCirculaire):
   
   def __init__(self, gui):
     MenuCirculaire.__init__(self, gui)
-    self.changeMenu(u"affichage")
+    self.changeMenu("")
     
   def changeMenu(self, select):
     self.select = select.lower()
     self.directionAnimation = -1.0
     self.clear()
     
-    btn = self.ajouteGauche(PictureRadio("theme/icones/gear-over.png", "theme/icones/gear.png", u"Affichage", width=LARGEUR_BOUTON))
-    btn.callback = self.clic
-    if self.select == u"affichage":
-      btn.style = "CHECKON"
-      btn.value = True
-      
-      btnD = self.ajouteDroite(Label(u"Résolution : "+general.configuration.getConfiguration("affichage-general", "resolution","640 480"), width=LARGEUR_BOUTON))
-      btnD = self.ajouteDroite(Check(u"Bloom", width=LARGEUR_BOUTON))
-      if general.configuration.getConfiguration("affichage-effets", "utiliseBloom","0")=="1":
-        btnD.style = "CHECKON"
-        btnD.value = True
-    btn = self.ajouteGauche(PictureRadio("theme/icones/move-over.png", "theme/icones/move.png", u"Contrôles", width=LARGEUR_BOUTON))
-    btn.callback = self.clic
-    if self.select == u"contrôles":
-      btn.style = "CHECKON"
-      btn.value = True
-      touches = general.configuration.getConfigurationClavier()
-      for element in touches.keys():
-        btnD = self.ajouteDroite(Label(touches[element]+u" : "+element))
-    btn = self.ajouteGauche(PictureRadio("theme/icones/radio-off-over.png", "theme/icones/radio-off.png", u"Planètes", width=LARGEUR_BOUTON))
-    btn.callback = self.clic
-    if self.select == u"planètes":
-      btn.style = "CHECKON"
-      btn.value = True
-    btn = self.ajouteGauche(PictureRadio("theme/icones/target-over.png", "theme/icones/target.png", u"Debug", width=LARGEUR_BOUTON))
-    btn.callback = self.clic
-    if self.select == u"debug":
-      btn.style = "CHECKON"
-      btn.value = True
+    for section in general.configuration.configuration.keys():
+      aAfficher = general.configuration.getConfiguration(section, "gui", "dansGUI", "0")=="1"
+      if aAfficher:
+        iconeactif=general.configuration.getConfiguration(section, "gui", "icone-actif", "theme/icones/q-over.png")
+        iconeinactif=general.configuration.getConfiguration(section, "gui", "icone-inactif", "theme/icones/q.png")
+        nom=general.configuration.getConfiguration(section, "gui", "menu", section).capitalize()
+        btn = self.ajouteGauche(PictureRadio(iconeactif, iconeinactif, nom, width=LARGEUR_BOUTON))
+        btn.callback = self.clic
+        btn.style = "button"
+        btn.upStyle = "button"
+        btn.overStyle = "button_over"
+        btn.downStyle = "button_down"
+        if self.select.lower().strip() == nom.lower().strip():
+#          btn.style = "CHECKON"
+#          btn.value = True
+          
+          for soussection in general.configuration.configuration[section].keys():
+            if soussection!="gui":
+              btn = self.ajouteDroite(PictureRadio(iconeinactif, iconeinactif, soussection.capitalize(), width=LARGEUR_BOUTON))
+              btn.style = "button"
+              btn.upStyle = "button"
+              btn.overStyle = "button_over"
+              btn.downStyle = "button_down"
+              for element in general.configuration.configuration[section][soussection].keys():
+                btnD = self.ajouteDroite(Label(element.capitalize()+" : "+general.configuration.getConfiguration(section, soussection, element,"Erreur 164"), width=LARGEUR_BOUTON))
+                btnD.style = "button"
+                btnD.upStyle = "button"
+                btnD.overStyle = "button_over"
+                btnD.downStyle = "button_down"
     
     MenuCirculaire.fabrique(self)
     
   resolutions = ["160 120", "320 240", "640 480", "800 600", "1024 768"]
     
   def resolutionPlus(self):
-    res = general.configuration.getConfiguration("affichage-general", "resolution","640 480")
+    res = general.configuration.getConfiguration("affichage", "general", "resolution", "640 480")
     if res in self.resolutions:
       idx = self.resolutions.index(res)
       idx+=1
@@ -810,7 +813,7 @@ class MenuConfiguration(MenuCirculaire):
     self.clic("affichage", True)
     
   def resolutionMoins(self):
-    res = general.configuration.getConfiguration("affichage-general", "resolution","640 480")
+    res = general.configuration.getConfiguration("affichage", "general", "resolution", "640 480")
     if res in self.resolutions:
       idx = self.resolutions.index(res)
       idx-=1
@@ -818,7 +821,7 @@ class MenuConfiguration(MenuCirculaire):
         idx+= len(self.resolutions)
     else:
       idx=0
-    general.configuration.setConfiguration("affichage-general", "resolution", self.resolutions[idx])
+    general.configuration.setConfiguration("affichage", "general", "resolution", self.resolutions[idx])
     self.clic("affichage", True)
     
   def clic(self, bouton, etat):
@@ -828,6 +831,12 @@ class MenuConfiguration(MenuCirculaire):
     etat : si True alors le bouton est actif (ce devrait toujours être le cas de figure)
     """
     self.changeMenu(bouton)
+    
+  def anime(self, temps):
+    MenuCirculaire.anime(self, temps)
+    for composant, indice, cote in self.composants:
+      if cote==0:
+        composant.doPlacement({"x":composant.x-composant.width})
     
     
 class MenuVierge(MenuCirculaire):
@@ -927,10 +936,12 @@ class Interface:
     
   def quitter(self):
     """Quitte l'application"""
-    if not isinstance(self.menuCourant, EnJeu):
+    if isinstance(self.menuCourant, MenuPrincipal):
       sys.exit(0)
-    else:
+    elif isinstance(self.menuCourant, EnJeu):
       self.menuCourant.changeMenu()
+    else:
+      self.menuCourant.back()
     
   def ping(self, task):
     if self.menuCourant!=None:
@@ -948,7 +959,7 @@ class Interface:
   def nouvellePlanete(self):
     """Construit une nouvelle planète aléatoirement"""
     self.makeMain()
-    self.start.fabriquePlanete(os.path.join(".", "configuration", "planete.cfg"))
+    self.start.fabriquePlanete()
     self.start.start()
     
   def removeMain(self):

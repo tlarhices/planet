@@ -62,12 +62,12 @@ class Planete:
     self.sommetDansFace = {} #Pas de faces, donc pas d'association
     self.survol = None #Le curseur n'est au dessus de rien par défaut
     
-    self.distanceSoleil = float(general.configuration.getConfiguration("planete-Univers", "distanceSoleil","10.0"))
-    self.vitesseSoleil = float(general.configuration.getConfiguration("planete-Univers", "vitesseSoleil","1.0"))
+    self.distanceSoleil = float(general.configuration.getConfiguration("planete", "Univers", "distanceSoleil","10.0"))
+    self.vitesseSoleil = float(general.configuration.getConfiguration("planete", "Univers", "vitesseSoleil","1.0"))
     self.angleSoleil = 0.0
     
-    general.WIREFRAME = general.configuration.getConfiguration("affichage-general", "fildefer","0")=="1"
-    general.TEXTURES = general.configuration.getConfiguration("affichage-general", "utilise-textures","1")=="1"
+    general.WIREFRAME = general.configuration.getConfiguration("affichage", "general", "fildefer","0")=="1"
+    general.TEXTURES = general.configuration.getConfiguration("affichage", "general", "utilise-textures","1")=="1"
     
   def fabriqueVoisinage(self):
     """
@@ -406,7 +406,7 @@ class Planete:
     general.startChrono("Planete::fabriqueModel")
     
     #Création du cache de texture si nécessaire
-    if general.configuration.getConfiguration("affichage-general", "force-cache-texture","1")=="1":
+    if general.configuration.getConfiguration("affichage", "general", "force-cache-texture","1")=="1":
       element = Element("", 0, 0, 0, self, 0, None)
       totTex = len(element.texturesValides)*len(element.texturesValides)*len(element.texturesValides)
       cpt=0
@@ -479,11 +479,11 @@ class Planete:
     self.modeleCiel.reparentTo(self.racine)
     self.niveauCiel = 1.0+self.delta*1.25+0.0001
     
-    if general.configuration.getConfiguration("planete-nuages", "affiche-nuages","1")=="1":
+    if general.configuration.getConfiguration("planete", "nuages", "affiche-nuages", "1")=="1":
       nuages = NodePath("nuage")
-      densite = int(general.configuration.getConfiguration("planete-nuages", "densite","15"))
-      taille = float(general.configuration.getConfiguration("planete-nuages", "taille","0.15"))
-      quantite = int(general.configuration.getConfiguration("planete-nuages", "quantite","80"))
+      densite = int(general.configuration.getConfiguration("planete", "nuages", "densite", "15"))
+      taille = float(general.configuration.getConfiguration("planete", "nuages", "taille", "0.15"))
+      quantite = int(general.configuration.getConfiguration("planete", "nuages", "quantite", "80"))
       for i in range(0, quantite):
         a = Nuage(densite, taille, self)
         a.fabriqueModel().reparentTo(nuages)
@@ -504,7 +504,7 @@ class Planete:
     self.azure.setDepthWrite(False)
 
     #Fabrique une lumière ambiante pour que la nuit soit moins noire
-    if general.configuration.getConfiguration("affichage-Effets", "typeEclairage","shader")!="none":
+    if general.configuration.getConfiguration("affichage", "Effets", "typeEclairage","shader")!="none":
       alight = AmbientLight('alight')
       alight.setColor(VBase4(0.2, 0.2, 0.275, 1))
       alnp = self.racine.attachNewNode(alight)
@@ -726,7 +726,7 @@ class Planete:
   # Mise à jour --------------------------------------------------------
   def fabriqueSoleil(self, type=None):
     if type==None:
-      type = general.configuration.getConfiguration("affichage-effets", "typeEclairage","shader")
+      type = general.configuration.getConfiguration("affichage", "effets", "typeEclairage", "shader")
     type=type.lower().strip()
       
     if type=="flat":
@@ -839,28 +839,12 @@ class Planete:
     position : sa position sur le terrain
     type : le type de sprite à créer
     """
-    modele=general.configuration.getConfiguration("sprites-"+type.strip().lower(), "modele",None)
-    symbole=general.configuration.getConfiguration("sprites-"+type.strip().lower(), "symbole",None)
-    icone=general.configuration.getConfiguration("sprites-"+type.strip().lower(), "icone-inactif",None)
-    vie=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "vie","100.0"))
-    distanceSymbole=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "distanceSymbole","3.0"))
-    terminalVelocity=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "terminalVelocity","0.03"))
-    distanceProche=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "distanceProche","0.002"))
-    seuilToucheSol=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "seuilToucheSol","0.01"))
-    constanteGravitationelle=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "constanteGravitationelle","0.01"))
-    vitesse=float(general.configuration.getConfiguration("sprites-"+type.strip().lower(), "vitesse","0.01"))
-    nocturne=general.configuration.getConfiguration("sprites-"+type.strip().lower(), "nocturne","0")=="1"
-    
-    if modele==None or symbole==None:
-      print "Planete::ajouteSprite - type inconnu", type
-      raw_input()
-      return
-    
+    fichier = os.path.join(".","data","sprites",type+".spr")
+    if not os.path.exists(fichier):
+      print "Sprite inconnu",type, "->", fichier
     id = "[neutre]"+id+"-"+str(len(self.sprites)+1)
-    sprite = Sprite(id=id, position=position, modele=modele, symbole=symbole, icone=icone, distanceSymbole=distanceSymbole, vie=vie, terminalVelocity=terminalVelocity, distanceProche=distanceProche, seuilToucheSol=seuilToucheSol, constanteGravitationelle=constanteGravitationelle, nocturne=nocturne, vitesse=vitesse, planete=self, joueur=None)
+    sprite = Sprite(id=id, position=position, fichierDefinition=fichier, planete=self, joueur=None)
     self.sprites.append(sprite)
-    sprite.fabriqueModel()
-    sprite.bouge = False
 
   def ping(self, temps):
     general.startChrono("Planete::ping")
@@ -901,7 +885,7 @@ class Planete:
       self.azure.lookAt(self.soleil)
 
     #Regarde s'il faut optimiser le modèle 3D, passe au minimum (apr défaut) 3 secondes après la dernière modification du modèle
-    dureeOptimise = float(general.configuration.getConfiguration("Planete-MAJ","duree-optimisation",3.0))
+    dureeOptimise = float(general.configuration.getConfiguration("Planete", "MAJ", "duree-optimisation", 3.0))
     for element in self.elements:
       if element.besoinOptimise:
         element.pileOptimise+=temps

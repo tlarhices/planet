@@ -47,7 +47,7 @@ class Sprite:
   
   blipid = None #L'id du blip sur la carte
   
-  def __init__(self, id, position, modele, symbole, icone, distanceSymbole, vie, terminalVelocity, distanceProche, seuilToucheSol, constanteGravitationelle, nocturne, vitesse, planete, joueur):
+  def __init__(self, id, position, fichierDefinition, planete, joueur):
     """
     Fabrique un nouvel objet
     position : là où l'objet se trouve
@@ -56,28 +56,31 @@ class Sprite:
     """
     self.planete = planete
     self.joueur = joueur
-    self.modele = None
-    self.fichierModele = modele
-    self.fichierSymbole = symbole
-    self.icone = icone
-    self.marcheVersTab = []
-    self.bouge = True
-    self.aquatique = False
     self.id = id
-    self.vie=vie
-    self.nocturne = nocturne
+    self.miseAJourPosition(position)
+
+    definition = general.configuration.parseSprite(fichierDefinition)
+    
+    self.modele = None
+    self.marcheVersTab = []
+    self.inertie = [0.0,0.0,0.0]
     self.rac = NodePath("racine-sprite")
     self.racine = NodePath("racine-sprite")
-    #self.miseAJourPosition(general.multiplieVecteur(position, 2.0))
-    self.miseAJourPosition(position)
-    self.inertie = [0.0,0.0,0.0]
-    self.terminalVelocity = terminalVelocity
-    self.angleSolMax = float(general.configuration.getConfiguration("sprites-navigation", "angleSolMax","70.0"))
-    self.distanceProche = distanceProche
-    self.seuilToucheSol = seuilToucheSol
-    self.constanteGravitationelle = constanteGravitationelle
-    self.vitesse = vitesse
-    self.distanceSymbole = distanceSymbole
+
+    self.fichierModele = definition["modele"]
+    self.fichierSymbole = definition["symbole"]
+    self.icone = definition["icone"]
+    self.vie=definition["vie"]
+    self.nocturne = definition["nocturne"]
+    self.terminalVelocity = definition["terminalvelocity"]
+    self.angleSolMax = general.configuration.getConfiguration("ai", "navigation", "angleSolMax", "70.0")
+    self.distanceProche = definition["distanceProche"]
+    self.seuilToucheSol = definition["seuilToucheSol"]
+    self.constanteGravitationelle = definition["constanteGravitationelle"]
+    self.vitesse = definition["vitesse"]
+    self.distanceSymbole = definition["distancesymbole"]
+    self.bouge = definition["bouge"]
+    self.aquatique = definition["aquatique"]
     
   def pointeRacineSol(self):
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""
@@ -101,6 +104,12 @@ class Sprite:
     Appelé à chaque image, met à jour l'état de l'objet
     temps : le nombre de secondes depuis la dernière mise à jour
     """
+    
+    if self.modele==None:
+      self.fabriqueModel()
+      if self.modele==None:
+        self.tue("Impossible de charger le modele")
+    
     if self.vie<=0:
       return False
       
@@ -272,7 +281,7 @@ class Sprite:
       
     self.modele = NodePath(FadeLODNode('lod'))
     
-    if self.fichierModele == None:
+    if self.fichierModele == None or self.fichierModele=="none":
       self.modele = None
       return
     if self.fichierModele.endswith(".png"):

@@ -112,7 +112,7 @@ class Element:
     
   def textureMixer(self, t1, t2, t3):
     """Mixe les textures t1, t2 et t3"""
-    tailleTexture = int(general.configuration.getConfiguration("affichage-general", "taille-texture","256"))
+    tailleTexture = int(general.configuration.getConfiguration("affichage", "general", "taille-texture","256"))
     if t1 not in self.texturesValides:
       print "Avertissement :: Texture non validee :",t1
     if t2 not in self.texturesValides:
@@ -123,7 +123,7 @@ class Element:
     clef = t1+"-"+t2+"-"+t3
     if clef in self.textures.keys():
       return self.textures[clef]
-    if general.configuration.getConfiguration("affichage-general", "cache-texture","1")=="1":
+    if general.configuration.getConfiguration("affichage", "general", "cache-texture","1")=="1":
       if clef+".png" in os.listdir(os.path.join(".","data","cache")):
         texture = loader.loadTexture("data/cache/"+clef+".png")
         self.textures[clef] = texture
@@ -168,7 +168,7 @@ class Element:
         imageFinale.setXel(x, y, c)
         
     #On garde la texture en mémoire pour de futures utilisations
-    if general.configuration.getConfiguration("affichage-general", "cache-texture","1")=="1":
+    if general.configuration.getConfiguration("affichage", "general", "cache-texture","1")=="1":
       imageFinale.write(Filename("data/cache/"+clef+".png")); 
     texture = Texture("imageFinale")
     texture.load(imageFinale)
@@ -401,7 +401,7 @@ class Element:
     #On applique la texture
     tex = self.textureMixer(t1, t2, t3)
     nd.setTexture(tex)
-    if general.configuration.getConfiguration("affichage-effets", "normalmapping","0")=="1":
+    if general.configuration.getConfiguration("affichage", "effets", "normalmapping", "0")=="1":
       ts = TextureStage('ts')
       ts.setMode(TextureStage.MNormal)
       nd.setTexture(ts, tex)

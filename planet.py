@@ -45,11 +45,11 @@ class Start:
     #render.setShaderAuto()
     
     #Configuration de DEBUG
-    general.DEBUG_GENERE_PLANETE = general.configuration.getConfiguration("general", "debug_genere_planete","0")=="1"
-    general.DEBUG_CHARGE_PLANETE = general.configuration.getConfiguration("general", "debug_charge_planete","0")=="1"
-    general.DEBUG_CHARGE_PLANETE_VERBOSE = general.configuration.getConfiguration("general", "debug_charge_planete_verbose","0")=="1"
-    general.DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION = general.configuration.getConfiguration("general", "debug_ai_graphe_deplacement_construction","0")=="1"
-    general.DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE = general.configuration.getConfiguration("general", "debug_ai_graphe_deplacement_promenade","0")=="1"
+    general.DEBUG_GENERE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_genere_planete","0")=="1"
+    general.DEBUG_CHARGE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_charge_planete","0")=="1"
+    general.DEBUG_CHARGE_PLANETE_VERBOSE = general.configuration.getConfiguration("debug", "planete", "debug_charge_planete_verbose","0")=="1"
+    general.DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION = general.configuration.getConfiguration("debug", "ai", "debug_ai_graphe_deplacement_construction","0")=="1"
+    general.DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE = general.configuration.getConfiguration("debug", "ai", "debug_ai_graphe_deplacement_promenade","0")=="1"
     
     if base.camLens != None:
       general.gui = Interface(self)
@@ -63,11 +63,11 @@ class Start:
           pass
       general.gui = DUMMY()
     
-    if general.configuration.getConfiguration("general", "DEBUG_PANDA_VIA_PSTATS","0")=="1":
+    if general.configuration.getConfiguration("debug", "panda", "DEBUG_PANDA_VIA_PSTATS","0")=="1":
       #Profile du code via PStat
       PStatClient.connect()
 
-    if general.configuration.getConfiguration("affichage-general", "afficheFPS","0")=="1":
+    if general.configuration.getConfiguration("affichage", "general", "afficheFPS","0")=="1":
       base.setFrameRateMeter(True)
     #Place une sphère à la place de la planète pendant la construction
     self.tmp = Planete()
@@ -131,14 +131,13 @@ class Start:
   ### Fin initialisation -----------------------------------------------
       
   ### Gestion de la planète --------------------------------------------
-  def fabriquePlanete(self, fichierPlanete):
+  def fabriquePlanete(self):
     """Construit une nouvelle planète via les gentils algos"""
     self.detruit()
     self.planete = Planete()
     general.configuration.effacePlanete()
-    general.configuration.charge(fichierPlanete)
-    tesselation = int(general.configuration.getConfiguration("generation", "tesselation", "4"))
-    delta = float(general.configuration.getConfiguration("generation", "delta", "0.2"))
+    tesselation = int(general.configuration.getConfiguration("planete", "generation", "tesselation", "4"))
+    delta = float(general.configuration.getConfiguration("planete", "generation", "delta", "0.2"))
     self.planete.fabriqueNouvellePlanete(tesselation=tesselation, delta=delta)
     #self.camera.reparentTo(self.planete.racine)
     
@@ -263,11 +262,10 @@ if __name__=="__main__":
       
 
   general.configuration = Configuration()
-  general.configuration.charge(os.path.join(".","configuration","affichage.cfg"))
-  general.configuration.charge(os.path.join(".","configuration","commandes.cfg"))
-  general.configuration.charge(os.path.join(".","configuration","debug.cfg"))
-  general.configuration.charge(os.path.join(".","configuration","planete.cfg"))
-  general.configuration.charge(os.path.join(".","configuration","sprites.cfg"))
+  #Charge la configuration par défaut
+  general.configuration.charge(os.path.join(".","configuration","defaut.cfg"))
+  #Si on a une configuration utilisateur, on écrase celle par défaut
+  general.configuration.charge(os.path.join(".","configuration","utilisateur.cfg"), erreurSiExistePas=False)
 
   from pandac.PandaModules import *
 
@@ -276,7 +274,7 @@ if __name__=="__main__":
   loadPrcFileData("","model-cache-dir ./data/cache/")
   #loadPrcFileData("","hardware-point-sprites 0")
   #Change la résolution de la fenêtre
-  resolution = general.configuration.getConfiguration("affichage-general", "resolution","640 480")
+  resolution = general.configuration.getConfiguration("affichage","general", "resolution","640 480")
   if resolution == "0 0":
     print "Avertissement :: resolution de 0, démarrage sans fenêtre"
     loadPrcFileData("",u"window-type none")

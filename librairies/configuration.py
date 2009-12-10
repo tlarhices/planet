@@ -18,14 +18,15 @@ class Configuration:
   def __init__(self):
     self.configuration = {}
     
-  def charge(self, fichier):
+  def charge(self, fichier, erreurSiExistePas=True):
     """Charge un fichier de configuration"""
     section = None
-    prefixe = fichier.split("/")[-1].split("\\")[-1][:-4]
+    soussection = None
     
     if not os.path.exists(fichier):
-      print "CONFIGURATION :: ERREUR :"
-      raw_input("Le fichier de configuration '"+fichier+"' n'existe pas.")
+      if erreurSiExistePas:
+        print "CONFIGURATION :: ERREUR :"
+        raw_input("Le fichier de configuration '"+fichier+"' n'existe pas.")
       return
     
     self.fichierConfig = fichier
@@ -33,8 +34,11 @@ class Configuration:
     for ligne in fichier:
       ligne = ligne.strip().lower() #On passe tout en minuscule
       if len(ligne)>0 and ligne[0]!="#": #On saut les lignes vides ou commençant par #
-        if ligne[-1] == ":": #Si la ligne se finit par : alors c'est une section
-          section = ligne[:-1].strip()
+        if ligne.startswith("[[") and ligne.endswith("]]"): #Si la ligne est de la forme [[****]] alors c'est une section
+          section = ligne[2:-2].strip()
+          soussection = None
+        elif ligne.endswith(":"): #Si la ligne se finit par : alors c'est une soussection
+          soussection = ligne[:-1].strip()
         else: #Si la ligne ne se termine pas par : alors ce sont des infos
           if section == None:
             print "Configuration hors catégorie : ",ligne
@@ -42,89 +46,115 @@ class Configuration:
             a,b = ligne.split("=")
             a = a.strip()
             b = b.strip()
-            if not prefixe+"-"+section in self.configuration.keys():
-              self.configuration[prefixe+"-"+section]={}
-            self.configuration[prefixe+"-"+section][a]=b
+            if not section in self.configuration.keys():
+              self.configuration[section]={}
+            if not soussection in self.configuration[section].keys():
+              self.configuration[section][soussection]={}
+            self.configuration[section][soussection][a]=b
     
   def sauve(self, fichier):
     """Sauvegarde un fichier de configuration (ne garde pas les commentaires)"""
     fichier = open(fichier, "w")
     for section in self.configuration.keys():
-      fichier.write(str(section)+":\r\n")
-      for element in self.configuration[section].keys():
-        fichier.write(str(element)+" = "+str(self.configuration[section][element])+"\r\n")
+      fichier.write("[["+str(section)+"]]\r\n")
+      for soussection in self.configuration[section].keys():
+        fichier.write(str(soussection)+":\r\n")
+        for element in self.configuration[section][soussection].keys():
+          fichier.write(str(element)+" = "+str(self.configuration[section][soussection][element])+"\r\n")
+        fichier.write("\r\n")
     fichier.write("\r\n")
     
   def getConfigurationClavier(self):
     """Retourne la configuration du clavier"""
     out = {}
-    for clef in self.configuration["commandes-clavier"]:
-      out[clef]=self.configuration["commandes-clavier"][clef]
-    for clef in self.configuration["commandes-souris"]:
-      out[clef]=self.configuration["commandes-souris"][clef]
+    if "commandes" not in self.configuration.keys():
+      print "ERREUR:getConfigurationClavier :: pas de touches configurées"
+      return {}
+    for clef in self.configuration["commandes"]["clavier"]:
+      out[clef]=self.configuration["commandes"]["clavier"][clef]
+    for clef in self.configuration["commandes"]["souris"]:
+      out[clef]=self.configuration["commandes"]["souris"][clef]
     return out
     
-  def getConfigurationSprite(self):
-    """Retourne la configuration des sprites"""
-    liste=[]
-    noms = []
-    for section in self.configuration.keys():
-      if section.startswith("sprites-"):
-        if self.getConfiguration(section, "constructible", "0")=="1":
-          nom = self.getConfiguration(section, "nom", section[7:])
-          if nom not in noms:
-            noms.append(nom)
-          liste.append((nom,int(self.getConfiguration(section, "constr", "-1")),int(self.getConfiguration(section, "nourr", "-1")),self.getConfiguration(section, "icone-actif", "theme/icones/q-over.png"), self.getConfiguration(section, "icone-inactif", "theme/icones/q.png")))
-    noms.sort()
-    liste2 = []
-    for nom in noms:
-      for element in liste:
-        if element[0]==nom:
-          liste2.append(element)
-    return liste2
+  def parseSprite(self, fichier):
+    sprite={}
+    self.fichierConfig = fichier
+    fichier = open(fichier, "r")
+    for ligne in fichier:
+      ligne = ligne.strip().lower() #On passe tout en minuscule
+      a,b = ligne.split("=")
+      a = a.strip()
+      b = b.strip()
+      sprite[a]=b
+      
+    def config(tab, clef, type, defaut):
+      clef=clef.lower().strip()
+      if not clef in tab.keys():
+        return defaut.lower().strip()
+      else:
+        return type(tab[clef])
+        
+    sprite["modele"] = config(sprite, "modele", str, "none")
+    sprite["symbole"]  = config(sprite, "symbole", str, "none")
+    sprite["icone"] = config(sprite, "icone", str, "theme/icones/q.png")
+    sprite["icone-actif"] = config(sprite, "icone-actif", str, "theme/icones/q-over.png")
+    sprite["icone-inactif"] = config(sprite, "icone-inactif", str, "theme/icones/q.png")
+    sprite["vie"] = config(sprite, "vie", float, 100.0)
+    sprite["nocturne"] = config(sprite, "nocturne", str, "0")=="1"
+    sprite["terminalvelocity"] = config(sprite, "terminalvelocity", float, 0.03)
+    sprite["distanceProche"] = config(sprite, "distanceProche", float, 0.002)
+    sprite["seuilToucheSol"] = config(sprite, "seuilToucheSol", float, 0.01)
+    sprite["constanteGravitationelle"] = config(sprite, "constanteGravitationelle", float, 0.01)
+    sprite["vitesse"] = config(sprite, "vitesse", float, 0.01)
+    sprite["distancesymbole"] = config(sprite, "distancesymbole", float, 3.0)
+    sprite["bouge"] = config(sprite, "bouge", str, "1")=="1"
+    sprite["aquatique"] = config(sprite, "aquatique", str, "0")=="1"
+    sprite["constructible"] = config(sprite, "constructible", str, "0")=="1"
+      
+    return sprite
     
   def effacePlanete(self):
     return
     for clef in self.configuration.keys()[:]:
       del self.configuration[clef]
       
-  def setConfiguration(self, section, champ, valeur):
+  def setConfiguration(self, section, sousection, champ, valeur):
     section=str(section).lower()
     champ=str(champ).lower()
-    
-    sect = section
-    for sectionDico in self.configuration.keys():
-      if "-".join(sectionDico.split("-")[1:])==section:
-        sect=sectionDico
-    section = sect
     
     if not section in self.configuration.keys():
       self.configuration[section]={}
-    self.configuration[section][champ]=valeur
+    if not soussection in self.configuration[section].keys():
+      self.configuration[section][soussection]={}
+    self.configuration[section][soussection][champ]=valeur
     
     
-  def getConfiguration(self, section, champ, defaut):
+  def getConfiguration(self, section, soussection, champ, defaut):
     """Retourne une valeur de configuration"""
     section=str(section).lower()
+    soussection=str(soussection).lower()
     champ=str(champ).lower()
     
-    sect = section
-    for sectionDico in self.configuration.keys():
-      if "-".join(sectionDico.split("-")[1:])==section:
-        sect=sectionDico
-    section = sect
     if section not in self.configuration.keys():
       print self.configuration.keys()
-      print "Section pas dans le fichier de configuration ::",section
+      print "getConfiguration::section pas dans le fichier de configuration ::",section
       raw_input("pause_configuration")
       self.configuration[section]={}
-      self.configuration[section][champ]=defaut
+      self.configuration[section][soussection]={}
+      self.configuration[section][soussection][champ]=defaut
       return defaut
-    if champ not in self.configuration[section].keys():
-      print "Section::champ pas dans le fichier de configuration ::",section,champ
+    if soussection not in self.configuration[section].keys():
+      print self.configuration.keys()
+      print "getConfiguration::sous-section pas dans le fichier de configuration ::",section, soussection
       raw_input("pause_configuration")
-      self.configuration[section][champ]=defaut
+      self.configuration[section][soussection]={}
+      self.configuration[section][soussection][champ]=defaut
+      return defaut
+    if champ not in self.configuration[section][soussection].keys():
+      print "getConfiguration::champ pas dans le fichier de configuration ::",section, soussection, champ
+      raw_input("pause_configuration")
+      self.configuration[section][soussection][champ]=defaut
       return defaut
       
       
-    return self.configuration[section][champ]
+    return self.configuration[section][soussection][champ]
