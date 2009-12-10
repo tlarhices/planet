@@ -342,6 +342,32 @@ class Check(Label):
             
     def callback(self, text, value):
       pass
+      
+class PictureCheck(Label):
+    """
+        Standard on/off button
+    """
+    style = "CHECKOFF"
+    value = False
+    
+    def __init__(self, picOn, picOff, text, **placement):
+        self.doPlacement(placement)    
+        self.text = "   "+text
+        self.icon = picOff
+        self.picOff = picOff
+        self.picOn = picOn
+
+    def onClick(self):
+        """ checks or uncecks the button value """
+        self.value = not self.value
+        if self.value:
+            self.icon = self.picOn
+        else:
+            self.icon = self.picOff
+        self.callback(self.text.strip(), self.value)
+            
+    def callback(self, text, value):
+      pass
             
 class Radio(Check):
     """ 

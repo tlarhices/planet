@@ -790,7 +790,19 @@ class MenuConfiguration(MenuCirculaire):
               btn.overStyle = "button_over"
               btn.downStyle = "button_down"
               for element in general.configuration.configuration[section][soussection].keys():
-                btnD = self.ajouteDroite(Label(element.capitalize()+" : "+general.configuration.getConfiguration(section, soussection, element,"Erreur 164"), width=LARGEUR_BOUTON))
+                valeur = general.configuration.getConfiguration(section, soussection, element,"Erreur 164")
+                print valeur, "t", "f",
+                if valeur=="t" or valeur=="f":
+                  print "bool"
+                  btnD = self.ajouteDroite(PictureCheck("theme/icones/checkmark.png","theme/icones/blank.png",element.capitalize()+" : "+valeur, width=LARGEUR_BOUTON))
+                  if valeur=="t":
+                    btnD.value = True
+                    btnD.icon = btnD.picOn
+                  else:
+                    btnD.value = False
+                    btnD.icon = btnD.picOff
+                else:
+                  btnD = self.ajouteDroite(Label(element.capitalize()+" : "+valeur, width=LARGEUR_BOUTON))
                 btnD.style = "button"
                 btnD.upStyle = "button"
                 btnD.overStyle = "button_over"
