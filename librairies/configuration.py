@@ -110,6 +110,8 @@ class Configuration:
     sprite["bouge"] = config(sprite, "bouge", str, "1")=="1"
     sprite["aquatique"] = config(sprite, "aquatique", str, "0")=="1"
     sprite["constructible"] = config(sprite, "constructible", str, "0")=="1"
+    sprite["ai"] = config(sprite, "ai", str, "standard")
+    sprite["seuilrecalculphysique"] = config(sprite, "seuilrecalculphysique", float, 2.0)
       
     return sprite
     

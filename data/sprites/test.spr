@@ -17,3 +17,4 @@ vitesse = 0.01
 nocturne = 0
 aquatique = 0
 bouge = 1
+seuilrecalculphysique = 2.5

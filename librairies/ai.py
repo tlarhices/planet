@@ -232,7 +232,7 @@ class AI:
     self.comportement = AIComportement(self)
     
   def choisitComportement(self, type):
-    print "AI::Charge comportement type"
+    print "TODO AI::Charge comportement type", type
     
   def ping(self, temps):
     self.comportement.ping()
@@ -256,7 +256,8 @@ class AIComportementUnitaire:
     self.force = [0.0, 0.0, 0.0]
     
   def ping(self, temps):
-    pass
+    self.comportement.comportements.remove(self)
+    self.comportement = None
     
 class AIComportement:
   ai = None
@@ -264,59 +265,22 @@ class AIComportement:
   recrues = None
   checklist = None
   steeringForce = None
-  
-  _vaVers = None
-  _fuit = None
-  _poursuit = None
-  _reconnaissance = None
-  _cherche = None
-  _routine = None
-  _suitChemin = None
+  comportements = None
   
   def __init__(self, AI):
     self.ai = AI
     self.recrues = []
-    self.checklist=[]
+    self.checklist = []
     self.steeringForce = [0.0, 0.0, 0.0]
+    self.comportements = []
     
   def ping(self, temps):
     force = [0.0,0.0,0.0]
     facteurs = 0.0
-    if self._vaVers != None:
-      composant = self._vaVers
-      composant.ping(temps)
-      force = force[0]+composant.force[0]*composant.priorite, force[1]+composant.force[1]*composant.priorite, force[2]+composant.force[2]*composant.priorite
-      facteurs+=composant.priorite
-    if self._fuit != None:
-      composant = self._fuit
-      composant.ping(temps)
-      force = force[0]+composant.force[0]*composant.priorite, force[1]+composant.force[1]*composant.priorite, force[2]+composant.force[2]*composant.priorite
-      facteurs+=composant.priorite
-    if self._poursuit != None:
-      composant = self._poursuit
-      composant.ping(temps)
-      force = force[0]+composant.force[0]*composant.priorite, force[1]+composant.force[1]*composant.priorite, force[2]+composant.force[2]*composant.priorite
-      facteurs+=composant.priorite
-    if self._reconnaissance != None:
-      composant = self._reconnaissance
-      composant.ping(temps)
-      force = force[0]+composant.force[0]*composant.priorite, force[1]+composant.force[1]*composant.priorite, force[2]+composant.force[2]*composant.priorite
-      facteurs+=composant.priorite
-    if self._cherche != None:
-      composant = self._cherche
-      composant.ping(temps)
-      force = force[0]+composant.force[0]*composant.priorite, force[1]+composant.force[1]*composant.priorite, force[2]+composant.force[2]*composant.priorite
-      facteurs+=composant.priorite
-    if self._routine != None:
-      composant = self._routine
-      composant.ping(temps)
-      force = force[0]+composant.force[0]*composant.priorite, force[1]+composant.force[1]*composant.priorite, force[2]+composant.force[2]*composant.priorite
-      facteurs+=composant.priorite
-    if self._suitChemin != None:
-      composant = self._suitChemin
-      composant.ping(temps)
-      force = force[0]+composant.force[0]*composant.priorite, force[1]+composant.force[1]*composant.priorite, force[2]+composant.force[2]*composant.priorite
-      facteurs+=composant.priorite
+    for comportement in self.comportements:
+      comportement.ping(temps)
+      force = force[0]+comportement.force[0]*comportement.priorite, force[1]+comportement.force[1]*comportement.priorite, force[2]+comportement.force[2]*comportement.priorite
+      facteurs+=comportement.priorite
       
     delta = 1.0/facteurs
     force = force[0]*delta, force[1]*delta, force[2]*delta
@@ -326,29 +290,34 @@ class AIComportement:
     self.ai = None
     
   def suitChemin(self, chemin, priorite):
-    self._suitChemin = SuitChemin(self, chemin, priorite)
+    self.comportements.append(SuitChemin(self, chemin, priorite))
     
   def vaVers(self, cible, priorite):
-    self._vaVers = VaVers(self, cible, priorite)
+    self.comportements.append(VaVers(self, cible, priorite))
 
   def fuit(self, cible, distancePanique, distanceOK, priorite):
-    self._fuit = _fuit(self, cible, distancePanique, distanceOK, priorite)
+    self.comportements.append(Fuit(self, cible, distancePanique, distanceOK, priorite))
 
   def poursuit(self, cible, distanceMax, priorite):
-    self._poursuit = Poursuit(self, cible, distanceMax, priorite)
+    self.comportements.append(Poursuit(self, cible, distanceMax, priorite))
 
   def reconnaissance(self, rayonZone, rayonChangeDirection, priorite):
-    self._reconnaissance = Reconnaissance(self, rayonZone, rayonChangeDirection, priorite)
+    self.comportements.append(Reconnaissance(self, rayonZone, rayonChangeDirection, priorite))
 
   def cherche(self, cible, priorite):
-    self._cherche = Cherche(self, cible, priorite)
+    self.comportements.append(Cherche(self, cible, priorite))
     
   def routine(self, checklist, priorite):
-    if self._routine ==None:
-      self._routine = Routine(self)
+    routine = None
+    for comportement in self.comportements:
+      if isinstance(comportement, Routine):
+        routine = comportement
+    if routine == None:
+      routine = Routine(self)
+      self.comportements.append(routine)
       
     for element in checklist:
-      self._routine.ajouteCheck(element, priorite)
+      routine.ajouteCheck(element, priorite)
     
   def devientChef(self):
     self.leader = self
@@ -357,7 +326,7 @@ class AIComportement:
     if self.leader!=None and self.leader!=self:
       self.leader.recrute(ai)
     else:
-      elif self.leader==None:
+      if self.leader==None:
         self.devientChef()
       ai.leader=self
       ai.comportement.poursuit(self, -1, 0.75)

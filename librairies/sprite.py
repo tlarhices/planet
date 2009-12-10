@@ -8,6 +8,7 @@
 import general
 import math
 import random
+from ai import AI
 
 from pandac.PandaModules import *
 
@@ -48,6 +49,11 @@ class Sprite:
   
   blipid = None #L'id du blip sur la carte
   
+  ai = None
+  pileTempsAppliqueGraviteObjetsFixes = None
+  seuilRecalculPhysique = None
+
+  
   def __init__(self, id, position, fichierDefinition, planete, joueur):
     """
     Fabrique un nouvel objet
@@ -59,6 +65,7 @@ class Sprite:
     self.joueur = joueur
     self.id = id
     self.miseAJourPosition(position)
+    
 
     definition = general.configuration.parseSprite(fichierDefinition)
     
@@ -68,6 +75,7 @@ class Sprite:
     self.inertieSteering = [0.0,0.0,0.0]
     self.rac = NodePath("racine-sprite")
     self.racine = NodePath("racine-sprite")
+    self.pileTempsAppliqueGraviteObjetsFixes = 1000.0
 
     self.fichierModele = definition["modele"]
     self.fichierSymbole = definition["symbole"]
@@ -83,6 +91,10 @@ class Sprite:
     self.distanceSymbole = definition["distancesymbole"]
     self.bouge = definition["bouge"]
     self.aquatique = definition["aquatique"]
+    if definition["ai"] != "none" and self.bouge:
+      self.ai = AI(self)
+      self.ai.choisitComportement(definition["ai"])
+    self.seuilRecalculPhysique = definition["seuilrecalculphysique"]
     
   def pointeRacineSol(self):
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""
@@ -124,6 +136,9 @@ class Sprite:
 
     #Fait tomber
     self.appliqueGravite(temps)
+    
+    if self.ai != None:
+      self.ai.ping(temps)
 
     #Deplace
     self.appliqueInertie(temps)
@@ -161,7 +176,12 @@ class Sprite:
     """Fait tomber les objets sur le sol"""
     altitudeCible = self.planete.altitudeCarre(self.position)
     
-    if self.altCarre < altitudeCible or (self.altCarre > altitudeCible and not self.bouge):
+    if not self.bouge:
+      self.appliqueGravite = self.appliqueGraviteObjetsFixes
+      self.appliqueGravite(temps)
+      return
+    
+    if self.altCarre < altitudeCible:
       #Si on est dans le sol, on se place sur le sol d'un seul coup
       self.miseAJourPosition(general.multiplieVecteur(general.normaliseVecteur(self.position), math.sqrt(altitudeCible)))
       self.inertie = (0.0,0.0,0.0)
@@ -174,7 +194,24 @@ class Sprite:
     else:
       self.testeSol(temps) #On est sur le sol, on teste si on peut se tenir debout dessus
       
+  def appliqueGraviteObjetsFixes(self, temps):
+    """Place les objets qui ne bougent pas sur le sol"""
+    self.pileTempsAppliqueGraviteObjetsFixes+=temps
+    
+    if self.pileTempsAppliqueGraviteObjetsFixes<self.seuilRecalculPhysique+random.random():
+      return
+      
+    self.pileTempsAppliqueGraviteObjetsFixes = 0.0
+    
+    altitudeCible = self.planete.altitudeCarre(self.position)
+    if self.altCarre < altitudeCible or self.altCarre > altitudeCible + self.seuilToucheSol:
+      #On place l'objet sur le sol d'un seul coup
+      self.miseAJourPosition(general.multiplieVecteur(general.normaliseVecteur(self.position), math.sqrt(altitudeCible)))
+      self.inertie = (0.0,0.0,0.0)
+      
   def appliqueInertie(self, temps):
+    self.inertie = self.inertie[0] + self.inertieSteering[0], self.inertie[1] + self.inertieSteering[1], self.inertie[2] + self.inertieSteering[2]
+    self.inertieSteering = [0.0,0.0,0.0]
     if general.normeVecteur(self.inertie)>self.terminalVelocity:
       self.inertie = general.multiplieVecteur(general.normaliseVecteur(self.inertie), self.terminalVelocity)
     self.miseAJourPosition((self.position[0]+self.inertie[0]*temps, self.position[1]+self.inertie[1]*temps, self.position[2]+self.inertie[2]*temps))
@@ -248,6 +285,9 @@ class Sprite:
     self.symbole = None
     if self.blipid!=None:
       general.gui.menuCourant.miniMap.enlevePoint(self.blipid)
+    if self.ai != None:
+      self.ai.clear()
+      self.ai = None
     
   def sauvegarde(self):
     """Retoune une chaine qui représente l'objet"""
