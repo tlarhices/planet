@@ -253,12 +253,13 @@ class AIComportementUnitaire:
   comportement = None
   priorite = None
   force = None
-  fini = True
+  fini = None
   
   def __init__(self, comportement, priorite):
     self.comportement = comportement
     self.priorite = priorite
     self.force = [0.0, 0.0, 0.0]
+    self.fini = False
     
   def ping(self, temps):
     self.supprime()
