@@ -25,13 +25,17 @@ class AINavigation:
     self.angleSolMax = float(general.configuration.getConfiguration("ai","navigation", "angleSolMax","70.0"))
     
   # Création d'infos ---------------------------------------------------    
-  def coutPassage(self, idxSommet1, idxSommet2):
+  def coutPassage(self, idxSommet1, idxSommet2, estSommets):
     """Retourne le cout necessaire pour passer du sommet idxSommet1 au sommet idxSommet2"""
     #cout = (general.normeVecteur(self.planete.sommets[idxSommet2]) - general.normeVecteur(self.planete.sommets[idxSommet1]))*100
-    
-    sp = Vec3(*general.normaliseVecteur(self.planete.sommets[idxSommet1]))
-    fc = Vec3(*self.planete.trouveFace(self.planete.sommets[idxSommet2]).calculNormale())
-    angle = sp.angleDeg(fc)
+    if estSommets:
+      ptxSommet1, ptxSommet2 = self.planete.sommets[idxSommet1], self.planete.sommets[idxSommet2]
+    else:
+      ptxSommet1, ptxSommet2 = idxSommet1, idxSommet1
+      
+    sp = Vec3(*ptxSommet2) - Vec3(*ptxSommet1)
+    spH = Vec3(*general.normaliseVecteur(ptxSommet2)) - Vec3(*general.normaliseVecteur(ptxSommet1))
+    angle = spH.angleDeg(sp)
     
     if angle >= self.angleSolMax or angle <= -self.angleSolMax:
       angle = self.maxcout
@@ -39,7 +43,7 @@ class AINavigation:
     #navigation = NodePath("nav")
     #navigation.reparentTo(self.planete.racine)
     #On ne peut pas passer sous l'eau
-    if general.normeVecteur(self.planete.sommets[idxSommet2]) < self.planete.niveauEau or general.normeVecteur(self.planete.sommets[idxSommet1]) < self.planete.niveauEau:
+    if general.normeVecteur(ptxSommet2) <= self.planete.niveauEau or general.normeVecteur(ptxSommet1) <= self.planete.niveauEau:
       cout = self.maxcout
     #  navigation.attachNewNode(self.dessineLigne((0.0, 0.0, 1.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
     #elif angle==self.maxcout:
@@ -88,7 +92,7 @@ class AINavigation:
   def ajouteNoeud(self, pt1, pt2):
     """Ajoute un noeud au graphe"""
     general.startChrono("AINavigation::ajouteNoeud")
-    cout = self.coutPassage(pt1, pt2)
+    cout = self.coutPassage(pt1, pt2, True)
     if pt1 not in self.graph.keys():
       self.graph[pt1]=[]
     
@@ -105,7 +109,7 @@ class AINavigation:
     del self.graph[idxSommet]
     for voisin, cout in voisins:
       self.ajouteNoeud(idxSommet, voisin)
-      newCout = self.coutPassage(voisin, idxSommet)
+      newCout = self.coutPassage(voisin, idxSommet, True)
       valeurs = self.graph[voisin][:]
       for i in range(0, len(valeurs)):
         id, cout = valeurs[i]
@@ -406,8 +410,8 @@ class AIComportement:
     self.ai = None
     
   def calculChemin(self, debut, fin, priorite):
-    idP = self.ai.sprite.planete.trouveSommet(debut)
-    idC = self.ai.sprite.planete.trouveSommet(fin)
+    idP = self.ai.sprite.planete.trouveSommet(debut, tiensCompteDeLAngle=True)
+    idC = self.ai.sprite.planete.trouveSommet(fin, tiensCompteDeLAngle=True)
     chemin = self.ai.sprite.planete.aiNavigation.aStar(idP, idC)
     print "De",idP,"à",idC,":",
     if chemin!=None:

@@ -158,6 +158,7 @@ class Sprite:
   
   def testeSol(self, temps):
     """Regarde l'angle entre la normale de la face et le sprite qui s'y tient"""
+    return
     sp = Vec3(*general.normaliseVecteur(self.position))
     fc = Vec3(*self.planete.trouveFace(self.position).calculNormale())
     angle = sp.angleDeg(fc)

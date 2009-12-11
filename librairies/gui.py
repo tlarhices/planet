@@ -331,11 +331,14 @@ class FondCarte:
     self.tailleX, self.tailleY = tailleX, tailleY
     self.carte.setScale(self.tailleX, 1.0, self.tailleY)
     self.carte.setPos(0.0, 0.0, 0.0)
-    
-    taskMgr.add(self._reSize,"reSize",20)
-    taskMgr.add(self._draw,"draw",40)
+    texture = loader.loadTexture("./theme/centre.png")
+    self.setImage(texture)
+    taskMgr.add(self.resize,"resize",20)
+    taskMgr.add(self.draw,"draw",40)
+    self.resize(None)
+    self.draw(None)
   
-  def _reSize(self, task):
+  def resize(self, task):
     """ resize the window via panda3d internal events"""
     self.windowsize = base.win.getXSize(),base.win.getYSize()
     self.size = Vec2(*self.windowsize)
@@ -344,13 +347,15 @@ class FondCarte:
     self.node.setPos(-1, 0, 1)
     self.node.reparentTo(render2d)    
     self.carte.setPos(self.size[0]-self.tailleX, 0.0, 0.0)
-    return task.cont
+    if task!=None:
+      return task.cont
     
-  def _draw(self, task):
+  def draw(self, task=None):
     """ resize the window via panda3d internal events"""
     if self.image!=None:
       self.carte.setTexture(self.image)
-    return task.cont
+    if task!=None:
+      return task.cont
     
   def setImage(self, image):
     self.image = image
@@ -579,7 +584,7 @@ class MiniMap(Pane):
         #fond.gaussianFilter(2.0)
         #self.fondRendu.write(Filename("./carte.png"))
       #La zone d'ombre
-      if self.carteSoleilARedessiner:
+      if self.carteSoleilARedessiner and general.configuration.getConfiguration("affichage","minimap","affichesoleil","t")=="t":
         for x in range(0, self.tailleMiniMapX):
           for y in range(0, self.tailleMiniMapY):
             spx = self.soleil.getXel(x,y)
@@ -591,16 +596,22 @@ class MiniMap(Pane):
         self.soleilRendu.gaussianFilter(5.0)
         #self.soleilRendu.write(Filename("./soleil.png"))
       #La fusion fond + ombre
-      if self.carteARedessiner or self.carteSoleilARedessiner:
-        for x in range(0, self.tailleMiniMapX):
-          for y in range(0, self.tailleMiniMapY):
-            px = self.fondRendu.getXel(x,y)
-            spx = self.soleilRendu.getXel(x,y)
-            self.fusion.setXel(x, y, px[0]*spx[0], px[1]*spx[1], px[2]*spx[2])
-        #self.fusion.write(Filename("./fusion.png"))
-        texture = Texture("fusion")
-        texture.load(self.fusion)
+      if general.configuration.getConfiguration("affichage","minimap","affichesoleil","t")=="t":
+        if self.carteARedessiner or self.carteSoleilARedessiner:
+          for x in range(0, self.tailleMiniMapX):
+            for y in range(0, self.tailleMiniMapY):
+              px = self.fondRendu.getXel(x,y)
+              spx = self.soleilRendu.getXel(x,y)
+              self.fusion.setXel(x, y, px[0]*spx[0], px[1]*spx[1], px[2]*spx[2])
+          #self.fusion.write(Filename("./fusion.png"))
+          texture = Texture("fusion")
+          texture.load(self.fusion)
+          self.carte.setImage(texture)
+      elif self.carteARedessiner:
+        texture = Texture("fond")
+        texture.load(self.fondRendu)
         self.carte.setImage(texture)
+        
       self.carteARedessiner = False
       self.carteSoleilARedessiner = False
       self.derniereMAJ=task.time

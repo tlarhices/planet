@@ -917,15 +917,16 @@ class Planete:
       self.sauvegarde(os.path.join(".","sauvegardes","sauvegarde-auto.pln"))
       self.lastSave = 0
       
-    #Met à jour la carte du soleil
-    self.lastMAJPosSoleil += temps
-    if self.lastMAJPosSoleil > self.dureeMAJPosSoleil:
-      self.lastMAJPosSoleil=0.0
-      try:
-        def procFace(face):
-          jour = (1.0,1.0,1.0)
-          nuit = (0.2,0.2,0.4)
-          if face.enfants == None:
+      
+    if general.configuration.getConfiguration("affichage","minimap","affichesoleil","t")=="t":
+      #Met à jour la carte du soleil
+      self.lastMAJPosSoleil += temps
+      if self.lastMAJPosSoleil > self.dureeMAJPosSoleil:
+        self.lastMAJPosSoleil=0.0
+        try:
+          def procFace(face):
+            jour = (1.0,1.0,1.0)
+            nuit = (0.2,0.2,0.4)
             p1 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[0]]), 1.0001)
             if general.ligneCroiseSphere(p1, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
               c1=nuit
@@ -941,23 +942,25 @@ class Planete:
               c3=nuit
             else:
               c3=jour
-            general.gui.menuCourant.miniMap.dessineCarte(p1, p2, p3, c1, c2, c3, True)
-        def recur(face):
-          if face.enfants==None:
-            procFace(face)
-          else:
-            for enfant in face.enfants:
-              recur(enfant)
-        for face in self.elements:
-          recur(face)
-      except AttributeError:
-        pass
+            if face.enfants == None or (c1==c2 and c2==c3):
+              general.gui.menuCourant.miniMap.dessineCarte(p1, p2, p3, c1, c2, c3, True)
+            return not (c1==c2 and c2==c3) #Return False si tout est de la meme couleur
+            
+          def recur(face):
+            if procFace(face):
+              if face.enfants != None:
+                for enfant in face.enfants:
+                  recur(enfant)
+          for face in self.elements:
+            recur(face)
+        except AttributeError:
+          pass
     
     general.stopChrono("Planete::ping")
   # Fin Mise à jour ----------------------------------------------------
         
   # Fonctions diverses -------------------------------------------------
-  def trouveSommet(self, point):
+  def trouveSommet(self, point, tiensCompteDeLAngle=False):
     """
     Retourne le sommet le plus proche
     point : le point à rechercher
@@ -968,8 +971,13 @@ class Planete:
     for s in self.sommets:
       d = general.distanceCarree(point, s)
       if dst > d:
-        id = self.sommets.index(s)
-        dst = d
+        #On fait attention à pouvoir aller à ce point là
+        if not tiensCompteDeLAngle:
+          id = self.sommets.index(s)
+          dst = d
+        elif self.aiNavigation.coutPassage(point, s, False)<self.aiNavigation.maxcout:
+          id = self.sommets.index(s)
+          dst = d
     general.stopChrono("Planete::trouveSommet")
     return id
     
