@@ -92,6 +92,7 @@ class Sprite:
       if definition["ai"] != "none" and self.bouge:
         self.ai = AI(self)
         self.ai.choisitComportement(definition["ai"])
+        self.marcheVers(random.choice(self.planete.voisinage[random.choice(self.planete.voisinage[random.choice(self.planete.voisinage[self.planete.trouveSommet(self.position)])])]))
       self.seuilRecalculPhysique = definition["seuilrecalculphysique"]
       self.masse = definition["masse"]
     
@@ -158,6 +159,7 @@ class Sprite:
   
   def testeSol(self, temps):
     """Regarde l'angle entre la normale de la face et le sprite qui s'y tient"""
+    return
     sp = Vec3(*general.normaliseVecteur(self.position))
     fc = Vec3(*self.planete.trouveFace(self.position).calculNormale())
     angle = sp.angleDeg(fc)
@@ -166,6 +168,7 @@ class Sprite:
     
   def appliqueGravite(self, temps):
     """Fait tomber les objets sur le sol"""
+    return
     altitudeCible = self.planete.altitudeCarre(self.position)
     
     if not self.bouge:
@@ -243,9 +246,15 @@ class Sprite:
     #self.planete.afficheTexte(self.id+" marche vers "+str(cible))
     self.miseAJourPosition(self.position)
       
+  prevPos = None
   def miseAJourPosition(self, position):
     """Change la position de l'objet"""
     self.position = position
+    if general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE", "t")=="t":
+      if self.prevPos != None:
+        self.planete.racine.attachNewNode(self.dessineLigne((random.random(),random.random(),random.random(),1.0), general.multiplieVecteur(self.prevPos, 1.2), general.multiplieVecteur(self.position, 1.2)))
+      self.prevPos = self.position
+      
     self.altCarre = general.normeVecteurCarre(self.position)
     if self.altCarre < self.planete.niveauEau*self.planete.niveauEau:
       if self.aquatique:

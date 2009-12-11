@@ -292,6 +292,13 @@ class SuitChemin(AIComportementUnitaire):
       #Comme on a pas de cible au chemin pour le moment
       #On prend le point suivant sur le chemin
       cible = self.comportement.ai.sprite.planete.sommets[self.chemin.pop(0)]
+      if general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE", "t")=="t":
+        self.comportement.ai.sprite.planete.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((1.0,0.0,0.0), general.multiplieVecteur(self.comportement.ai.sprite.position, 1.2), general.multiplieVecteur(cible, 1.2)))
+        mdl = loader.loadModel("./data/modeles/sphere.egg")
+        mdl.setScale(0.1)
+        mdl.setPos(*general.multiplieVecteur(cible, 1.2))
+        mdl.setColor(1.0,0.0,0.0)
+        mdl.reparentTo(self.comportement.ai.sprite.planete.racine)
       #On fait un nouveau comportement pour y aller
       self.courant = VaVers(cible, self.comportement, self.priorite)
       #On ajoute le comportement à l'IA
