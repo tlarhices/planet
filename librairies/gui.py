@@ -597,7 +597,7 @@ class MiniMap(Pane):
             px = self.fondRendu.getXel(x,y)
             spx = self.soleilRendu.getXel(x,y)
             self.fusion.setXel(x, y, px[0]*spx[0], px[1]*spx[1], px[2]*spx[2])
-        self.fusion.write(Filename("./fusion.png"))
+        #self.fusion.write(Filename("./fusion.png"))
         texture = Texture("fusion")
         texture.load(self.fusion)
         self.carte.setImage(texture)
