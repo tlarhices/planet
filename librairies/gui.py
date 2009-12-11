@@ -462,9 +462,12 @@ class MiniMap(Pane):
       c2=(0.0,0.0,1.0)
     if general.normeVecteur(p3)<=self.gui.start.planete.niveauEau:
       c3=(0.0,0.0,1.0)
-    p1 = self.point3DVersCarte(p1)
-    p2 = self.point3DVersCarte(p2)
-    p3 = self.point3DVersCarte(p3)
+    if len(p1)==3:
+      p1 = self.point3DVersCarte(p1)
+    if len(p2)==3:
+      p2 = self.point3DVersCarte(p2)
+    if len(p3)==3:
+      p3 = self.point3DVersCarte(p3)
     if p1==None or p2==None or p3==None:
       return
     minx = min(p1[0], p2[0], p3[0])
@@ -480,31 +483,88 @@ class MiniMap(Pane):
       b3 = signe(pt, s3, s1) < 0.0
       return ((b1 == b2) and (b2 == b3))
     
-    if maxx-minx>float(self.tailleMiniMapX)/2.0:
+    #Test des points à cheval sur les bords, s'il y en a, on dessine 2 triangles qui débordent de chaque coté de la carte
+    if maxx-minx>float(self.tailleMiniMapX)*2.0/3.0:
+      p1min = list(p1[:])
+      p2min = list(p2[:])
+      p3min = list(p3[:])
+      if p1min[0]<float(self.tailleMiniMapX)/2.0:
+        p1min[0]=p1min[0]+float(self.tailleMiniMapX)
+      if p2min[0]<float(self.tailleMiniMapX)/2.0:
+        p2min[0]=p2min[0]+float(self.tailleMiniMapX)
+      if p3min[0]<float(self.tailleMiniMapX)/2.0:
+        p3min[0]=p3min[0]+float(self.tailleMiniMapX)
+      
+      if p1!=p1min or p2!=p2min or p3!=p3min:
+        self.dessineCarte(p1min, p2min, p3min, c1, c2, c3, estSoleil)
+
+      p1max = list(p1[:])
+      p2max = list(p2[:])
+      p3max = list(p3[:])
+      if p1max[0]>float(self.tailleMiniMapX)/2.0:
+        p1max[0]=p1max[0]-float(self.tailleMiniMapX)
+      if p2max[0]>float(self.tailleMiniMapX)/2.0:
+        p2max[0]=p2max[0]-float(self.tailleMiniMapX)
+      if p3max[0]>float(self.tailleMiniMapX)/2.0:
+        p3max[0]=p3max[0]-float(self.tailleMiniMapX)
+      
+      if p1!=p1max or p2!=p2max or p3!=p3max:
+        self.dessineCarte(p1max, p2max, p3max, c1, c2, c3, estSoleil)
       return
-    if maxy-miny>float(self.tailleMiniMapY)/2.0:
+      
+    if maxy-miny>float(self.tailleMiniMapY)*2.0/3.0:
+      p1min = list(p1[:])
+      p2min = list(p2[:])
+      p3min = list(p3[:])
+      if p1min[1]<float(self.tailleMiniMapY)/2.0:
+        p1min[1]=p1min[1]+float(self.tailleMiniMapY)
+      if p2min[1]<float(self.tailleMiniMapY)/2.0:
+        p2min[1]=p2min[1]+float(self.tailleMiniMapY)
+      if p3min[1]<float(self.tailleMiniMapY)/2.0:
+        p3min[1]=p3min[1]+float(self.tailleMiniMapY)
+      print p1,p2,p3,"min ->", p1min, p2min, p3min
+      if p1!=p1min or p2!=p2min or p3!=p3min:
+        self.dessineCarte(p1min, p2min, p3min, c1, c2, c3, estSoleil)
+
+      p1max = list(p1[:])
+      p2max = list(p2[:])
+      p3max = list(p3[:])
+      if p1max[1]>float(self.tailleMiniMapY)/2.0:
+        p1max[1]=p1max[1]-float(self.tailleMiniMapY)
+      if p2max[1]>float(self.tailleMiniMapY)/2.0:
+        p2max[1]=p2max[1]-float(self.tailleMiniMapY)
+      if p3max[1]>float(self.tailleMiniMapY)/2.0:
+        p3max[1]=p3max[1]-float(self.tailleMiniMapY)
+      print p1,p2,p3,"max ->", p1max, p2max, p3max
+      if p1!=p1max or p2!=p2max or p3!=p3max:
+        self.dessineCarte(p1max, p2max, p3max, c1, c2, c3, estSoleil)
       return
+      
+      
+    #Dessine le triangle
     for x in range(int(minx+0.5), int(maxx+0.5)):
-      for y in range(int(miny+0.5), int(maxy+0.5)):
-        d1=general.distance((x,y,0),(p1[0], p1[1], 0))
-        d2=general.distance((x,y,0),(p2[0], p2[1], 0))
-        d3=general.distance((x,y,0),(p3[0], p3[1], 0))
-        fact=(d1+d2+d3)/2
-        d1=1-d1/fact
-        d2=1-d2/fact
-        d3=1-d3/fact
-        couleur=c1[0]*d1+c2[0]*d2+c3[0]*d3, c1[1]*d1+c2[1]*d2+c3[1]*d3, c1[2]*d1+c2[2]*d2+c3[2]*d3
-        if not estSoleil:
-          self.fondFlou.setXel(x, y, couleur[0], couleur[1], couleur[2])
-        else:
-          self.soleilFlou.setXel(x, y, couleur[0], couleur[1], couleur[2])
-        if estDansTriangle((x,y),p1,p2,p3):
-          if not estSoleil:
-            self.fond.setXel(x, y, couleur[0], couleur[1], couleur[2])
-            self.carteARedessiner = True
-          else:
-            self.soleil.setXel(x, y, couleur[0], couleur[1], couleur[2])
-            self.carteSoleilARedessiner = True
+      if x in range(0, self.tailleMiniMapX):
+        for y in range(int(miny+0.5), int(maxy+0.5)):
+          if y in range(0, self.tailleMiniMapY):
+            d1=general.distance((x,y,0),(p1[0], p1[1], 0))
+            d2=general.distance((x,y,0),(p2[0], p2[1], 0))
+            d3=general.distance((x,y,0),(p3[0], p3[1], 0))
+            fact=(d1+d2+d3)/2
+            d1=1-d1/fact
+            d2=1-d2/fact
+            d3=1-d3/fact
+            couleur=c1[0]*d1+c2[0]*d2+c3[0]*d3, c1[1]*d1+c2[1]*d2+c3[1]*d3, c1[2]*d1+c2[2]*d2+c3[2]*d3
+            if not estSoleil:
+              self.fondFlou.setXel(x, y, couleur[0], couleur[1], couleur[2])
+            else:
+              self.soleilFlou.setXel(x, y, couleur[0], couleur[1], couleur[2])
+            if estDansTriangle((x,y),p1,p2,p3):
+              if not estSoleil:
+                self.fond.setXel(x, y, couleur[0], couleur[1], couleur[2])
+                self.carteARedessiner = True
+              else:
+                self.soleil.setXel(x, y, couleur[0], couleur[1], couleur[2])
+                self.carteSoleilARedessiner = True
     
   def ajoutePoint3D(self, point, icone):
     """Ajout un point3D à la carte, retourne un indice servant à l'effacer plus tard"""
