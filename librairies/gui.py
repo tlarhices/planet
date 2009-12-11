@@ -318,7 +318,8 @@ class Historique(MenuCirculaire):
 class MiniMap(Pane):
   """Affiche une carte miniature de la planète"""
   gui = None #l'instance de la classe Interface en cours d'utilisation
-  tailleMiniMap = 256 #La taille de la carte en pixels (la carte est carrée)
+  tailleMiniMapX = None #La taille de la carte en pixels (la carte est carrée)
+  tailleMiniMapY = None #La taille de la carte en pixels (la carte est carrée)
   points = None #La liste des points à afficher
   blips = None #La liste des composants représentants les points
   
@@ -326,6 +327,7 @@ class MiniMap(Pane):
   
   derniereMAJ = None #l'heure de la dernière MAJ
   carteARedessiner = None #vaut True si la carte a été modifiée
+  carteSoleilARedessiner = None #vaut True si la zone d'ombre a été modifiée
   
   fond = None
   fondFlou = None
@@ -340,26 +342,40 @@ class MiniMap(Pane):
     self.x = "right" 
     self.y = "top"
     self.style = "VIDE"
+    
+    #On charge les préférences utilisateur
+    self.tailleMiniMapX, self.tailleMiniMapY = general.configuration.getConfiguration("affichage", "Minimap", "taille","256 256").split(" ")
+    self.tailleMiniMapX, self.tailleMiniMapY = float(self.tailleMiniMapX), float(self.tailleMiniMapY)
     #Force la carte à une puissance de 2
-    self.tailleMiniMap = 2**int(math.log(self.tailleMiniMap, 2)+0.5)
-    self.width = self.tailleMiniMap+PAD*2
-    self.height = self.tailleMiniMap+PAD*2
+    self.tailleMiniMapX = 2**int(math.log(self.tailleMiniMapX, 2)+0.5)
+    self.tailleMiniMapY = 2**int(math.log(self.tailleMiniMapY, 2)+0.5)
+    
+    self.width = self.tailleMiniMapX+PAD*2
+    self.height = self.tailleMiniMapY+PAD*2
     
     self.points={}
     self.blips={}
     
     self.derniereMAJ = None
     self.carteARedessiner = True
+    self.carteSoleilARedessiner = True
     
     #L'image de fond
-    self.fond = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
+    self.fond = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
     self.fond.fillVal(0, 0, 0)
-    self.fondFlou = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
+    self.fondFlou = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
     self.fondFlou.fillVal(0, 0, 0)
-    self.soleilFlou = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
+    self.soleilFlou = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
     self.soleilFlou.fillVal(255, 255, 255)
-    self.soleil = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
+    self.soleil = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
     self.soleil.fillVal(255, 255, 255)
+    
+    self.fondRendu = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
+    self.fondRendu.fillVal(255, 0, 0)
+    self.fusion = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
+    self.fusion.fillVal(0, 255, 0)
+    self.soleilRendu = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
+    self.soleilRendu.fillVal(0, 0, 255)
     
     taskMgr.add(self.ping, "Boucle minimap")
     
@@ -415,9 +431,9 @@ class MiniMap(Pane):
       b3 = signe(pt, s3, s1) < 0.0
       return ((b1 == b2) and (b2 == b3))
     
-    if maxx-minx>float(self.tailleMiniMap)/2.0:
+    if maxx-minx>float(self.tailleMiniMapX)/2.0:
       return
-    if maxy-miny>float(self.tailleMiniMap)/2.0:
+    if maxy-miny>float(self.tailleMiniMapY)/2.0:
       return
     for x in range(int(minx+0.5), int(maxx+0.5)):
       for y in range(int(miny+0.5), int(maxy+0.5)):
@@ -436,9 +452,10 @@ class MiniMap(Pane):
         if estDansTriangle((x,y),p1,p2,p3):
           if not estSoleil:
             self.fond.setXel(x, y, couleur[0], couleur[1], couleur[2])
+            self.carteARedessiner = True
           else:
             self.soleil.setXel(x, y, couleur[0], couleur[1], couleur[2])
-          self.carteARedessiner = True
+            self.carteSoleilARedessiner = True
     
   def ajoutePoint3D(self, point, icone):
     """Ajout un point3D à la carte, retourne un indice servant à l'effacer plus tard"""
@@ -459,9 +476,9 @@ class MiniMap(Pane):
         lat=math.acos(x/math.sqrt(x*x+y*y))
     else:
       lat=2 * math.pi - math.acos(x/math.sqrt(x*x+y*y))
-    lat=lat*float(self.tailleMiniMap)/(2*math.pi)
+    lat=lat*float(self.tailleMiniMapX)/(2*math.pi)
     
-    z=(-z*self.tailleMiniMap/2+self.tailleMiniMap/2)
+    z=(-z*self.tailleMiniMapY/2+self.tailleMiniMapY/2)
     return int(lat+0.5), int(z+0.5)
     
   def carteVersPoint3D(self, point):
@@ -469,9 +486,9 @@ class MiniMap(Pane):
       return None
       
     lat, z = point
-    z=-(float(z)-float(self.tailleMiniMap)/2)/(float(self.tailleMiniMap)/2)
+    z=-(float(z)-float(self.tailleMiniMapY)/2)/(float(self.tailleMiniMapY)/2)
     
-    lat = float(lat)*(2*math.pi)/float(self.tailleMiniMap)
+    lat = float(lat)*(2*math.pi)/float(self.tailleMiniMapX)
     x=math.cos(lat)
     y=math.sin(lat)
     if z==1.0 or z==-1.0:
@@ -505,37 +522,40 @@ class MiniMap(Pane):
 
   def ping(self, task):
     """Boucle qui met à jour la carte"""
+    #Le fond de carte
     if self.derniereMAJ==None or task.time-self.derniereMAJ>10.0:
       if self.carteARedessiner:
-        fond = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
-        soleil = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
-        for x in range(0, self.tailleMiniMap):
-          for y in range(0, self.tailleMiniMap):
+        for x in range(0, self.tailleMiniMapX):
+          for y in range(0, self.tailleMiniMapY):
             px = self.fond.getXel(x,y)
-            spx = self.soleil.getXel(x,y)
             if px[0]==0.0 and px[1]==0.0 and px[2]==0.0:
-              fond.setXel(x,y, self.fondFlou.getXel(x,y))
+              self.fondRendu.setXel(x,y, self.fondFlou.getXel(x,y))
             else:
-              fond.setXel(x,y, px)
-            if spx[0]==1.0 and spx[1]==1.0 and spx[2]==1.0:
-              soleil.setXel(x,y, self.soleilFlou.getXel(x,y))
-            else:
-              soleil.setXel(x,y, spx)
+              self.fondRendu.setXel(x,y, px)
         #fond.gaussianFilter(2.0)
-        fond.write(Filename("./carte.png"))
-        #soleil.gaussianFilter(2.0)
-        soleil.write(Filename("./soleil.png"))
-        fusion = PNMImage(self.tailleMiniMap,self.tailleMiniMap)
-        for x in range(0, self.tailleMiniMap):
-          for y in range(0, self.tailleMiniMap):
-            px = fond.getXel(x,y)
-            spx = soleil.getXel(x,y)
+        #self.fondRendu.write(Filename("./carte.png"))
+      #La zone d'ombre
+      if self.carteSoleilARedessiner:
+        for x in range(0, self.tailleMiniMapX):
+          for y in range(0, self.tailleMiniMapY):
+            spx = self.soleil.getXel(x,y)
             if spx[0]==1.0 and spx[1]==1.0 and spx[2]==1.0:
-              fusion.setXel(x, y, px[0], px[1], px[2])
+              self.soleilRendu.setXel(x,y, self.soleilFlou.getXel(x,y))
             else:
-              fusion.setXel(x, y, px[0]/4.0, px[1]/4.0, px[2]/4.0)
-        fusion.write(Filename("./fusion.png"))
-        self.carteARedessiner = False
+              self.soleilRendu.setXel(x,y, spx)
+        #On la rends floue pour qu'elle soit plus jolie
+        self.soleilRendu.gaussianFilter(5.0)
+        #self.soleilRendu.write(Filename("./soleil.png"))
+      #La fusion fond + ombre
+      if self.carteARedessiner or self.carteSoleilARedessiner:
+        for x in range(0, self.tailleMiniMapX):
+          for y in range(0, self.tailleMiniMapY):
+            px = self.fondRendu.getXel(x,y)
+            spx = self.soleilRendu.getXel(x,y)
+            self.fusion.setXel(x, y, px[0]*spx[0], px[1]*spx[1], px[2]*spx[2])
+        self.fusion.write(Filename("./fusion.png"))
+      self.carteARedessiner = False
+      self.carteSoleilARedessiner = False
       self.derniereMAJ=task.time
       
     self.enlevePoint(self.camBlip)

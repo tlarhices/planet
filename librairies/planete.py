@@ -50,6 +50,9 @@ class Planete:
   distanceSoleil = None #Distance du soleil à la planète
   vitesseSoleil = None #Vitesse de rotation du soleil en pifometre/s
   angleSoleil = None
+  lastMAJPosSoleil=100000.0 #Le temps depuis lequel on n'a pas remis à jour la carte du soleil
+  dureeMAJPosSoleil=23.0 #Le temps que l'on attends avant de recalculer la carte du soleil
+
   
   # Initialisation -----------------------------------------------------
   def __init__(self):
@@ -65,6 +68,7 @@ class Planete:
     self.distanceSoleil = float(general.configuration.getConfiguration("planete", "Univers", "distanceSoleil","10.0"))
     self.vitesseSoleil = float(general.configuration.getConfiguration("planete", "Univers", "vitesseSoleil","1.0"))
     self.angleSoleil = 0.0
+    self.dureeMAJPosSoleil = float(general.configuration.getConfiguration("affichage", "Minimap", "dureeMAJPosSoleil","1.0"))
     
     general.WIREFRAME = general.configuration.getConfiguration("affichage", "general", "fildefer","f")=="t"
     general.TEXTURES = general.configuration.getConfiguration("affichage", "general", "utilise-textures","t")=="t"
@@ -913,35 +917,41 @@ class Planete:
       self.sauvegarde(os.path.join(".","sauvegardes","sauvegarde-auto.pln"))
       self.lastSave = 0
       
-    """try:
-      def procFace(face):
-        if face.enfants == None:
-          p1 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[0]]), 1.0001)
-          if general.ligneCroiseSphere(p1, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
-            c1=(0,0,0)
+    #Met à jour la carte du soleil
+    self.lastMAJPosSoleil += temps
+    if self.lastMAJPosSoleil > self.dureeMAJPosSoleil:
+      self.lastMAJPosSoleil=0.0
+      try:
+        def procFace(face):
+          jour = (1.0,1.0,1.0)
+          nuit = (0.2,0.2,0.4)
+          if face.enfants == None:
+            p1 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[0]]), 1.0001)
+            if general.ligneCroiseSphere(p1, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
+              c1=nuit
+            else:
+              c1=jour
+            p2 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[1]]), 1.0001)
+            if general.ligneCroiseSphere(p2, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
+              c2=nuit
+            else:
+              c2=jour
+            p3 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[2]]), 1.0001)
+            if general.ligneCroiseSphere(p3, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
+              c3=nuit
+            else:
+              c3=jour
+            general.gui.menuCourant.miniMap.dessineCarte(p1, p2, p3, c1, c2, c3, True)
+        def recur(face):
+          if face.enfants==None:
+            procFace(face)
           else:
-            c1=(1.0,1.0,1.0)
-          p2 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[1]]), 1.0001)
-          if general.ligneCroiseSphere(p2, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
-            c2=(0,0,0)
-          else:
-            c2=(1.0,1.0,1.0)
-          p3 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[2]]), 1.0001)
-          if general.ligneCroiseSphere(p3, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
-            c3=(0,0,0)
-          else:
-            c3=(1.0,1.0,1.0)
-          general.gui.menuCourant.miniMap.dessineCarte(p1, p2, p3, c1, c2, c3, True)
-      def recur(face):
-        if face.enfants==None:
-          procFace(face)
-        else:
-          for enfant in face.enfants:
-            recur(enfant)
-      for face in self.elements:
-        recur(face)
-    except AttributeError:
-      pass"""
+            for enfant in face.enfants:
+              recur(enfant)
+        for face in self.elements:
+          recur(face)
+      except AttributeError:
+        pass
     
     general.stopChrono("Planete::ping")
   # Fin Mise à jour ----------------------------------------------------
