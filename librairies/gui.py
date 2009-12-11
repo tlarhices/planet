@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from pandac.PandaModules import *
+from pandac.PandaModules import * 
 
 import sys
 import general
@@ -315,6 +315,46 @@ class Historique(MenuCirculaire):
         
     MenuCirculaire.MAJ(self, temps)
     
+class FondCarte:
+  carte = None
+  image = None
+  
+  def __init__(self, tailleX, tailleY):
+    #La zone où on affiche l'image:
+    cardMaker = CardMaker('sprite')
+    cardMaker.setFrame(0.0, 1.0, 0.0, 1.0)
+    cardMaker.setHasNormals(True)
+    #Construit une carte (un plan)
+    self.node = NodePath("node")
+    self.node.reparentTo(render2d)
+    self.carte = self.node.attachNewNode(cardMaker.generate())
+    self.tailleX, self.tailleY = tailleX, tailleY
+    self.carte.setScale(self.tailleX, 1.0, self.tailleY)
+    self.carte.setPos(0.0, 0.0, 0.0)
+    
+    taskMgr.add(self._reSize,"reSize",20)
+    taskMgr.add(self._draw,"draw",40)
+  
+  def _reSize(self, task):
+    """ resize the window via panda3d internal events"""
+    self.windowsize = base.win.getXSize(),base.win.getYSize()
+    self.size = Vec2(*self.windowsize)
+    self.aspect  = float(self.windowsize[0]) / float(self.windowsize[1])         
+    self.node.setScale(2./base.win.getXSize(), 1, -2./base.win.getYSize())
+    self.node.setPos(-1, 0, 1)
+    self.node.reparentTo(render2d)    
+    self.carte.setPos(self.size[0]-self.tailleX, 0.0, 0.0)
+    return task.cont
+    
+  def _draw(self, task):
+    """ resize the window via panda3d internal events"""
+    if self.image!=None:
+      self.carte.setTexture(self.image)
+    return task.cont
+    
+  def setImage(self, image):
+    self.image = image
+
 class MiniMap(Pane):
   """Affiche une carte miniature de la planète"""
   gui = None #l'instance de la classe Interface en cours d'utilisation
@@ -333,6 +373,8 @@ class MiniMap(Pane):
   fondFlou = None
   soleil = None
   soleilFlou = None
+  
+  carte = None
 
   def __init__(self, gui):
     Pane.__init__(self)
@@ -350,8 +392,8 @@ class MiniMap(Pane):
     self.tailleMiniMapX = 2**int(math.log(self.tailleMiniMapX, 2)+0.5)
     self.tailleMiniMapY = 2**int(math.log(self.tailleMiniMapY, 2)+0.5)
     
-    self.width = self.tailleMiniMapX+PAD*2
-    self.height = self.tailleMiniMapY+PAD*2
+    self.width = self.tailleMiniMapX
+    self.height = self.tailleMiniMapY
     
     self.points={}
     self.blips={}
@@ -359,6 +401,8 @@ class MiniMap(Pane):
     self.derniereMAJ = None
     self.carteARedessiner = True
     self.carteSoleilARedessiner = True
+    
+    self.carte = FondCarte(self.tailleMiniMapX, self.tailleMiniMapY)
     
     #L'image de fond
     self.fond = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
@@ -554,6 +598,9 @@ class MiniMap(Pane):
             spx = self.soleilRendu.getXel(x,y)
             self.fusion.setXel(x, y, px[0]*spx[0], px[1]*spx[1], px[2]*spx[2])
         self.fusion.write(Filename("./fusion.png"))
+        texture = Texture("fusion")
+        texture.load(self.fusion)
+        self.carte.setImage(texture)
       self.carteARedessiner = False
       self.carteSoleilARedessiner = False
       self.derniereMAJ=task.time
