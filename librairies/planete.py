@@ -52,6 +52,8 @@ class Planete:
   angleSoleil = None
   lastMAJPosSoleil=100000.0 #Le temps depuis lequel on n'a pas remis à jour la carte du soleil
   dureeMAJPosSoleil=23.0 #Le temps que l'on attends avant de recalculer la carte du soleil
+  lastSave = 1000
+  seuilSauvegardeAuto = 600 #Sauvegarde auto toutes les 10 minutes
 
   
   # Initialisation -----------------------------------------------------
@@ -68,7 +70,8 @@ class Planete:
     self.distanceSoleil = float(general.configuration.getConfiguration("planete", "Univers", "distanceSoleil","10.0"))
     self.vitesseSoleil = float(general.configuration.getConfiguration("planete", "Univers", "vitesseSoleil","1.0"))
     self.angleSoleil = 0.0
-    self.dureeMAJPosSoleil = float(general.configuration.getConfiguration("affichage", "Minimap", "dureeMAJPosSoleil","1.0"))
+    self.dureeMAJPosSoleil = float(general.configuration.getConfiguration("affichage", "Minimap", "dureeMAJPosSoleil","23.0"))
+    self.seuilSauvegardeAuto = float(general.configuration.getConfiguration("affichage", "General", "seuilSauvegardeAuto","600.0"))
     
     general.WIREFRAME = general.configuration.getConfiguration("affichage", "general", "fildefer","f")=="t"
     general.TEXTURES = general.configuration.getConfiguration("affichage", "general", "utilise-textures","t")=="t"
@@ -508,9 +511,11 @@ class Planete:
     self.azure.setDepthWrite(False)
 
     #Fabrique une lumière ambiante pour que la nuit soit moins noire
-    if general.configuration.getConfiguration("affichage", "Effets", "typeEclairage","shader")!="none":
+    if general.configuration.getConfiguration("affichage", "Effets", "typeEclairage","shader")=="flat":
+      couleurNuit = general.configuration.getConfiguration("Planete", "Univers", "couleurNuit", "0.2 0.2 0.275 1.0")
+      couleurNuit = VBase4(*general.floatise(couleurNuit.split(" ")))
       alight = AmbientLight('alight')
-      alight.setColor(VBase4(0.2, 0.2, 0.275, 1))
+      alight.setColor(couleurNuit)
       alnp = self.racine.attachNewNode(alight)
       self.racine.setLight(alnp)
       #L'azure n'est pas affectée par la lumière ambiante
@@ -724,18 +729,18 @@ class Planete:
     general.stopChrono("Planete::charge")
   # Fin Import / Export ------------------------------------------------
       
-  lastSave = 1000
-  seuilSauvegardeAuto = 600 #Sauvegarde auto toutes les 10 minutes
-  
   # Mise à jour --------------------------------------------------------
   def fabriqueSoleil(self, type=None):
     if type==None:
       type = general.configuration.getConfiguration("affichage", "effets", "typeEclairage", "shader")
     type=type.lower().strip()
       
+    couleurSoleil = general.configuration.getConfiguration("Planete", "Univers", "couleurSoleil", "0.9 0.9 0.9 0.8")
+    couleurSoleil = VBase4(*general.floatise(couleurSoleil.split(" ")))
+      
     if type=="flat":
       light = PointLight('soleil')
-      light.setColor(VBase4(0.9, 0.9, 0.9, 0.8))
+      light.setColor(couleurSoleil)
       self.soleil = self.racine.attachNewNode(light)
       self.soleil.setPos(0,0,0)
       self.soleil.setLightOff()

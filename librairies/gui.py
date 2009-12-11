@@ -21,7 +21,7 @@ LARGEUR_BOUTON = 190 #Largeur d'un bouton
 HAUTEUR_CHECK = 15 #Hauteur d'une checkbox
 HAUTEUR_TEXTE = 15 #Hauteur d'une ligne de texte
 TAILLE_ICONE = 15 #Hauteur==Largeur d'une icone
-TEMPS_ICONE = 30.0 #Durée durant laquelle une icone reste affichée à l'écran
+
 
 class InfoBulle(Pane):
   """Zone de texte qui disparait après un certain temps"""
@@ -70,9 +70,12 @@ class MenuCirculaire:
   angleOuverture = None #L'angle sur lequel les boutons s'étalent (en degrés)
   
   animation = None #La position actuelle dans l'animation (en degrés)
+  vitesseAnimation = None #Le nombre de degrés par seconde à parcourir
   directionAnimation = None #si <0 les boutons s'éloignent, si >0 les boutons se resserent et si ==0, pas d'animation
   exit = None #La classe de menu à produire quand on quitte
   exiting = None #Si True, alors se menu est en cours de destruction
+  
+  dureeMessage = None #Le temps durant lequel on garde un message à l'écran
   
   lastDraw = None #Heure à laquelle on a affiché le menu en dernier
   
@@ -87,6 +90,8 @@ class MenuCirculaire:
     self.boutons=[[],[]]
     self.composants = []
     self.lastDraw = None
+    self.vitesseAnimation = float(general.configuration.getConfiguration("affichage", "General", "vitesseAnimationMenus","75.0"))
+    self.dureeMessage = float(general.configuration.getConfiguration("affichage", "General", "dureeMessage","30.0"))
     
   def ajouteGauche(self, bouton):
     """Ajoute un bouton dans la colonne de gauche"""
@@ -132,7 +137,7 @@ class MenuCirculaire:
 
   def anime(self, temps):
     """Déplacent les boutons selon l'heure pour produire l'animation"""
-    self.animation += self.directionAnimation * temps * 75
+    self.animation += self.directionAnimation * temps * self.vitesseAnimation
     
     if self.animation<0:
       self.animation=0.0
@@ -273,7 +278,7 @@ class Historique(MenuCirculaire):
     message : le contenu du message
     position : le point au dessus duquel la caméra doit aller lors d'un clic sur l'icône
     """
-    self.messages.append((TEMPS_ICONE, type, message, self.ajouteDroite(self.fabriqueMessage(type, message))))
+    self.messages.append((self.dureeMessage, type, message, self.ajouteDroite(self.fabriqueMessage(type, message))))
     if position!=None:
       self.messages[-1][3].callback = self.gui.io.placeCameraAuDessusDe
       self.messages[-1][3].callbackParams = {"point":position}

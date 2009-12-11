@@ -410,8 +410,14 @@ class AIComportement:
     self.ai = None
     
   def calculChemin(self, debut, fin, priorite):
-    idP = self.ai.sprite.planete.trouveSommet(debut, tiensCompteDeLAngle=True)
-    idC = self.ai.sprite.planete.trouveSommet(fin, tiensCompteDeLAngle=True)
+    if isinstance(debut, int):
+      idP=debut
+    else:
+      idP = self.ai.sprite.planete.trouveSommet(debut, tiensCompteDeLAngle=True)
+    if isinstance(fin, int):
+      idC=fin
+    else:
+      idC = self.ai.sprite.planete.trouveSommet(fin, tiensCompteDeLAngle=True)
     chemin = self.ai.sprite.planete.aiNavigation.aStar(idP, idC)
     print "De",idP,"à",idC,":",
     if chemin!=None:
