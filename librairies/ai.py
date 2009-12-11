@@ -268,7 +268,7 @@ class SuitChemin(AIComportementUnitaire):
   courant = None
   
   def __init__(self, chemin, comportement, priorite):
-    SuitChemin.__init__(self, comportement, priorite)
+    AIComportementUnitaire.__init__(self, comportement, priorite)
     self.chemin = chemin
     
   def ping(self, temps):
@@ -283,14 +283,16 @@ class SuitChemin(AIComportementUnitaire):
       return
       
     if self.courant == None:
+      print "va vers checkpoint suivant..."
       #Comme on a pas de cible au chemin pour le moment
       #On prend le point suivant sur le chemin
-      cible = self.chemin.pop(0)
+      cible = self.comportement.ai.sprite.planete.sommets[self.chemin.pop(0)]
       #On fait un nouveau comportement pour y aller
-      self.courant = VaVers(cible, self.comportement, priorite)
+      self.courant = VaVers(cible, self.comportement, self.priorite)
       #On ajoute le comportement à l'IA
       self.comportement.comportements.append(self.courant)
     elif self.courant.fini:
+      print "arrivé au checkpoint"
       #On a fini d'aller au point courant
       self.courant = None
     
@@ -299,7 +301,7 @@ class VaVers(AIComportementUnitaire):
   fini = False
   
   def __init__(self, cible, comportement, priorite):
-    SuitChemin.__init__(self, comportement, priorite)
+    AIComportementUnitaire.__init__(self, comportement, priorite)
     self.cible = cible
     
   def ping(self, temps):
@@ -309,7 +311,11 @@ class VaVers(AIComportementUnitaire):
       return
     
     position = self.comportement.ai.sprite.position
-    if general.distance(position, self.cible)<=self.comportement.ai.sprite.distanceProche:
+    dist = general.distance(position, self.cible)
+    print self.comportement.ai.sprite.id,"va vers",self.cible,"distance",dist
+    
+    if dist<=self.comportement.ai.sprite.distanceProche:
+      print "arrivé au checkpoint"
       #on est arrivé
       self.cible=None
       self.supprime()
@@ -317,7 +323,7 @@ class VaVers(AIComportementUnitaire):
       
     #on n'est pas encore arrivé
     #vecteur -position-cible->
-    v = cible[0]-position[0], cible[1]-position[1], cible[2]-position[2]
+    v = self.cible[0]-position[0], self.cible[1]-position[1], self.cible[2]-position[2]
     #la force de steering ici est le vecteur vitesse selon ce vecteur
     self.force = general.multiplieVecteur(general.normaliseVecteur(v), self.comportement.ai.sprite.vitesse*temps)
     
@@ -326,7 +332,7 @@ class Routine(AIComportementUnitaire):
   courant = None
   
   def __init__(self, comportement):
-    SuitChemin.__init__(self, comportement, 0.5)
+    AIComportementUnitaire.__init__(self, comportement, 0.5)
     self.elements = []
     
   def ajouteCheck(self, element, cyclique, priorite):
@@ -399,20 +405,31 @@ class AIComportement:
   def clear(self):
     self.ai = None
     
+  def calculChemin(self, debut, fin, priorite):
+    idP = self.ai.sprite.planete.trouveSommet(debut)
+    idC = self.ai.sprite.planete.trouveSommet(fin)
+    chemin = self.ai.sprite.planete.aiNavigation.aStar(idP, idC)
+    print "De",idP,"à",idC,":",
+    if chemin!=None:
+      print chemin
+      self.suitChemin(chemin, priorite)
+    else:
+      print "impossible"
+    
   def suitChemin(self, chemin, priorite):
-    self.comportements.append(SuitChemin(self, chemin, priorite))
+    self.comportements.append(SuitChemin(chemin, self, priorite))
     
   def vaVers(self, cible, priorite):
-    self.comportements.append(VaVers(self, cible, priorite))
+    self.comportements.append(VaVers(cible, self, priorite))
 
   def fuit(self, cible, distancePanique, distanceOK, priorite):
-    self.comportements.append(Fuit(self, cible, distancePanique, distanceOK, priorite))
+    self.comportements.append(Fuit(cible, distancePanique, distanceOK, self, priorite))
 
   def poursuit(self, cible, distanceMax, priorite):
-    self.comportements.append(Poursuit(self, cible, distanceMax, priorite))
+    self.comportements.append(Poursuit(cible, distanceMax, self,priorite))
 
   def reconnaissance(self, rayonZone, rayonChangeDirection, priorite):
-    self.comportements.append(Reconnaissance(self, rayonZone, rayonChangeDirection, priorite))
+    self.comportements.append(Reconnaissance(rayonZone, rayonChangeDirection, self, priorite))
 
   def routine(self, checklist, priorite):
     routine = None

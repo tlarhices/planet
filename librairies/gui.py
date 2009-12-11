@@ -339,10 +339,11 @@ class MiniMap(Pane):
     #On positionne la carte
     self.x = "right" 
     self.y = "top"
+    self.style = "VIDE"
     #Force la carte à une puissance de 2
     self.tailleMiniMap = 2**int(math.log(self.tailleMiniMap, 2)+0.5)
-    self.width = self.tailleMiniMap
-    self.height = self.tailleMiniMap
+    self.width = self.tailleMiniMap+PAD*2
+    self.height = self.tailleMiniMap+PAD*2
     
     self.points={}
     self.blips={}

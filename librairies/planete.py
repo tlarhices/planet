@@ -898,9 +898,9 @@ class Planete:
       
     #Met à jour les états des sprites
     for sprite in self.sprites[:]:
-      if general.ligneCroiseSphere(sprite.position, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
-        if not sprite.nocturne:
-          sprite.tue("obscurite")
+#      if general.ligneCroiseSphere(sprite.position, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
+#        if not sprite.nocturne:
+#          sprite.tue("obscurite")
       if not sprite.ping(temps):
         if sprite.joueur !=None:
           sprite.joueur.spriteMort(sprite)
@@ -916,17 +916,17 @@ class Planete:
     """try:
       def procFace(face):
         if face.enfants == None:
-          p1 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[0]]), 1.5)
+          p1 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[0]]), 1.0001)
           if general.ligneCroiseSphere(p1, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
             c1=(0,0,0)
           else:
             c1=(1.0,1.0,1.0)
-          p2 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[1]]), 1.5)
+          p2 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[1]]), 1.0001)
           if general.ligneCroiseSphere(p2, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
             c2=(0,0,0)
           else:
             c2=(1.0,1.0,1.0)
-          p3 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[2]]), 1.5)
+          p3 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[2]]), 1.0001)
           if general.ligneCroiseSphere(p3, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
             c3=(0,0,0)
           else:

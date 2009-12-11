@@ -5,6 +5,7 @@ class Theme(Theme):
     RAW_DIR = "theme"
     
     DEFAULT = StretchBorder("theme/frame.png",4)
+    VIDE = StretchBorder("theme/frame-vide.png",4)
     
     CHECKON = IconLike("theme/icones/checkmark.png")
     CHECKOFF = IconLike("theme/icones/blank.png")

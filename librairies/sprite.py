@@ -26,8 +26,6 @@ class Sprite:
   
   vitesse = None
   
-  marcheVersTab = None #La liste des sommets vers lequel l'objet se dirige
-  
   joueur = None #Le joueur qui possède cet objet
   contenu = None #Ce qui se trouve dans l'objet
   vie = None #L'état dans lequel se trouve l'objet
@@ -69,7 +67,6 @@ class Sprite:
     self.miseAJourPosition(position)
     
     self.modele = None
-    self.marcheVersTab = []
     self.inertie = [0.0,0.0,0.0]
     self.inertieSteering = [0.0,0.0,0.0]
     self.rac = NodePath("racine-sprite")
@@ -129,13 +126,6 @@ class Sprite:
     if self.vie<=0:
       return False
       
-    #Fait marcher
-    if self.marcheVersTab != None:
-      if len(self.marcheVersTab) > 0:
-        self.deplace(self.marcheVersTab[0], temps)
-        if general.distanceCarree(self.position, self.versCoord(self.marcheVersTab[0])) < self.distanceProche:
-          self.marcheVersTab.pop(0)
-
     #Fait tomber
     self.appliqueGravite(temps)
     
@@ -298,25 +288,18 @@ class Sprite:
       nom = self.joueur.nom
     out = "s:"+self.id+":"+nom+":"+self.fichierModele+":"+self.fichierSymbole
     out += ":"+str(self.position)+":"+str(self.vitesse)+":"+str(self.vie)+":"+str(self.bouge)+":"+str(self.aquatique)+":\r\n"
-    for elem in self.marcheVersTab:
-      out+="sm:"+self.id+":"+elem+":\r\n"
+    print "SPRITE :: Erreur : comportement non sauvegardé"
     if self.contenu != None:
       print "SPRITE :: Erreur : contenu non géré dans la sauvegarde"
     return out
     
   def marcheVers(self, cible):
     """Calcule la trajectoire pour aller du point actuel à la cible"""
-    idP = self.planete.trouveSommet(self.position)
-    idC = self.planete.trouveSommet(cible)
-    self.marcheVersTab = self.planete.aiNavigation.aStar(idP, idC)
-    if self.marcheVersTab!=None:
-      self.marcheVersTab.append(cible)
-      #self.planete.afficheTexte(self.id+" requête de promenade : "+str(self.marcheVersTab))
-      return True
-    else:
-      #self.planete.afficheTexte(self.id+" impossible d'aller à "+str(cible))
-      pass
-    return False
+    
+    #Si y a pas d'ai, on a pas besoin de perdre son temps avec ^^
+    if self.ai==None:
+      return
+    self.ai.comportement.calculChemin(self.position, cible, 0.75)
     
   def fabriqueModel(self):
     """Produit le modèle ou le sprite"""
