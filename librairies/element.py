@@ -454,9 +454,8 @@ class Element:
       p1 = self.planete.sommets[self.sommets[0]]
       p2 = self.planete.sommets[self.sommets[1]]
       p3 = self.planete.sommets[self.sommets[2]]
-      pA = (p1-p2).cross(p3-p2)
-      pA.normalize()
-      self.normale = pA * -1.0
+      self.normale = -(p1-p2).cross(p3-p2)
+      self.normale.normalize()
     
     if point==None:
       #Si on ne donne pas de point, alors on renvoie la coordonnée locale
@@ -471,7 +470,7 @@ class Element:
       b+=e
       c+=f
       cpt+=1.0
-    result = Vec3(self.normale)/cpt
+    result = Vec3(a,b,c)/cpt
     result.normalize()
     return result
       

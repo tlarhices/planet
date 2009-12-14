@@ -554,7 +554,7 @@ class Nuage(Sprite):
   densite = None
   
   def __init__(self, densite, taille, planete):
-    Sprite.__init__(self, id="nuage", position=(0.01,0.01,0.01), fichierDefinition=None, planete=planete, joueur=None)
+    Sprite.__init__(self, id="nuage", position=Vec3(0.01,0.01,0.01), fichierDefinition=None, planete=planete, joueur=None)
     self.densite = densite
     self.taille = taille
     self.planete = planete
@@ -644,7 +644,7 @@ class Nuage(Sprite):
       rn = Vec3(r)
       rn.normalize()
       v=rn * (self.planete.niveauCiel-0.01+(self.planete.niveauCiel-self.planete.delta-1.0)*random.random())
-      r = v[0]-centre[0], v[1]-centre[1], v[2]-centre[2]
+      r = v-centre
       nuage.setPos(*r)
       
       #On diminue la taille du prout s'il est loin du centre

@@ -214,12 +214,12 @@ class Planete:
   def fabriqueSphereOctahedre(self):
     """fabrique un octahèdre régulier de rayon 1.0"""
     general.startChrono("Planete::fabriqueSphere")
-    XP = (1.0,0.0,0.0)
-    XM = (-1.0,0.0,0.0)
-    YP = (0.0,1.0,0.0)
-    YM = (0.0,-1.0,0.0)
-    ZP = (0.0,0.0,1.0)
-    ZM = (0.0,0.0,-1.0)
+    XP = Vec3(1.0,0.0,0.0)
+    XM = Vec3(-1.0,0.0,0.0)
+    YP = Vec3(0.0,1.0,0.0)
+    YM = Vec3(0.0,-1.0,0.0)
+    ZP = Vec3(0.0,0.0,1.0)
+    ZM = Vec3(0.0,0.0,-1.0)
     
     self.sommets = [XP, XM, YP, YM, ZP, ZM]
     iXP = 0;iXM = 1;iYP = 2;iYM = 3;iZP = 4;iZM = 5
@@ -240,18 +240,18 @@ class Planete:
     b = math.sqrt(2.0/(5.0-math.sqrt(5.0)))
     
     self.sommets = []
-    self.sommets.append((-a, 0.0, b))
-    self.sommets.append((a, 0.0, b))
-    self.sommets.append((-a, 0.0, -b))
-    self.sommets.append((a, 0.0, -b))
-    self.sommets.append((0.0, b, a))
-    self.sommets.append((0.0, b, -a))
-    self.sommets.append((0.0, -b, a))
-    self.sommets.append((0.0, -b, -a))
-    self.sommets.append((b, a, 0.0))
-    self.sommets.append((-b, a, 0.0))
-    self.sommets.append((b, -a, 0.0))
-    self.sommets.append((-b, -a, 0.0))
+    self.sommets.append(Vec3(-a, 0.0, b))
+    self.sommets.append(Vec3(a, 0.0, b))
+    self.sommets.append(Vec3(-a, 0.0, -b))
+    self.sommets.append(Vec3(a, 0.0, -b))
+    self.sommets.append(Vec3(0.0, b, a))
+    self.sommets.append(Vec3(0.0, b, -a))
+    self.sommets.append(Vec3(0.0, -b, a))
+    self.sommets.append(Vec3(0.0, -b, -a))
+    self.sommets.append(Vec3(b, a, 0.0))
+    self.sommets.append(Vec3(-b, a, 0.0))
+    self.sommets.append(Vec3(b, -a, 0.0))
+    self.sommets.append(Vec3(-b, -a, 0.0))
     
     #Faces
     self.elements = []
