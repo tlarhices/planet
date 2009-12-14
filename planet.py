@@ -102,6 +102,17 @@ class Start:
     j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
     j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
     j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
+    j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
+    j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
+    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
+    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
+    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
+    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
+    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
+    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
+    j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
+    j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
+    j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
 
     #On construit le modèle 3D de la planète
     self.planete.fabriqueModel()

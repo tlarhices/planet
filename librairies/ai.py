@@ -279,6 +279,13 @@ class SuitChemin(AIComportementUnitaire):
     AIComportementUnitaire.__init__(self, comportement, priorite)
     self.chemin = chemin
     
+    if len(chemin)>2:
+      if (self.getCoord(chemin[0])-self.getCoord(chemin[1])).lengthSquared() > (self.getCoord(chemin[0])-self.getCoord(chemin[2])).lengthSquared():
+        chemin.remove(chemin[1])
+    if len(chemin)>2:
+      if (self.getCoord(chemin[-1])-self.getCoord(chemin[-2])).lengthSquared() > (self.getCoord(chemin[-1])-self.getCoord(chemin[-3])).lengthSquared():
+        chemin.remove(chemin[-2])
+    
     if general.DEBUG_AI_SUIT_CHEMIN:
       prev=None
       for element in self.chemin:
@@ -287,6 +294,11 @@ class SuitChemin(AIComportementUnitaire):
         if prev!=None:
           self.comportement.ai.sprite.planete.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((0.0,1.0,0.0), prev * 1.2, element * 1.2))
         prev = element
+        
+  def getCoord(self, point):
+    if isinstance(point, int):
+      return self.comportement.ai.sprite.planete.sommets[point]
+    return point
     
   def ping(self, temps):
     if self.chemin == None:
@@ -304,9 +316,8 @@ class SuitChemin(AIComportementUnitaire):
         print "va vers checkpoint suivant..."
       #Comme on a pas de cible au chemin pour le moment
       #On prend le point suivant sur le chemin
-      cible = self.chemin.pop(0)
-      if isinstance(cible, int):
-        cible = self.comportement.ai.sprite.planete.sommets[cible]
+      cible = self.getCoord(self.chemin.pop(0))
+      
       if general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE", "t")=="t":
         self.comportement.ai.sprite.planete.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((1.0,0.0,0.0), self.comportement.ai.sprite.position * 1.2, cible * 1.2))
         mdl = loader.loadModel("./data/modeles/sphere.egg")
