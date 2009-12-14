@@ -162,6 +162,9 @@ class Sprite:
     
   def loot(self, sprite, temps):
     if (self.position - sprite.position).length()<=self.distanceProche*1.1:
+      
+      tout = sprite.nourriture + sprite.construction
+      
       print "Loot :"
       miamNourriture = 5.0*temps
       if sprite.nourriture<miamNourriture:
@@ -175,6 +178,10 @@ class Sprite:
       self.construction+=miamConstruction
       sprite.construction-=miamConstruction
       
+      if tout!=0.0:
+        prct = (miamNourriture+miamConstruction)/tout
+        sprite.echelle = sprite.echelle*prct
+        sprite.racine.setScale(sprite.echelle)
       
       print "- Ressources :",self.nourriture, self.construction
       print "- Restantes :",sprite.nourriture, sprite.construction
@@ -185,6 +192,7 @@ class Sprite:
           print "TODO:",self.id,"va se vider les pocher"
           self.nourriture = 0
           self.construction = 0
+        sprite.tue("ressources épuisées")
         sprite = self.chercheSpriteProche(-1, -1, 1, None)
         if sprite != None:
           print self.id,"va couper l'arbre",sprite.id

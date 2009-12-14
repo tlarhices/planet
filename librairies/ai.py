@@ -304,7 +304,9 @@ class SuitChemin(AIComportementUnitaire):
         print "va vers checkpoint suivant..."
       #Comme on a pas de cible au chemin pour le moment
       #On prend le point suivant sur le chemin
-      cible = self.comportement.ai.sprite.planete.sommets[self.chemin.pop(0)]
+      cible = self.chemin.pop(0)
+      if isinstance(cible, int):
+        cible = self.comportement.ai.sprite.planete.sommets[cible]
       if general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE", "t")=="t":
         self.comportement.ai.sprite.planete.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((1.0,0.0,0.0), self.comportement.ai.sprite.position * 1.2, cible * 1.2))
         mdl = loader.loadModel("./data/modeles/sphere.egg")
@@ -380,7 +382,6 @@ class AppelFonction(AIComportementUnitaire):
     ret = self.fonction(**self.dico)
     if ret<0:
       self.fini=True
-    
     
 class Routine(AIComportementUnitaire):
   elements = None
@@ -505,6 +506,8 @@ class AIComportement:
     else:
       idC = self.ai.sprite.planete.trouveSommet(fin, tiensCompteDeLAngle=True)
     chemin = self.ai.sprite.planete.aiNavigation.aStar(idP, idC)
+    chemin.insert(0, debut)
+    chemin.append(fin)
     print "De",idP,"à",idC,":",
     if chemin!=None:
       print chemin

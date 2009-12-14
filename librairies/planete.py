@@ -450,8 +450,7 @@ class Planete:
     self.fabriqueEau()
     #On ajoute le ciel
     self.fabriqueCiel()
-
-
+    
     self.racine.analyze()
     general.stopChrono("Planete::fabriqueModel")
 
