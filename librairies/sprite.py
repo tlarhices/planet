@@ -70,7 +70,12 @@ class Sprite:
     self.inertie = [0.0,0.0,0.0]
     self.inertieSteering = [0.0,0.0,0.0]
     self.rac = NodePath("racine-sprite")
+    self.rac.reparentTo(self.planete.racine)
     self.racine = NodePath("racine-sprite")
+    self.racine.reparentTo(self.rac)
+    #Tourne le modèle pour que sa tête soit en "haut" (Y pointant vers l'extérieur de la planète)
+    self.racine.setP(90)
+    self.racine.setScale(0.01)
     self.pileTempsAppliqueGraviteObjetsFixes = 1000.0
 
     if fichierDefinition!=None:
@@ -99,34 +104,21 @@ class Sprite:
   def pointeRacineSol(self):
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""
     #Positionne le modèle et le fait pointer vers le centre de la planète (Z pointant sur la planète)
-    self.rac.reparentTo(self.planete.racine)
     self.rac.setPos(*self.position)
     self.rac.lookAt(self.planete.racine,0,0,0)
-    #Tourne le modèle pour que sa tête soit en "haut" (Y pointant vers l'extérieur de la planète)
-    self.racine.reparentTo(self.rac)
-    self.racine.setP(90)
-    self.racine.setScale(0.01)
     
-    #Affiche le racine devant tout pour le debug
-    #self.rac.setBin('fixed', -1)
-    #self.rac.setDepthTest(False)
-    #self.rac.setDepthWrite(False)
-    #self.rac.setLightOff()
+  tempBoucle10 = 1000000000
     
   def ping(self, temps):
     """
     Appelé à chaque image, met à jour l'état de l'objet
     temps : le nombre de secondes depuis la dernière mise à jour
     """
-    
     if self.modele==None:
       self.fabriqueModel()
       if self.modele==None:
         self.tue("Impossible de charger le modele")
     
-    if self.vie<=0:
-      return False
-      
     #Fait tomber
     self.appliqueGravite(temps)
     
@@ -139,9 +131,14 @@ class Sprite:
     if self.vie<=0:
       return False
       
-    #Recalcule la verticale du modèle
-    self.MAJSymbole()
-    self.blip()
+      
+    self.tempBoucle10+=temps
+    if self.tempBoucle10>0.1:
+      #Recalcule la verticale du modèle
+      self.MAJSymbole()
+      self.blip()
+      self.tempBoucle10 = 0
+      
     return True
     
   def blip(self):
@@ -207,10 +204,8 @@ class Sprite:
   def appliqueInertie(self, temps):
     if general.normeVecteur(self.inertie)>self.terminalVelocity:
       self.inertie = general.multiplieVecteur(general.normaliseVecteur(self.inertie), self.terminalVelocity)
-    self.inertie = self.inertie[0] + self.inertieSteering[0], self.inertie[1] + self.inertieSteering[1], self.inertie[2] + self.inertieSteering[2]
+    self.miseAJourPosition((self.position[0]+self.inertie[0]*temps+self.inertieSteering[0], self.position[1]+self.inertie[1]*temps+self.inertieSteering[1], self.position[2]+self.inertie[2]*temps+self.inertieSteering[2]))
     self.inertieSteering = [0.0,0.0,0.0]
-    self.miseAJourPosition((self.position[0]+self.inertie[0]*temps, self.position[1]+self.inertie[1]*temps, self.position[2]+self.inertie[2]*temps))
-
     
   def versCoord(self, cible):
     """Si cible est une coordonnée, retourne cette dernière, sinon extrait les coordonnées"""
@@ -246,14 +241,14 @@ class Sprite:
     #self.planete.afficheTexte(self.id+" marche vers "+str(cible))
     self.miseAJourPosition(self.position)
       
-  prevPos = None
+#  prevPos = None
   def miseAJourPosition(self, position):
     """Change la position de l'objet"""
     self.position = position
-    if general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE", "t")=="t":
-      if self.prevPos != None:
-        self.planete.racine.attachNewNode(self.dessineLigne((random.random(),random.random(),random.random(),1.0), general.multiplieVecteur(self.prevPos, 1.2), general.multiplieVecteur(self.position, 1.2)))
-      self.prevPos = self.position
+    #if general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE", "t")=="t":
+    #  if self.prevPos != None:
+    #    self.planete.racine.attachNewNode(self.dessineLigne((random.random(),random.random(),random.random(),1.0), general.multiplieVecteur(self.prevPos, 1.2), general.multiplieVecteur(self.position, 1.2)))
+    #  self.prevPos = self.position
       
     self.altCarre = general.normeVecteurCarre(self.position)
     if self.altCarre < self.planete.niveauEau*self.planete.niveauEau:
@@ -265,6 +260,7 @@ class Sprite:
         self.tue("noyade")
     if self.modele != None:
       self.pointeRacineSol()
+    pass
       
   def tue(self, type):
     """Gère la mort du sprite"""
@@ -337,6 +333,9 @@ class Sprite:
     self.modele.setPythonTag("id",self.id)
     self.modele.setPythonTag("instance",self)
     self.modele.reparentTo(self.racine)
+    #Tourne le modèle pour que sa tête soit en "haut" (Y pointant vers l'extérieur de la planète)
+    self.racine.setP(90)
+    self.racine.setScale(0.01)
     self.pointeRacineSol()
     return self.modele
     
@@ -533,6 +532,7 @@ class Nuage(Sprite):
     self.modele = NodePath("nuage")#NodePath(FadeLODNode('nuage'))
     self.modele.setPos(*general.multiplieVecteur(general.normaliseVecteur(centre), self.planete.niveauCiel-0.01))
     self.racine = NodePath("nuage-elem")
+    self.racine.reparentTo(self.rac)
     
     import os
     textures = os.listdir(os.path.join(".","data","textures","nuages"))

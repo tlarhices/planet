@@ -445,6 +445,8 @@ class Planete:
     #On ajoute le ciel
     self.fabriqueCiel()
 
+
+    self.racine.analyze()
     general.stopChrono("Planete::fabriqueModel")
 
   def fabriqueEau(self):
@@ -854,6 +856,7 @@ class Planete:
     id = "[neutre]"+id+"-"+str(len(self.sprites)+1)
     sprite = Sprite(id=id, position=position, fichierDefinition=fichier, planete=self, joueur=None)
     self.sprites.append(sprite)
+    return sprite
 
   def ping(self, temps):
     general.startChrono("Planete::ping")

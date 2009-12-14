@@ -276,6 +276,15 @@ class SuitChemin(AIComportementUnitaire):
     AIComportementUnitaire.__init__(self, comportement, priorite)
     self.chemin = chemin
     
+    if general.DEBUG_AI_SUIT_CHEMIN:
+      prev=None
+      for element in self.chemin:
+        if isinstance(element, int):
+          element = self.comportement.ai.sprite.planete.sommets[element]
+        if prev!=None:
+          self.comportement.ai.sprite.planete.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((0.0,1.0,0.0), general.multiplieVecteur(prev, 1.2), general.multiplieVecteur(element, 1.2)))
+        prev = element
+    
   def ping(self, temps):
     if self.chemin == None:
       #On a pas de chemin à suivre
@@ -288,7 +297,8 @@ class SuitChemin(AIComportementUnitaire):
       return
       
     if self.courant == None:
-      print "va vers checkpoint suivant..."
+      if general.DEBUG_AI_SUIT_CHEMIN:
+        print "va vers checkpoint suivant..."
       #Comme on a pas de cible au chemin pour le moment
       #On prend le point suivant sur le chemin
       cible = self.comportement.ai.sprite.planete.sommets[self.chemin.pop(0)]
@@ -304,7 +314,8 @@ class SuitChemin(AIComportementUnitaire):
       #On ajoute le comportement à l'IA
       self.comportement.comportements.append(self.courant)
     elif self.courant.fini:
-      print "arrivé au checkpoint"
+      if general.DEBUG_AI_SUIT_CHEMIN:
+        print "arrivé au checkpoint"
       #On a fini d'aller au point courant
       self.courant = None
     
@@ -324,10 +335,13 @@ class VaVers(AIComportementUnitaire):
     
     position = self.comportement.ai.sprite.position
     dist = general.distance(position, self.cible)
-    print self.comportement.ai.sprite.id,"va vers",self.cible,"distance",dist
+    if general.DEBUG_AI_VA_VERS:
+      print self.comportement.ai.sprite.id,"va vers",self.cible
+      print self.comportement.ai.sprite.id,"distance",dist
     
     if dist<=self.comportement.ai.sprite.distanceProche:
-      print "arrivé au checkpoint"
+      if general.DEBUG_AI_VA_VERS:
+        print "arrivé au checkpoint"
       #on est arrivé
       self.cible=None
       self.supprime()
@@ -337,7 +351,11 @@ class VaVers(AIComportementUnitaire):
     #vecteur -position-cible->
     v = self.cible[0]-position[0], self.cible[1]-position[1], self.cible[2]-position[2]
     #la force de steering ici est le vecteur vitesse selon ce vecteur
+    if general.DEBUG_AI_VA_VERS:
+      print self.comportement.ai.sprite.id,"position",position
     self.force = general.multiplieVecteur(general.normaliseVecteur(v), self.comportement.ai.sprite.vitesse*temps)
+    if general.DEBUG_AI_VA_VERS:
+      print self.comportement.ai.sprite.id,"force vavers", self.force
     
 class Routine(AIComportementUnitaire):
   elements = None
@@ -402,18 +420,35 @@ class AIComportement:
   def ping(self, temps):
     force = [0.0,0.0,0.0]
     facteurs = 0.0
+    
+    finis = []
+    
     for comportement in self.comportements:
       comportement.ping(temps)
-      force = force[0]+comportement.force[0]*comportement.priorite, force[1]+comportement.force[1]*comportement.priorite, force[2]+comportement.force[2]*comportement.priorite
-      facteurs+=comportement.priorite
+      if not comportement.fini:
+        force = force[0]+comportement.force[0]*comportement.priorite, force[1]+comportement.force[1]*comportement.priorite, force[2]+comportement.force[2]*comportement.priorite
+        facteurs+=comportement.priorite
+      else:
+        finis.append(comportement)
+        
+    for comportement in finis:
+      while self.comportements.count(comportement)>0:
+        self.comportements.remove(comportement)
+      
+    if general.DEBUG_AI_PING_PILE_COMPORTEMENT:
+      print self.ai.sprite.id,"somme forces",force
+      print self.ai.sprite.id,"somme facteurs", facteurs
       
     if facteurs!=0:
       delta = 1.0/facteurs
     else:
       delta = 0.0
+      
     force = force[0]*delta, force[1]*delta, force[2]*delta
     self.steeringForce = force
-    
+    if general.DEBUG_AI_PING_PILE_COMPORTEMENT:
+      print self.ai.sprite.id,"steering force", facteurs
+        
   def clear(self):
     self.ai = None
     

@@ -16,6 +16,7 @@ class Element:
   id = None #Identifiant de la face, utilisé pour reconstruire la géométrie au chargement
   sommets = None #Liste des 3 sommets de la face
   modele = None #Modele 3D de la face
+  vegetation = None
   lignes = None #Elements du fil de fer
   profondeur = None #Profondeur de tesselation courante de cette face
   enfants = None #Liste des sous face si elle a été tesselée
@@ -35,6 +36,7 @@ class Element:
   neige = (215.0/255, 223.0/255, 241.0/255, 1.0)
   
   pileOptimise = None #Temps écoulé depuis la dernière mise a jour
+  
   
   def __init__(self, id, p1, p2, p3, planete, profondeur, parent):
     """
@@ -96,6 +98,9 @@ class Element:
       self.modele.attachNewNode(nd)
       nd = self.dessineLigne((0.0,0.0,1.0,1.0), p3, p1)
       self.modele.attachNewNode(nd)
+      
+    self.vegetation = NodePath("vegetation")
+    self.vegetation.reparentTo(self.planete.racine)
     
   def detruit(self):
     """Détruit la géométrie"""
@@ -244,10 +249,11 @@ class Element:
     #On crée un nouveau point d'encrage pour le modèle 3D
     p1, p2, p3 = self.sommets
     
-    if self.profondeur > 0 or not optimise:
+    if self.profondeur > 0:
       self.modele = NodePath(self.id)
-    else:
-      self.modele = NodePath(self.id+"-rigid")
+    elif self.profondeur == 0:
+      rbc = RigidBodyCombiner(self.id+"-rigid")
+      self.modele = NodePath(rbc)
     self.modele.reparentTo(self.planete.racine)
     
     #S'il y a eut subdivision de cette partie de la géométrie, on ne s'occupe que des enfants
@@ -261,10 +267,13 @@ class Element:
           ##On dit que la couleur proviens des vectrices et qu'il faut pas le perdre
           #self.modele.setAttrib(ColorAttrib.makeVertex()) 
           #Optimise le modèle
-          self.modele.flattenStrong()
+          #self.modele.flattenStrong()
           self.besoinOptimise = False
         else:
           self.besoinOptimise = True
+          
+      if self.profondeur == 0:
+        rbc.collect()
       return self.modele
     
     #S'il n'y a pas eut de subdivision, alors on trace le triange
@@ -283,6 +292,8 @@ class Element:
       self.modele.attachNewNode(nd)
       
     self.modele.setPythonTag("type","sol")
+    if self.profondeur == 0:
+      rbc.collect()
     return self.modele
     
   texturesValides=["subsubaquatique", "subaquatique", "sable", "champ", "herbe",
@@ -423,7 +434,9 @@ class Element:
             r2=1.0-r1
           r3=1.0-r1-r2
           p = p1[0]*r1+p2[0]*r2+p3[0]*r3, p1[1]*r1+p2[1]*r2+p3[1]*r3, p1[2]*r1+p2[2]*r2+p3[2]*r3
-          self.planete.ajouteSprite("palmier", p, "palmier")      
+          sprite = self.planete.ajouteSprite("palmier", p, "palmier")
+          sprite.rac.reparentTo(self.vegetation)
+          sprite.racine.flattenStrong()
     return nd
     
   def calculNormale(self, point=None):
