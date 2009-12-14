@@ -100,6 +100,7 @@ class Sprite:
         self.marcheVers(random.choice(self.planete.voisinage[random.choice(self.planete.voisinage[random.choice(self.planete.voisinage[self.planete.trouveSommet(self.position)])])]))
       self.seuilRecalculPhysique = definition["seuilrecalculphysique"]
       self.masse = definition["masse"]
+      self.echelle = definition["echelle"]
     
   def pointeRacineSol(self):
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""
@@ -320,7 +321,7 @@ class Sprite:
       tmp = self.fabriqueSprite(self.fichierModele)
     else:
       tmp = loader.loadModel(self.fichierModele)
-      tmp.setScale(3.0)
+      tmp.setScale(self.echelle)
     tmp.reparentTo(self.modele)
     self.modele.node().addSwitch(self.distanceSymbole, 0) 
     

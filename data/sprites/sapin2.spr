@@ -1,8 +1,8 @@
-modele = data/modeles/palmier.egg
+modele = data/modeles/firb.egg
 #symbole = data/sprites/ressources/treeshort.png
 symbole = None
 constructible = F
-nom = palmier
+nom = sapin-2
 constr = 10
 nourr = 0
 icone = None
@@ -20,4 +20,4 @@ aquatique = F
 bouge = F
 ai = none
 seuilrecalculphysique = 2.5
-echelle = 3.0
+echelle = 9.0

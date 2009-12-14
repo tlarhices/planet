@@ -87,10 +87,11 @@ class Configuration:
     fichier = open(fichier, "r")
     for ligne in fichier:
       ligne = ligne.strip().lower() #On passe tout en minuscule
-      a,b = ligne.split("=")
-      a = a.strip()
-      b = b.strip()
-      sprite[a]=b
+      if ligne[0]!="#":
+        a,b = ligne.split("=")
+        a = a.strip()
+        b = b.strip()
+        sprite[a]=b
       
     def config(tab, clef, type, defaut):
       clef=clef.lower().strip()
@@ -118,6 +119,7 @@ class Configuration:
     sprite["ai"] = config(sprite, "ai", str, "standard")
     sprite["seuilrecalculphysique"] = config(sprite, "seuilrecalculphysique", float, 2.0)
     sprite["masse"] = config(sprite, "masse", float, 1.0)
+    sprite["echelle"] = config(sprite, "echelle", float, 1.0)
       
     return sprite
     

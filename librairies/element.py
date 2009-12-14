@@ -311,9 +311,9 @@ class Element:
     elif prct < 0:
       return self.subAquatique, "subaquatique", -1 #Eau
     elif prct < 35:
-      return self.sable, "sable", 0 #Plage
+      return self.sable, "sable", 1 #Plage
     elif prct < 40:
-      return self.herbe, "champ", 1 #Sol normal
+      return self.herbe, "champ", 2 #Sol normal
     elif prct < 50:
       return self.herbe, "herbe", 2 #Sol normal
     elif prct < 65:
@@ -321,7 +321,7 @@ class Element:
     elif prct < 70:
       return self.terre, "feuillesb", 3 #Montagne
     elif prct < 80:
-      return self.terre, "feuillesa", 2 #Montagne
+      return self.terre, "feuillesa", 4 #Montagne
     elif prct < 90:
       return self.terre, "cailloux", 0 #Montagne
     else:
@@ -424,19 +424,35 @@ class Element:
       except AttributeError:
         pass
         
+    vegetation=[]
+    vegetation.append([]) #Vide
+    vegetation.append(["palmier",]) #Sable/plage
+    vegetation.append(["sapin1","cerisier","boulot1","boulot2"]) #Herbe/champ
+    vegetation.append(["sapin2","cerisier","boulot1","boulot2","arbrerond"]) #Feuilluts
+    vegetation.append(["sapin3","petitarbre","sapin2","sapin1"]) #Altitude
+        
     if self.decideArbre==None:
       self.decideArbre = True
-      if h1>0 or h2>0 or h3>0:
-        if random.random()>0.8:
-          r1=random.random()
-          r2=random.random()
-          if r1+r2>=1.0:
-            r2=1.0-r1
-          r3=1.0-r1-r2
-          p = p1[0]*r1+p2[0]*r2+p3[0]*r3, p1[1]*r1+p2[1]*r2+p3[1]*r3, p1[2]*r1+p2[2]*r2+p3[2]*r3
-          sprite = self.planete.ajouteSprite("palmier", p, "palmier")
-          sprite.rac.reparentTo(self.vegetation)
-          sprite.racine.flattenStrong()
+      if h1!=0 and h2!=0 and h3!=0:
+        for i in range(0, int(random.random()*5.0)):
+          if random.random()>0.8:
+            r1=random.random()
+            r2=random.random()
+            if r1+r2>=1.0:
+              r2=1.0-r1
+            r3=1.0-r1-r2
+            p = p1[0]*r1+p2[0]*r2+p3[0]*r3, p1[1]*r1+p2[1]*r2+p3[1]*r3, p1[2]*r1+p2[2]*r2+p3[2]*r3
+            controle = random.choice([h1,h2,h3])
+            typeVegetation = random.choice(vegetation[h1])
+            sprite = self.planete.ajouteSprite(typeVegetation, p, typeVegetation)
+            sprite.rac.reparentTo(self.vegetation)
+            sprite.racine.flattenStrong()
+            
+            #On tourne les arbres un peu aléatoirement et on change d'échelle pour varier un peu plus
+            sprite.racine.setH(random.random()*5)
+            sprite.racine.setR(random.random()*7)
+            sprite.echelle = sprite.echelle*(1.0-random.random()/8)
+            sprite.racine.setScale(sprite.echelle)
     return nd
     
   def calculNormale(self, point=None):

@@ -1,8 +1,8 @@
-modele = data/modeles/palmier.egg
+modele = data/modeles/slimtree.egg
 #symbole = data/sprites/ressources/treeshort.png
 symbole = None
 constructible = F
-nom = palmier
+nom = petit arbre
 constr = 10
 nourr = 0
 icone = None
@@ -20,4 +20,4 @@ aquatique = F
 bouge = F
 ai = none
 seuilrecalculphysique = 2.5
-echelle = 3.0
+echelle = 9.0
