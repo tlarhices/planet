@@ -79,6 +79,8 @@ class MenuCirculaire:
   
   lastDraw = None #Heure à laquelle on a affiché le menu en dernier
   
+  miniMap = None
+  
   def __init__(self, gui):
     """gui: l'instance de Interface en cours d'utilisation"""
     self.gui = gui
@@ -490,9 +492,9 @@ class MiniMap(Pane):
     
     #Test des points à cheval sur les bords, s'il y en a, on dessine 2 triangles qui débordent de chaque coté de la carte
     if maxx-minx>float(self.tailleMiniMapX)*2.0/3.0:
-      p1min = list(p1[:])
-      p2min = list(p2[:])
-      p3min = list(p3[:])
+      p1min = Vec2(*p1[:])
+      p2min = Vec2(*p2[:])
+      p3min = Vec2(*p3[:])
       if p1min[0]<float(self.tailleMiniMapX)/2.0:
         p1min[0]=p1min[0]+float(self.tailleMiniMapX)
       if p2min[0]<float(self.tailleMiniMapX)/2.0:
@@ -503,9 +505,9 @@ class MiniMap(Pane):
       if p1!=p1min or p2!=p2min or p3!=p3min:
         self.dessineCarte(p1min, p2min, p3min, c1, c2, c3, estSoleil)
 
-      p1max = list(p1[:])
-      p2max = list(p2[:])
-      p3max = list(p3[:])
+      p1max = Vec2(p1[:])
+      p2max = Vec2(p2[:])
+      p3max = Vec2(p3[:])
       if p1max[0]>float(self.tailleMiniMapX)/2.0:
         p1max[0]=p1max[0]-float(self.tailleMiniMapX)
       if p2max[0]>float(self.tailleMiniMapX)/2.0:
@@ -518,9 +520,9 @@ class MiniMap(Pane):
       return
       
     if maxy-miny>float(self.tailleMiniMapY)*2.0/3.0:
-      p1min = list(p1[:])
-      p2min = list(p2[:])
-      p3min = list(p3[:])
+      p1min = Vec2(p1[:])
+      p2min = Vec2(p2[:])
+      p3min = Vec2(p3[:])
       if p1min[1]<float(self.tailleMiniMapY)/2.0:
         p1min[1]=p1min[1]+float(self.tailleMiniMapY)
       if p2min[1]<float(self.tailleMiniMapY)/2.0:
@@ -531,9 +533,9 @@ class MiniMap(Pane):
       if p1!=p1min or p2!=p2min or p3!=p3min:
         self.dessineCarte(p1min, p2min, p3min, c1, c2, c3, estSoleil)
 
-      p1max = list(p1[:])
-      p2max = list(p2[:])
-      p3max = list(p3[:])
+      p1max = Vec2(p1[:])
+      p2max = Vec2(p2[:])
+      p3max = Vec2(p3[:])
       if p1max[1]>float(self.tailleMiniMapY)/2.0:
         p1max[1]=p1max[1]-float(self.tailleMiniMapY)
       if p2max[1]>float(self.tailleMiniMapY)/2.0:
@@ -651,7 +653,7 @@ class MiniMap(Pane):
             else:
               self.fondRendu.setXel(x,y, px)
         #fond.gaussianFilter(2.0)
-        #self.fondRendu.write(Filename("./carte.png"))
+        self.fondRendu.write(Filename("./carte.png"))
       #La zone d'ombre
       if self.carteSoleilARedessiner and general.configuration.getConfiguration("affichage","minimap","affichesoleil","t")=="t":
         for x in range(0, self.tailleMiniMapX):
@@ -663,7 +665,7 @@ class MiniMap(Pane):
               self.soleilRendu.setXel(x,y, spx)
         #On la rends floue pour qu'elle soit plus jolie
         self.soleilRendu.gaussianFilter(5.0)
-        #self.soleilRendu.write(Filename("./soleil.png"))
+        self.soleilRendu.write(Filename("./soleil.png"))
       #La fusion fond + ombre
       if general.configuration.getConfiguration("affichage","minimap","affichesoleil","t")=="t":
         if self.carteARedessiner or self.carteSoleilARedessiner:
@@ -672,7 +674,7 @@ class MiniMap(Pane):
               px = self.fondRendu.getXel(x,y)
               spx = self.soleilRendu.getXel(x,y)
               self.fusion.setXel(x, y, px[0]*spx[0], px[1]*spx[1], px[2]*spx[2])
-          #self.fusion.write(Filename("./fusion.png"))
+          self.fusion.write(Filename("./fusion.png"))
           texture = Texture("fusion")
           texture.load(self.fusion)
           self.carte.setImage(texture)

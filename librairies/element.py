@@ -259,11 +259,12 @@ class Element:
           #Optimise le modèle
           #self.modele.flattenStrong()
           self.besoinOptimise = False
+          rbc.collect()
         else:
           self.besoinOptimise = True
           
       if self.profondeur == 0:
-        rbc.collect()
+        pass
       return self.modele
     
     #S'il n'y a pas eut de subdivision, alors on trace le triange

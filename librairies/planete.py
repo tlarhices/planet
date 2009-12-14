@@ -936,44 +936,43 @@ class Planete:
       self.lastMAJPosSoleil += temps
       if self.lastMAJPosSoleil > self.dureeMAJPosSoleil:
         self.lastMAJPosSoleil=0.0
-        try:
-          def procFace(face):
-            jour = (1.0,1.0,1.0)
-            nuit = (0.2,0.2,0.4)
-            p1 = Vec3(self.sommets[face.sommets[0]])
-            p1.normalize()
-            p1 = p1 * 1.0001
-            if general.ligneCroiseSphere(p1, self.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
-              c1=nuit
-            else:
-              c1=jour
-            p2 = Vec3(self.sommets[face.sommets[1]])
-            p2.normalize()
-            p2 = p2 * 1.0001
-            if general.ligneCroiseSphere(p2, self.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
-              c2=nuit
-            else:
-              c2=jour
-            p3 = Vec3(self.sommets[face.sommets[2]])
-            p3.normalize()
-            p3 = p3 * 1.0001
-            if general.ligneCroiseSphere(p3, self.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
-              c3=nuit
-            else:
-              c3=jour
-            if face.enfants == None or (c1==c2 and c2==c3):
+        def procFace(face):
+          jour = (1.0,1.0,1.0)
+          nuit = (0.2,0.2,0.4)
+          p1 = Vec3(self.sommets[face.sommets[0]])
+          p1.normalize()
+          p1 = p1 * 1.0001
+          if general.ligneCroiseSphere(p1, self.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
+            c1=nuit
+          else:
+            c1=jour
+          p2 = Vec3(self.sommets[face.sommets[1]])
+          p2.normalize()
+          p2 = p2 * 1.0001
+          if general.ligneCroiseSphere(p2, self.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
+            c2=nuit
+          else:
+            c2=jour
+          p3 = Vec3(self.sommets[face.sommets[2]])
+          p3.normalize()
+          p3 = p3 * 1.0001
+          if general.ligneCroiseSphere(p3, self.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
+            c3=nuit
+          else:
+            c3=jour
+          
+          if face.enfants == None:# or (c1==c2 and c2==c3):
+            if general.gui.menuCourant.miniMap != None:
               general.gui.menuCourant.miniMap.dessineCarte(p1, p2, p3, c1, c2, c3, True)
-            return not (c1==c2 and c2==c3) #Return False si tout est de la meme couleur
-            
-          def recur(face):
-            if procFace(face):
-              if face.enfants != None:
-                for enfant in face.enfants:
-                  recur(enfant)
-          for face in self.elements:
-            recur(face)
-        except AttributeError:
-          pass
+          return True#not (c1==c2 and c2==c3) #Return False si tout est de la meme couleur
+          
+        def recur(face):
+          if procFace(face):
+            if face.enfants != None:
+              for enfant in face.enfants:
+                recur(enfant)
+        for face in self.elements:
+          recur(face)
     
     general.stopChrono("Planete::ping")
   # Fin Mise à jour ----------------------------------------------------
