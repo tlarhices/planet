@@ -75,22 +75,9 @@ class Element:
       delta = (random.random()-0.5)/10 +1.0
       self.modele = NodePath(self.id)
       self.modele.reparentTo(self.planete.racine)
-      p1 = general.multiplieVecteur(self.planete.sommets[p1], delta)
-      p2 = general.multiplieVecteur(self.planete.sommets[p2], delta)
-      p3 = general.multiplieVecteur(self.planete.sommets[p3], delta)
-      
-      
-      A=general.crossProduct((p2[0]-p1[0],p2[1]-p1[1],p2[2]-p1[2]), (p3[0]-p2[0],p3[1]-p2[1],p3[2]-p2[2]))
-      B=general.crossProduct((p3[0]-p2[0],p3[1]-p2[1],p3[2]-p2[2]), (p1[0]-p3[0],p1[1]-p3[1],p1[2]-p3[2]))
-      C=general.crossProduct((p1[0]-p3[0],p1[1]-p3[1],p1[2]-p3[2]), (p2[0]-p1[0],p2[1]-p1[1],p2[2]-p1[2]))
-      if general.distance(A, B)>0.00001:
-        print A,B,C
-        print A[0]-B[0], A[1]-B[1], A[2]-B[2]
-        raw_input("Erreur tournicotte")
-      if general.distance(C, B)>0.00001:
-        print A,B,C
-        print B[0]-C[0], B[1]-C[1], B[2]-C[2]
-        raw_input("Erreur tournicotte")
+      p1 = self.planete.sommets[p1] * delta
+      p2 = self.planete.sommets[p2] * delta
+      p3 = self.planete.sommets[p3] * delta
       
       nd = self.dessineLigne((1.0,0.0,0.0,1.0), p1, p2)
       self.modele.attachNewNode(nd)
@@ -160,9 +147,9 @@ class Element:
         
         #Interpole les couleurs de pixels
         def interpole(a, b, c, x, y):
-          fa = general.distance((x,y,0),(0.0,0.0,0.0)) #HG
-          fb = general.distance((x,y,0),(tailleTexture,tailleTexture,0.0)) #BD
-          fc = general.distance((x,y,0),(0.0,tailleTexture,0.0)) #BG
+          fa = (Vec3(x,y,0)-Vec3(0.0,0.0,0.0)).length() #HG
+          fb = (Vec3(x,y,0)-Vec3(tailleTexture,tailleTexture,0.0)).length() #BD
+          fc = (Vec3(x,y,0)-Vec3(0.0,tailleTexture,0.0)).length() #BG
           fac = (fa+fb+fc)/2
           fa = 1-fa/fac
           fb = 1-fb/fac
@@ -200,9 +187,12 @@ class Element:
     p1, p2, p3 = self.sommets
     p1, p2, p3 = self.planete.sommets[p1], self.planete.sommets[p2], self.planete.sommets[p3]
     #On calcul les nouveaux sommets
-    c1 = general.normaliseVecteur([(p1[0]+p3[0])/2, (p1[1]+p3[1])/2, (p1[2]+p3[2])/2])
-    c2 = general.normaliseVecteur([(p1[0]+p2[0])/2, (p1[1]+p2[1])/2, (p1[2]+p2[2])/2])
-    c3 = general.normaliseVecteur([(p2[0]+p3[0])/2, (p2[1]+p3[1])/2, (p2[2]+p3[2])/2])
+    c1 = (p1+p3)/2
+    c2 = (p1+p2)/2
+    c3 = (p2+p3)/2
+    c1.normalize()
+    c2.normalize()
+    c3.normalize()
 
     #On ajoute les nouveaux sommets s'ils n'existent pas déjà
     if self.planete.sommets.count(c1)==0:
@@ -303,7 +293,7 @@ class Element:
     """Retourne une couleur et une texture suivant l'altitude du sommet"""
     minAlt = self.planete.niveauEau#(1.0-self.planete.delta)*(1.0-self.planete.delta)
     maxAlt = (1.0+self.planete.delta)*(1.0+self.planete.delta)
-    altitude = general.normeVecteurCarre(sommet)
+    altitude = sommet.lengthSquared()
     prct = (altitude-minAlt)/(maxAlt-minAlt)*100
 
     if prct < -10:
@@ -441,7 +431,7 @@ class Element:
             if r1+r2>=1.0:
               r2=1.0-r1
             r3=1.0-r1-r2
-            p = p1[0]*r1+p2[0]*r2+p3[0]*r3, p1[1]*r1+p2[1]*r2+p3[1]*r3, p1[2]*r1+p2[2]*r2+p3[2]*r3
+            p = Vec3(p1[0]*r1+p2[0]*r2+p3[0]*r3, p1[1]*r1+p2[1]*r2+p3[1]*r3, p1[2]*r1+p2[2]*r2+p3[2]*r3)
             controle = random.choice([h1,h2,h3])
             typeVegetation = random.choice(vegetation[h1])
             sprite = self.planete.ajouteSprite(typeVegetation, p, typeVegetation)
@@ -464,7 +454,9 @@ class Element:
       p1 = self.planete.sommets[self.sommets[0]]
       p2 = self.planete.sommets[self.sommets[1]]
       p3 = self.planete.sommets[self.sommets[2]]
-      self.normale = general.multiplieVecteur(general.normaliseVecteur(general.crossProduct(general.retraitVecteurs(p1, p2), general.retraitVecteurs(p3, p2))), -1.0)      
+      pA = (p1-p2).cross(p3-p2)
+      pA.normalize()
+      self.normale = pA * -1.0
     
     if point==None:
       #Si on ne donne pas de point, alors on renvoie la coordonnée locale
@@ -479,7 +471,9 @@ class Element:
       b+=e
       c+=f
       cpt+=1.0
-    return general.normaliseVecteur((a/cpt, b/cpt, c/cpt))
+    result = Vec3(self.normale)/cpt
+    result.normalize()
+    return result
       
   def sauvegarde(self):
     """Produit une ligne formattée utilisable pour la sauvegarde de la structure de données"""

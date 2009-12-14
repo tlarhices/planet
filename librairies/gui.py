@@ -461,11 +461,11 @@ class MiniMap(Pane):
     return len(self.points)
     
   def dessineCarte(self, p1, p2, p3, c1, c2, c3, estSoleil=False):
-    if general.normeVecteur(p1)<=self.gui.start.planete.niveauEau:
+    if p1.length()<=self.gui.start.planete.niveauEau:
       c1=(0.0,0.0,1.0)
-    if general.normeVecteur(p2)<=self.gui.start.planete.niveauEau:
+    if p2.length()<=self.gui.start.planete.niveauEau:
       c2=(0.0,0.0,1.0)
-    if general.normeVecteur(p3)<=self.gui.start.planete.niveauEau:
+    if p3.length()<=self.gui.start.planete.niveauEau:
       c3=(0.0,0.0,1.0)
     if len(p1)==3:
       p1 = self.point3DVersCarte(p1)
@@ -551,9 +551,9 @@ class MiniMap(Pane):
       if x in range(0, self.tailleMiniMapX):
         for y in range(int(miny+0.5), int(maxy+0.5)):
           if y in range(0, self.tailleMiniMapY):
-            d1=general.distance((x,y,0),(p1[0], p1[1], 0))
-            d2=general.distance((x,y,0),(p2[0], p2[1], 0))
-            d3=general.distance((x,y,0),(p3[0], p3[1], 0))
+            d1=(Vec2(x,y)-Vec2(p1[0], p1[1])).length()
+            d2=(Vec2(x,y)-Vec2(p2[0], p2[1])).length()
+            d3=(Vec2(x,y)-Vec2(p3[0], p3[1])).length()
             fact=(d1+d2+d3)/2
             d1=1-d1/fact
             d2=1-d2/fact
@@ -576,10 +576,14 @@ class MiniMap(Pane):
     return self.ajoutePoint(self.point3DVersCarte(point), icone)
       
   def point3DVersCarte(self, point):
-    x,y,z = general.normaliseVecteur(point)
+    point = Vec3(point)
+    point.normalize()
+    x,y,z = point
     lon = math.acos(z)
     
-    x,y,p = general.normaliseVecteur((x,y,0.0))
+    tmp = Vec2(x,y)
+    tmp.normalize()
+    x,y=tmp
     
     if x==0.0 and y==0.0:
       lat=0.0

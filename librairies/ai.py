@@ -27,14 +27,16 @@ class AINavigation:
   # Création d'infos ---------------------------------------------------    
   def coutPassage(self, idxSommet1, idxSommet2, estSommets):
     """Retourne le cout necessaire pour passer du sommet idxSommet1 au sommet idxSommet2"""
-    #cout = (general.normeVecteur(self.planete.sommets[idxSommet2]) - general.normeVecteur(self.planete.sommets[idxSommet1]))*100
+    #cout = (self.planete.sommets[idxSommet2].length() - self.planete.sommets[idxSommet1].length())*100
     if estSommets:
-      ptxSommet1, ptxSommet2 = self.planete.sommets[idxSommet1], self.planete.sommets[idxSommet2]
+      ptxSommet1, ptxSommet2 = Vec3(self.planete.sommets[idxSommet1]), Vec3(self.planete.sommets[idxSommet2])
     else:
-      ptxSommet1, ptxSommet2 = idxSommet1, idxSommet1
+      ptxSommet1, ptxSommet2 = Vec3(idxSommet1), Vec3(idxSommet1)
       
-    sp = Vec3(*ptxSommet2) - Vec3(*ptxSommet1)
-    spH = Vec3(*general.normaliseVecteur(ptxSommet2)) - Vec3(*general.normaliseVecteur(ptxSommet1))
+    sp = ptxSommet2 - ptxSommet1
+    ptxSommet2.normalize()
+    ptxSommet1.normalize()
+    spH = ptxSommet2 - ptxSommet1
     angle = spH.angleDeg(sp)
     
     if angle >= self.angleSolMax or angle <= -self.angleSolMax:
@@ -43,13 +45,13 @@ class AINavigation:
     #navigation = NodePath("nav")
     #navigation.reparentTo(self.planete.racine)
     #On ne peut pas passer sous l'eau
-    if general.normeVecteur(ptxSommet2) <= self.planete.niveauEau or general.normeVecteur(ptxSommet1) <= self.planete.niveauEau:
+    if ptxSommet2.length() <= self.planete.niveauEau or ptxSommet1.length() <= self.planete.niveauEau:
       cout = self.maxcout
-    #  navigation.attachNewNode(self.dessineLigne((0.0, 0.0, 1.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
+    #  navigation.attachNewNode(self.dessineLigne((0.0, 0.0, 1.0), self.planete.sommets[idxSommet1] * 1.25, self.planete.sommets[idxSommet2] * 1.25))
     #elif angle==self.maxcout:
-    #  navigation.attachNewNode(self.dessineLigne((1.0, 0.0, 0.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
+    #  navigation.attachNewNode(self.dessineLigne((1.0, 0.0, 0.0), self.planete.sommets[idxSommet1] * 1.25, self.planete.sommets[idxSommet2] * 1.25))
     #else:
-    #  navigation.attachNewNode(self.dessineLigne((0.0, 1.0, 0.0), general.multiplieVecteur(self.planete.sommets[idxSommet1], 1.25), general.multiplieVecteur(self.planete.sommets[idxSommet2], 1.25)))
+    #  navigation.attachNewNode(self.dessineLigne((0.0, 1.0, 0.0), self.planete.sommets[idxSommet1] * 1.25, self.planete.sommets[idxSommet2] * 1.25))
     return angle
     
   def dessineLigne(self, couleur, depart, arrivee):
@@ -136,7 +138,7 @@ class AINavigation:
     
     #Valeurs du point de départ
     g[deb] = 0 #On a pas bougé, donc ce cout vaut 0
-    h[deb] = general.distanceCarree(self.planete.sommets[deb], self.planete.sommets[fin]) #L'estimation se fait selon la distance euclidienne (on utilise le carré car sqrt est trop lent et c'est juste pour une comparaison)
+    h[deb] = (self.planete.sommets[deb] - self.planete.sommets[fin]).lengthSquared() #L'estimation se fait selon la distance euclidienne (on utilise le carré car sqrt est trop lent et c'est juste pour une comparaison)
     f[deb] = g[deb]+h[deb] # == h[deb] ;)
     
     #On boucle tant que l'on a des sommets à parcourir
@@ -180,7 +182,7 @@ class AINavigation:
             #On met a jour les infos de parcours pour ce point
             promenade[y] = x
             g[y] = tmpG
-            h[y] = general.distanceCarree(self.planete.sommets[y], self.planete.sommets[fin])
+            h[y] = (self.planete.sommets[y] - self.planete.sommets[fin]).lengthSquared()
             f[y] = g[y] + h[y]
             
     general.gui.afficheTexte("Impossible de trouver une trajectoire pour aller de "+str(deb)+" à "+str(fin), "avertissement")
@@ -240,9 +242,10 @@ class AI:
     
   def ping(self, temps):
     self.comportement.ping(temps)
-    acceleration = self.comportement.steeringForce[0] / self.sprite.masse, self.comportement.steeringForce[1] / self.sprite.masse, self.comportement.steeringForce[2] / self.sprite.masse
+    acceleration = self.comportement.steeringForce / self.sprite.masse
     self.sprite.inertieSteering = acceleration
-    self.sprite.direction = general.normaliseVecteur(self.comportement.steeringForce)
+    self.sprite.direction = Vec3(self.comportement.steeringForce)
+    self.sprite.direction.normalize()
     
   def clear(self):
     self.sprite = None
@@ -258,7 +261,7 @@ class AIComportementUnitaire:
   def __init__(self, comportement, priorite):
     self.comportement = comportement
     self.priorite = priorite
-    self.force = [0.0, 0.0, 0.0]
+    self.force = Vec3(0.0, 0.0, 0.0)
     self.fini = False
     
   def ping(self, temps):
@@ -282,7 +285,7 @@ class SuitChemin(AIComportementUnitaire):
         if isinstance(element, int):
           element = self.comportement.ai.sprite.planete.sommets[element]
         if prev!=None:
-          self.comportement.ai.sprite.planete.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((0.0,1.0,0.0), general.multiplieVecteur(prev, 1.2), general.multiplieVecteur(element, 1.2)))
+          self.comportement.ai.sprite.planete.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((0.0,1.0,0.0), prev * 1.2, element * 1.2))
         prev = element
     
   def ping(self, temps):
@@ -303,10 +306,10 @@ class SuitChemin(AIComportementUnitaire):
       #On prend le point suivant sur le chemin
       cible = self.comportement.ai.sprite.planete.sommets[self.chemin.pop(0)]
       if general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE", "t")=="t":
-        self.comportement.ai.sprite.planete.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((1.0,0.0,0.0), general.multiplieVecteur(self.comportement.ai.sprite.position, 1.2), general.multiplieVecteur(cible, 1.2)))
+        self.comportement.ai.sprite.planete.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((1.0,0.0,0.0), self.comportement.ai.sprite.position * 1.2, cible * 1.2))
         mdl = loader.loadModel("./data/modeles/sphere.egg")
         mdl.setScale(0.1)
-        mdl.setPos(*general.multiplieVecteur(cible, 1.2))
+        mdl.setPos(cible * 1.2)
         mdl.setColor(1.0,0.0,0.0)
         mdl.reparentTo(self.comportement.ai.sprite.planete.racine)
       #On fait un nouveau comportement pour y aller
@@ -334,7 +337,7 @@ class VaVers(AIComportementUnitaire):
       return
     
     position = self.comportement.ai.sprite.position
-    dist = general.distance(position, self.cible)
+    dist = (position - self.cible).length()
     if general.DEBUG_AI_VA_VERS:
       print self.comportement.ai.sprite.id,"va vers",self.cible
       print self.comportement.ai.sprite.id,"distance",dist
@@ -349,11 +352,12 @@ class VaVers(AIComportementUnitaire):
       
     #on n'est pas encore arrivé
     #vecteur -position-cible->
-    v = self.cible[0]-position[0], self.cible[1]-position[1], self.cible[2]-position[2]
+    v = self.cible-position
     #la force de steering ici est le vecteur vitesse selon ce vecteur
     if general.DEBUG_AI_VA_VERS:
       print self.comportement.ai.sprite.id,"position",position
-    self.force = general.multiplieVecteur(general.normaliseVecteur(v), self.comportement.ai.sprite.vitesse*temps)
+    v.normalize()
+    self.force = v * self.comportement.ai.sprite.vitesse*temps
     if general.DEBUG_AI_VA_VERS:
       print self.comportement.ai.sprite.id,"force vavers", self.force
     
@@ -370,7 +374,11 @@ class AppelFonction(AIComportementUnitaire):
     if self.fini:
       return
       
-    if self.fonction(**self.dico)<0:
+    if "temps" in self.dico.keys():
+      self.dico["temps"]=temps
+      
+    ret = self.fonction(**self.dico)
+    if ret<0:
       self.fini=True
     
     
@@ -389,14 +397,16 @@ class Routine(AIComportementUnitaire):
     if self.elements == None:
       #on a rien à faire
       self.supprime()
-      self.courant.fini = True
-      self.courant = None
+      if self.courant!=None:
+        self.courant.fini = True
+        self.courant = None
       return
     if len(self.elements)<1:
       #on a rien à faire
       self.supprime()
-      self.courant.fini = True
-      self.courant = None
+      if self.courant!=None:
+        self.courant.fini = True
+        self.courant = None
       return
       
     if self.courant==None:
@@ -439,13 +449,13 @@ class AIComportement:
     self.ai = AI
     self.recrues = []
     self.checklist = []
-    self.steeringForce = [0.0, 0.0, 0.0]
+    self.steeringForce = Vec3(0.0, 0.0, 0.0)
     self.comportements = []
     self.ennui = False
     
     
   def ping(self, temps):
-    force = [0.0,0.0,0.0]
+    force = Vec3(0.0,0.0,0.0)
     facteurs = 0.0
     
     finis = []
@@ -453,7 +463,7 @@ class AIComportement:
     for comportement in self.comportements:
       comportement.ping(temps)
       if not comportement.fini:
-        force = force[0]+comportement.force[0]*comportement.priorite, force[1]+comportement.force[1]*comportement.priorite, force[2]+comportement.force[2]*comportement.priorite
+        force = force+comportement.force*comportement.priorite
         facteurs+=comportement.priorite
       else:
         finis.append(comportement)
@@ -471,7 +481,7 @@ class AIComportement:
     else:
       delta = 0.0
       
-    force = force[0]*delta, force[1]*delta, force[2]*delta
+    force = force*delta
     self.steeringForce = force
     if general.DEBUG_AI_PING_PILE_COMPORTEMENT:
       print self.ai.sprite.id,"steering force", facteurs
@@ -479,6 +489,8 @@ class AIComportement:
     if len(self.comportements)<=0:
       self.ennui = True
       print self.ai.sprite.id,"s'ennuie"
+    else:
+      self.ennui = False
         
   def clear(self):
     self.ai = None
@@ -502,7 +514,7 @@ class AIComportement:
     
   def loot(self, sprite, priorite):
     print self.ai.sprite.id, "va chopper des ressources à",sprite.id
-    self.routine([self.ai.sprite.loot, {"sprite":sprite}], False, priorite)
+    self.routine([self.ai.sprite.loot, {"sprite":sprite, "temps":0.0}], False, priorite)
     
   def suitChemin(self, chemin, priorite):
     self.comportements.append(SuitChemin(chemin, self, priorite))

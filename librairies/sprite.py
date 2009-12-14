@@ -69,8 +69,8 @@ class Sprite:
     self.miseAJourPosition(position)
     
     self.modele = None
-    self.inertie = [0.0,0.0,0.0]
-    self.inertieSteering = [0.0,0.0,0.0]
+    self.inertie = Vec3(0.0,0.0,0.0)
+    self.inertieSteering = Vec3(0.0,0.0,0.0)
     self.rac = NodePath("racine-sprite")
     self.rac.reparentTo(self.planete.racine)
     self.racine = NodePath("racine-sprite")
@@ -103,8 +103,8 @@ class Sprite:
       self.seuilRecalculPhysique = definition["seuilrecalculphysique"]
       self.masse = definition["masse"]
       self.echelle = definition["echelle"]
-      self.nourriture = definition["nourr"]
-      self.construction = definition["constr"]
+      self.nourriture = float(definition["nourr"])
+      self.construction = float(definition["constr"])
 
     
   def pointeRacineSol(self):
@@ -160,16 +160,16 @@ class Sprite:
       return
     self.ai.comportement.loot(sprite, 0.75)
     
-  def loot(self, sprite):
-    if general.distance(self.position, sprite.position)<=self.distanceProche*1.1:
+  def loot(self, sprite, temps):
+    if (self.position - sprite.position).length()<=self.distanceProche*1.1:
       print "Loot :"
-      miamNourriture = 5
+      miamNourriture = 5.0*temps
       if sprite.nourriture<miamNourriture:
         miamNourriture = sprite.nourriture
       self.nourriture+=miamNourriture
       sprite.nourriture-=miamNourriture
       
-      miamConstruction = 5
+      miamConstruction = 5.0*temps
       if sprite.construction<miamConstruction:
         miamConstruction = sprite.construction
       self.construction+=miamConstruction
@@ -181,9 +181,10 @@ class Sprite:
       if (miamConstruction>0 and self.construction<50) or (miamNourriture>0 and self.nourriture<50):
         return 1
       else:
-        print "TODO:",self.id,"va se vider les pocher"
-        self.nourriture = 0
-        self.construction = 0
+        if miamConstruction+miamNourriture>0:
+          print "TODO:",self.id,"va se vider les pocher"
+          self.nourriture = 0
+          self.construction = 0
         sprite = self.chercheSpriteProche(-1, -1, 1, None)
         if sprite != None:
           print self.id,"va couper l'arbre",sprite.id
@@ -202,7 +203,7 @@ class Sprite:
       if joueur==-1 or sprite.joueur==joueur:
         if nourriture==-1 or sprite.nourriture>0:
           if construction==-1 or sprite.construction>0:
-            dist = general.distance(self.position, sprite.position)
+            dist = (self.position - sprite.position).length()
             if distance==None or distance>dist:
               proche = sprite
               distance = dist
@@ -225,8 +226,9 @@ class Sprite:
   def testeSol(self, temps):
     """Regarde l'angle entre la normale de la face et le sprite qui s'y tient"""
     return
-    sp = Vec3(*general.normaliseVecteur(self.position))
-    fc = Vec3(*self.planete.trouveFace(self.position).calculNormale())
+    sp = Vec3(position)
+    sp.normalize()
+    fc = self.planete.trouveFace(self.position).calculNormale()
     angle = sp.angleDeg(fc)
     if angle > self.angleSolMax:
       self.inertie = self.inertie[0]+fc.getX()*temps, self.inertie[1]+fc.getY()*temps, self.inertie[2]+fc.getZ()*temps
@@ -241,14 +243,17 @@ class Sprite:
       self.appliqueGravite(temps)
       return
     
+    sp = Vec3(position)
+    sp.normalize()
+    
     if self.altCarre < altitudeCible:
       #Si on est dans le sol, on se place sur le sol d'un seul coup
-      self.miseAJourPosition(general.multiplieVecteur(general.normaliseVecteur(self.position), math.sqrt(altitudeCible)))
+      self.miseAJourPosition(sp * math.sqrt(altitudeCible))
       self.inertie = (0.0,0.0,0.0)
     elif self.altCarre > altitudeCible+self.seuilToucheSol:
       #Si on est au dessus, on tombe sur la surface
       #On calcul le vecteur -planete-sprite> et on lui donne comme longueur le déplacement que l'on veut faire
-      haut = general.multiplieVecteur(general.normaliseVecteur(self.position), -self.constanteGravitationelle)
+      haut = sp * (-self.constanteGravitationelle)
       #On retire ce vecteur à l'inertie (fait un vecteur -sprite-planete>)
       self.inertie = self.inertie[0]+haut[0]*temps, self.inertie[1]+haut[1]*temps, self.inertie[2]+haut[2]*temps
     else:
@@ -266,14 +271,17 @@ class Sprite:
     altitudeCible = self.planete.altitudeCarre(self.position)
     if self.altCarre < altitudeCible or self.altCarre > altitudeCible + self.seuilToucheSol:
       #On place l'objet sur le sol d'un seul coup
-      self.miseAJourPosition(general.multiplieVecteur(general.normaliseVecteur(self.position), math.sqrt(altitudeCible)))
-      self.inertie = (0.0,0.0,0.0)
+      sp = Vec3(self.position)
+      sp.normalize()
+      self.miseAJourPosition(sp * math.sqrt(altitudeCible))
+      self.inertie = Vec3(0.0,0.0,0.0)
       
   def appliqueInertie(self, temps):
-    if general.normeVecteur(self.inertie)>self.terminalVelocity:
-      self.inertie = general.multiplieVecteur(general.normaliseVecteur(self.inertie), self.terminalVelocity)
-    self.miseAJourPosition((self.position[0]+self.inertie[0]*temps+self.inertieSteering[0], self.position[1]+self.inertie[1]*temps+self.inertieSteering[1], self.position[2]+self.inertie[2]*temps+self.inertieSteering[2]))
-    self.inertieSteering = [0.0,0.0,0.0]
+    if self.inertie.lengthSquared()>self.terminalVelocity*self.terminalVelocity:
+      self.inertie.normalize()
+      self.inertie = self.inertie * self.terminalVelocity
+    self.miseAJourPosition(self.position+self.inertie*temps+self.inertieSteering)
+    self.inertieSteering = Vec3(0.0,0.0,0.0)
     
   def versCoord(self, cible):
     """Si cible est une coordonnée, retourne cette dernière, sinon extrait les coordonnées"""
@@ -296,7 +304,10 @@ class Sprite:
       
     cible = self.versCoord(cible)
       
-    vecteurDeplacement = general.multiplieVecteur(general.normaliseVecteur((cible[0]-self.position[0], cible[1]-self.position[1], cible[2]-self.position[2])), self.vitesse*temps)
+    sp = cible - self.position
+    sp.normalize()
+    
+    vecteurDeplacement = sp * self.vitesse*temps
     
     #Affiche le déplacement un personnage sur l'écran
     #top = self.planete.racine.attachNewNode(self.dessineLigne((random.random(),random.random(),random.random()), self.position, (self.position[0] + vecteurDeplacement[0], self.position[1] + vecteurDeplacement[1], self.position[2] + vecteurDeplacement[2])))
@@ -318,7 +329,7 @@ class Sprite:
     #    self.planete.racine.attachNewNode(self.dessineLigne((random.random(),random.random(),random.random(),1.0), general.multiplieVecteur(self.prevPos, 1.2), general.multiplieVecteur(self.position, 1.2)))
     #  self.prevPos = self.position
       
-    self.altCarre = general.normeVecteurCarre(self.position)
+    self.altCarre = self.position.lengthSquared()
     if self.altCarre < self.planete.niveauEau*self.planete.niveauEau:
       if self.aquatique:
         #Nage
@@ -415,7 +426,7 @@ class Sprite:
       return self.symbole
     #On calcule la distance à la caméra pour avoir le facteur de corection d'échelle
     if base.camera != None:
-      taille = general.normeVecteur(base.camera.getPos(self.modele))
+      taille = base.camera.getPos(self.modele).length()
     else:
       taille = 1.0
     #On construit l'objet
@@ -434,7 +445,7 @@ class Sprite:
     """Change l'échelle du symbole pour le garder toujours à la même taille"""
     if self.symbole!=None and self.racine!=None:
       #On calcule la distance à la caméra pour avoir le facteur de corection d'échelle
-      taille = general.normeVecteur(base.camera.getPos(self.racine))
+      taille = base.camera.getPos(self.racine).length()
       #On change l'échelle
       self.symbole.setScale(taille*0.005, taille*0.005, taille*0.005)
     
@@ -592,13 +603,16 @@ class Nuage(Sprite):
     
     #Facteur d'étalement du nuage selon les 3 axes en espace monde
     dx, dy, dz = 1.2,1.2,1.2
-    fact = general.normeVecteur((dx, dy, dz))
+    fact = Vec3(dx, dy, dz).length()
         
     distanceSoleil = self.planete.distanceSoleil
         
     #Place le "centre" du nuage
     self.modele = NodePath("nuage")#NodePath(FadeLODNode('nuage'))
-    self.modele.setPos(*general.multiplieVecteur(general.normaliseVecteur(centre), self.planete.niveauCiel-0.01))
+    ct = Vec3(centre)
+    ct.normalize()
+    
+    self.modele.setPos(ct * (self.planete.niveauCiel-0.01))
     self.racine = NodePath("nuage-elem")
     self.racine.reparentTo(self.rac)
     
@@ -627,14 +641,16 @@ class Nuage(Sprite):
         r = (0.0, 0.0, 0.0)
         
       #On coince le nuage dans le ciel
-      v=general.multiplieVecteur(general.normaliseVecteur(r), self.planete.niveauCiel-0.01+(self.planete.niveauCiel-self.planete.delta-1.0)*random.random())
+      rn = Vec3(r)
+      rn.normalize()
+      v=rn * (self.planete.niveauCiel-0.01+(self.planete.niveauCiel-self.planete.delta-1.0)*random.random())
       r = v[0]-centre[0], v[1]-centre[1], v[2]-centre[2]
       nuage.setPos(*r)
       
       #On diminue la taille du prout s'il est loin du centre
-      nuage.setScale(max((fact-general.normeVecteur(r)), 0.001*fact)/fact)
+      nuage.setScale(max(fact-r.length(), 0.001*fact)/fact)
       #On diminue l'opacité du prout s'il est loin du centre
-      nuage.setAlphaScale(max((fact-general.normeVecteur(r)), 0.001*fact)/fact)
+      nuage.setAlphaScale(max(fact-r.length(), 0.001*fact)/fact)
       nuage.reparentTo(self.racine)
     self.racine.reparentTo(self.modele)
     #On redimentionne le bestiau

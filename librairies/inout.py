@@ -128,10 +128,12 @@ class IO:
     self.camera.reparentTo(racine)
     
     #La position de la caméra est gérée en coordonnées sphériques
-    if general.normaliseVecteurCarre(self.camera.getPos())!=self.cameraRayon*self.cameraRayon:
-      coord = general.multiplieVecteur(general.normaliseVecteur(self.camera.getPos()), self.cameraRayon)
+    if self.camera.getPos().lengthSquared()!=self.cameraRayon*self.cameraRayon:
+      coord = self.camera.getPos()
+      coord.normalize()
+      coord=coord*self.cameraRayon
     
-    self.camera.setPos(coord[0], coord[1], coord[2])
+      self.camera.setPos(coord)
     
     #La caméra regarde toujours le centre de la planète
     self.camera.lookAt(Point3(0,0,0), racine.getRelativeVector(self.camera, Vec3(0,0,1)))
@@ -182,7 +184,9 @@ class IO:
   def deplaceBas(self):
     self.tourneCamera(0.0,self.cameraPasRotation)
   def placeCameraAuDessusDe(self, point):
-    self.camera.setPos(*general.multiplieVecteur(general.normaliseVecteur(point), self.cameraRayon))
+    point = Vec3(point)
+    point.normalize()
+    self.camera.setPos(point * self.cameraRayon)
     self.positionneCamera()
   ### Fin Gestion de la caméra -----------------------------------------
     

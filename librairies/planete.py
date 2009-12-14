@@ -285,18 +285,18 @@ class Planete:
     one=1.0/math.sqrt(1.0+t*t)
     
     #Sommets
-    ZA = general.normaliseVecteur([tau, one, 0])
-    ZB = general.normaliseVecteur([-tau, one, 0])
-    ZC = general.normaliseVecteur([-tau, -one, 0])
-    ZD = general.normaliseVecteur([tau, -one, 0])
-    YA = general.normaliseVecteur([one, 0 , tau])
-    YB = general.normaliseVecteur([one, 0 , -tau])
-    YC = general.normaliseVecteur([-one, 0 , -tau])
-    YD = general.normaliseVecteur([-one, 0 , tau])
-    XA = general.normaliseVecteur([0 , tau, one])
-    XB = general.normaliseVecteur([0 , -tau, one])
-    XC = general.normaliseVecteur([0 , -tau, -one])
-    XD = general.normaliseVecteur([0 , tau, -one])
+    ZA = Vec3(tau, one, 0)
+    ZB = Vec3(-tau, one, 0)
+    ZC = Vec3(-tau, -one, 0)
+    ZD = Vec3(tau, -one, 0)
+    YA = Vec3(one, 0 , tau)
+    YB = Vec3(one, 0 , -tau)
+    YC = Vec3(-one, 0 , -tau)
+    YD = Vec3(-one, 0 , tau)
+    XA = Vec3(0 , tau, one)
+    XB = Vec3(0 , -tau, one)
+    XC = Vec3(0 , -tau, -one)
+    XD = Vec3(0 , tau, -one)
     
     self.sommets = [ZA, ZB, ZC, ZD, YA, YB, YC, YD, XA, XB, XC, XD]
     iZA = 0;iZB = 1;iZC = 2;iZD = 3;iYA = 4;iYB = 5;iYC = 6;iYD = 7;iXA = 8;iXB = 9;iXC = 10;iXD = 11
@@ -340,7 +340,7 @@ class Planete:
       rn = (random.random()-0.5)*self.delta + 1.0
       #On n'utilise pas self.changeCoordPoint car tout le modèle sera changé
       #donc pas besoin de tenter de deviner ce qui doit être recalculé
-      self.sommets[i] = general.multiplieVecteur(self.sommets[i], rn)
+      self.sommets[i] = self.sommets[i] * rn
         
     general.stopChrono("Planete::fabriqueSol")
       
@@ -349,14 +349,15 @@ class Planete:
     Étend la gamme des valeurs aléatoires pour les ramener dans l'échelle [1.0-delta;1.0+delta]
     """
     general.startChrono("Planete::normaliseSol")
+    
     if general.DEBUG_GENERE_PLANETE:
       self.afficheTexte("Normalisation...")
-    A=general.normeVecteur(self.sommets[0])
+    A=self.sommets[0].length()
     B=A
     
     for sommet in self.sommets:
-      A = min(A, general.normeVecteur(sommet))
-      B = max(B, general.normeVecteur(sommet))
+      A = min(A, sommet.length())
+      B = max(B, sommet.length())
       
     C=1.0-self.delta
     D=1.0+self.delta
@@ -368,9 +369,11 @@ class Planete:
       if general.DEBUG_GENERE_PLANETE:
         if i%250==0:
           self.afficheTexte("Normalisation... %i/%i" %(i, totlen))
-      V=general.normeVecteur(self.sommets[i])
+      V=self.sommets[i].length()
       V=(V-A)/facteur+C
-      self.sommets[i]=general.multiplieVecteur(general.normaliseVecteur(self.sommets[i]), V)
+      som = Vec3(self.sommets[i])
+      som.normalize()
+      self.sommets[i] = som * V
       
     general.stopChrono("Planete::normaliseSol")
       
@@ -378,6 +381,7 @@ class Planete:
     """
     Flou gaussien sur les sommets de la sphère
     """
+    
     general.startChrono("Planete::flouifieSol")
     cpt=0.0
     totclefs=len(self.voisinage.keys())
@@ -401,11 +405,13 @@ class Planete:
             if (not element in voisins) and element!=sommet:
               voisins.append(element)
       
-      tot = general.normeVecteur(self.sommets[sommet])*4
+      tot = self.sommets[sommet].length()*4
       for id in voisins:
-        tot += general.normeVecteur(self.sommets[id])
+        tot += self.sommets[id].length()
       tot = tot / (len(voisins)+4)
-      self.sommets[sommet] = general.multiplieVecteur(general.normaliseVecteur(self.sommets[sommet]),tot)
+      som = Vec3(self.sommets[sommet])
+      som.normalize()
+      self.sommets[sommet] = som *tot
     general.stopChrono("Planete::flouifieSol")
       
   def fabriqueModel(self):
@@ -661,7 +667,7 @@ class Planete:
           print "Donnée inconnue : ",element[0]
       elif type=="p":
         #Création d'un sommet
-        self.sommets.append([float(elements[0]), float(elements[1]), float(elements[2])])
+        self.sommets.append(Vec3(float(elements[0]), float(elements[1]), float(elements[2])))
       elif type=="f":
         #Création d'une face
         ids = elements[0].replace("[","").split("]")
@@ -675,7 +681,7 @@ class Planete:
       elif type=="j":
         #Création d'un joueur
         type, nom, couleur, estJoueur, vide = elements
-        couleur = general.floatise(couleur.replace("(","").replace(")","").replace("[","").replace("]","").split(","))
+        couleur = VBase4(general.floatise(couleur.replace("(","").replace(")","").replace("[","").replace("]","").split(",")))
         classe = Joueur
         if type=="ia":
           classe = JoueurIA
@@ -695,7 +701,7 @@ class Planete:
       elif type=="s":
         #Sprites
         id, nomjoueur, modele, symbole, position, vitesse, vie, bouge, aquatique, vide = elements
-        position = general.floatise(position.replace("[","").replace("]","").replace("(","").replace(")","").split(","))
+        position = Vec3(*general.floatise(position.replace("[","").replace("]","").replace("(","").replace(")","").split(",")))
         if nomjoueur.lower().strip()=="none":
           joueur = None
         else:
@@ -935,18 +941,24 @@ class Planete:
           def procFace(face):
             jour = (1.0,1.0,1.0)
             nuit = (0.2,0.2,0.4)
-            p1 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[0]]), 1.0001)
-            if general.ligneCroiseSphere(p1, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
+            p1 = Vec3(self.sommets[face.sommets[0]])
+            p1.normalize()
+            p1 = p1 * 1.0001
+            if general.ligneCroiseSphere(p1, self.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
               c1=nuit
             else:
               c1=jour
-            p2 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[1]]), 1.0001)
-            if general.ligneCroiseSphere(p2, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
+            p2 = Vec3(self.sommets[face.sommets[1]])
+            p2.normalize()
+            p2 = p2 * 1.0001
+            if general.ligneCroiseSphere(p2, self.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
               c2=nuit
             else:
               c2=jour
-            p3 = general.multiplieVecteur(general.normaliseVecteur(self.sommets[face.sommets[2]]), 1.0001)
-            if general.ligneCroiseSphere(p3, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
+            p3 = Vec3(self.sommets[face.sommets[2]])
+            p3.normalize()
+            p3 = p3 * 1.0001
+            if general.ligneCroiseSphere(p3, self.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
               c3=nuit
             else:
               c3=jour
@@ -974,10 +986,10 @@ class Planete:
     point : le point à rechercher
     """
     general.startChrono("Planete::trouveSommet")
-    dst = general.distanceCarree(point, self.sommets[0])
+    dst = (self.sommets[0]-point).lengthSquared()
     id = 0
     for s in self.sommets:
-      d = general.distanceCarree(point, s)
+      d = (s-point).lengthSquared()
       if dst > d:
         #On fait attention à pouvoir aller à ce point là
         if not tiensCompteDeLAngle:
@@ -1000,7 +1012,8 @@ class Planete:
     ## ------------ Version avec self.sommetDansFace
     sommetProche = self.trouveSommet(point)
     faces = self.sommetDansFace[sommetProche]
-    cible = general.normaliseVecteur(point)
+    cible = Vec3(point)
+    cible.normalize()
     
     #On initialise a des valeurs stupides
     f = None
@@ -1008,9 +1021,16 @@ class Planete:
     for face in faces:
       tri = face.sommets
       #On fait des comparaisons, pas du travail sur des valeurs exactes, donc on utilise le carré pour gagner le temps du sqrt
-      da = general.distanceCarree(cible, general.normaliseVecteur(self.sommets[tri[0]]))
-      db = general.distanceCarree(cible, general.normaliseVecteur(self.sommets[tri[1]]))
-      dc = general.distanceCarree(cible, general.normaliseVecteur(self.sommets[tri[2]]))
+      da = Vec3(self.sommets[tri[0]])
+      da.normalize()
+      db = Vec3(self.sommets[tri[1]])
+      db.normalize()
+      dc = Vec3(self.sommets[tri[2]])
+      dc.normalize()
+      
+      da = (cible - da).lenghSquared()
+      db = (cible - db).lenghSquared()
+      dc = (cible - dc).lenghSquared()
       
       #Si on a une plus proche, elle remplace la meilleure
       if math.sqrt(da*da+db*db+dc*dc) < math.sqrt(d1*d1+d2*d2+d3*d3):
@@ -1024,7 +1044,8 @@ class Planete:
     #Si on a pas de liste de faces, on utilise la liste complète de la planète
     if sub==None:
       sub = self.elements
-    cible = general.normaliseVecteur(point)
+    cible = Vec3(point)
+    cible.normalize()
     
     #On initialise a des valeurs stupides
     f = None
@@ -1034,9 +1055,16 @@ class Planete:
     for tria in sub:
       tri = tria.sommets
       #On fait des comparaisons, pas du travail sur des valeurs exactes, donc on utilise le carré pour gagner le temps du sqrt
-      da = general.distanceCarree(cible, general.normaliseVecteur(self.sommets[tri[0]]))
-      db = general.distanceCarree(cible, general.normaliseVecteur(self.sommets[tri[1]]))
-      dc = general.distanceCarree(cible, general.normaliseVecteur(self.sommets[tri[2]]))
+      da = Vec3(self.sommets[tri[0]])
+      da.normalize()
+      db = Vec3(self.sommets[tri[1]])
+      db.normalize()
+      dc = Vec3(self.sommets[tri[2]])
+      dc.normalize()
+      
+      da = (cible - da).lenghSquared()
+      db = (cible - db).lenghSquared()
+      dc = (cible - dc).lenghSquared()
       
       #Si on a une plus proche, elle remplace la meilleure
       if math.sqrt(da*da+db*db+dc*dc) < math.sqrt(d1*d1+d2*d2+d3*d3):
@@ -1056,7 +1084,9 @@ class Planete:
     #Si on a pas de liste de faces, on utilise la liste complète de la planète
     if sub==None:
       sub = self.elements
-    cible = general.multiplieVecteur(general.normaliseVecteur(point), 100)
+    cible = Vec3(point)
+    cible.normalize()
+    cible = cible * 100
     
     #On initialise a des valeurs stupides
     f = None
@@ -1087,22 +1117,31 @@ class Planete:
       #La droite passant par un point quelconque et le centre de la sphère coupe obligatoirement la dite sphère en un point
       #Ne pas avoir de résultat dit que ça bug
       print "Bug :: testIntersectionTriangleDroite déconne"
-      return general.normeVecteur(point)
+      return point.length()
     pt1, pt2, pt3 = self.sommets[face[0]], self.sommets[face[1]], self.sommets[face[2]]
     #Calcul des distances pour pondérer la position du point
     #On utilise le carré pour gagner des sqrt
-    d1 = general.distanceCarree(general.normaliseVecteurCarre(pt1), general.normaliseVecteurCarre(point))
-    d2 = general.distanceCarree(general.normaliseVecteurCarre(pt2), general.normaliseVecteurCarre(point))
-    d3 = general.distanceCarree(general.normaliseVecteurCarre(pt3), general.normaliseVecteurCarre(point))
+    d1 = Vec3(pt1)
+    d1 = d1/d1.lengthSquared()
+    d2 = Vec3(pt2)
+    d2 = d2/d2.lengthSquared()
+    d3 = Vec3(pt3)
+    d3 = d2/d2.lengthSquared()
+    pt = Vec3(point)
+    pt = pt/pt.lengthSquared()
+    
+    d1 = (d1 - pt).lenghSquared()
+    d2 = (d2 - pt).lenghSquared()
+    d3 = (d3 - pt).lenghSquared()
     d=d1+d2+d3
     if d!=0:
       d1=d1/d
       d2=d2/d
       d3=d3/d
     #Attrape les altitude de chaque sommet
-    r1=general.normeVecteurCarre(pt1)
-    r2=general.normeVecteurCarre(pt2)
-    r3=general.normeVecteurCarre(pt3)
+    r1=pt1.lenghSquared()
+    r2=pt2.lenghSquared()
+    r3=pt3.lenghSquared()
     
     general.stopChrono("Planete::altitude")
     #Calcule l'altitude moyenne pondérée
@@ -1113,7 +1152,9 @@ class Planete:
 
   def placeSurSol(self, point):
     """Déplace le point pour qu'il soit juste sur la surface de la facette (coord cartésiennes)"""
-    return general.multiplieVecteur(general.normaliseVecteur(point), self.altitude(point))
+    point = Vec3(point)
+    point.normalize()
+    return point * self.altitude(point)
 
   def changeCoordPoint(self, oldCoord, newCoord):
     """
@@ -1125,7 +1166,7 @@ class Planete:
       print "Erreur planete::changeCoordPoint,",oldCoord,"ce sommet n'existe pas"
       raw_input()
     idx = self.sommets.index(oldCoord)
-    self.sommets[idx] = general.floatise(newCoord)
+    self.sommets[idx] = Vec3(*general.floatise(newCoord))
     elements = self.sommetDansFace[idx]
     elementsParents = {}
     for element in elements:
@@ -1153,8 +1194,11 @@ class Planete:
   def elevePoint(self, idx, delta):
     """Déplace le sommet d'indice idx de delta unité et met à jour la géométrie qui en a besoin"""
     general.startChrono("Planete::elevePoint")
-    norme = general.normeVecteur(self.sommets[idx])
-    self.changeCoordPoint(self.sommets[idx], general.multiplieVecteur(general.normaliseVecteur(self.sommets[idx]), norme+delta))
+    norme = self.sommets[idx].length()
+    tmp = Vec3(self.sommets[idx])
+    tmp.normalize()
+    tmp = tmp * (norme + delta)
+    self.changeCoordPoint(self.sommets[idx], tmp)
     general.stopChrono("Planete::elevePoint")
     
   def ajouteJoueur(self, joueur):
