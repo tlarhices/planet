@@ -357,12 +357,29 @@ class VaVers(AIComportementUnitaire):
     if general.DEBUG_AI_VA_VERS:
       print self.comportement.ai.sprite.id,"force vavers", self.force
     
+class AppelFonction(AIComportementUnitaire):
+  fonction = None
+  dico = None
+  
+  def __init__(self, fonction, dico, comportement, priorite):
+    AIComportementUnitaire.__init__(self, comportement, priorite)
+    self.fonction = fonction
+    self.dico = dico
+    
+  def ping(self, temps):
+    if self.fini:
+      return
+      
+    if self.fonction(**self.dico)<0:
+      self.fini=True
+    
+    
 class Routine(AIComportementUnitaire):
   elements = None
   courant = None
   
-  def __init__(self, comportement):
-    AIComportementUnitaire.__init__(self, comportement, 0.5)
+  def __init__(self, comportement, priorite):
+    AIComportementUnitaire.__init__(self, comportement, priorite)
     self.elements = []
     
   def ajouteCheck(self, element, cyclique, priorite):
@@ -372,13 +389,17 @@ class Routine(AIComportementUnitaire):
     if self.elements == None:
       #on a rien à faire
       self.supprime()
+      self.courant.fini = True
+      self.courant = None
       return
     if len(self.elements)<1:
       #on a rien à faire
       self.supprime()
+      self.courant.fini = True
+      self.courant = None
       return
       
-    if courant==None:
+    if self.courant==None:
       #On fait rien en ce moment, on attrape un nouvelle tache
       tache, cyclique, priorite = self.elements.pop(0)
       self.priorite = priorite
@@ -386,16 +407,19 @@ class Routine(AIComportementUnitaire):
       if cyclique:
         self.ajouteCheck(tache, cyclique, priorite)
       #On en fait un nouveau comportement
-      courant=self.produitTache(tache, priorite)
+      self.courant=self.produitTache(tache, priorite)
       #On ajoute le comportement à l'IA
       self.comportement.comportements.append(self.courant)
-    elif courant.fini:
+    elif self.courant.fini:
       #On a fini la tâche courante
       self.courant = None
       
   def produitTache(self, tache, priorite):
-    print "TODO IA::produitTache", tache, priorite
-    return VaVers(self.comportement.ai.sprite.position, comportement, priorite)
+    if True:#isinstance(tache, list):
+      fonction, dico = tache
+      return AppelFonction(fonction, dico, self.comportement, priorite)
+    print "TODO IA::produitTache pour ", tache, priorite
+    return VaVers(self.comportement.ai.sprite.position, self.comportement, priorite)
       
   def supprime(self):
     AIComportementUnitaire.supprime(self)
@@ -409,6 +433,7 @@ class AIComportement:
   checklist = None
   steeringForce = None
   comportements = None
+  ennui = None
   
   def __init__(self, AI):
     self.ai = AI
@@ -416,6 +441,8 @@ class AIComportement:
     self.checklist = []
     self.steeringForce = [0.0, 0.0, 0.0]
     self.comportements = []
+    self.ennui = False
+    
     
   def ping(self, temps):
     force = [0.0,0.0,0.0]
@@ -448,6 +475,10 @@ class AIComportement:
     self.steeringForce = force
     if general.DEBUG_AI_PING_PILE_COMPORTEMENT:
       print self.ai.sprite.id,"steering force", facteurs
+      
+    if len(self.comportements)<=0:
+      self.ennui = True
+      print self.ai.sprite.id,"s'ennuie"
         
   def clear(self):
     self.ai = None
@@ -469,6 +500,10 @@ class AIComportement:
     else:
       print "impossible"
     
+  def loot(self, sprite, priorite):
+    print self.ai.sprite.id, "va chopper des ressources à",sprite.id
+    self.routine([self.ai.sprite.loot, {"sprite":sprite}], False, priorite)
+    
   def suitChemin(self, chemin, priorite):
     self.comportements.append(SuitChemin(chemin, self, priorite))
     
@@ -484,17 +519,15 @@ class AIComportement:
   def reconnaissance(self, rayonZone, rayonChangeDirection, priorite):
     self.comportements.append(Reconnaissance(rayonZone, rayonChangeDirection, self, priorite))
 
-  def routine(self, checklist, priorite):
+  def routine(self, checklist, cyclique, priorite):
     routine = None
     for comportement in self.comportements:
       if isinstance(comportement, Routine):
         routine = comportement
     if routine == None:
-      routine = Routine(self)
+      routine = Routine(self, 1.0)
       self.comportements.append(routine)
-      
-    for element in checklist:
-      routine.ajouteCheck(element, priorite)
+    routine.ajouteCheck(checklist, cyclique, priorite)
     
   def devientChef(self):
     self.leader = self

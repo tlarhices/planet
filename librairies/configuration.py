@@ -120,6 +120,8 @@ class Configuration:
     sprite["seuilrecalculphysique"] = config(sprite, "seuilrecalculphysique", float, 2.0)
     sprite["masse"] = config(sprite, "masse", float, 1.0)
     sprite["echelle"] = config(sprite, "echelle", float, 1.0)
+    sprite["nourr"] = config(sprite, "nourr", int, 0)
+    sprite["constr"] = config(sprite, "constr", int, 0)
       
     return sprite
     

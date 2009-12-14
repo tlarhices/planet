@@ -52,6 +52,8 @@ class Sprite:
   seuilRecalculPhysique = None
   
   masse = None
+  nourriture=0
+  construction=0
 
   
   def __init__(self, id, position, fichierDefinition, planete, joueur):
@@ -101,6 +103,9 @@ class Sprite:
       self.seuilRecalculPhysique = definition["seuilrecalculphysique"]
       self.masse = definition["masse"]
       self.echelle = definition["echelle"]
+      self.nourriture = definition["nourr"]
+      self.construction = definition["constr"]
+
     
   def pointeRacineSol(self):
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""
@@ -125,13 +130,20 @@ class Sprite:
     
     if self.ai != None:
       self.ai.ping(temps)
+      
+      if self.ai.comportement.ennui:
+        if self.construction<50:
+          sprite = self.chercheSpriteProche(-1, -1, 1, None)
+          if sprite != None:
+            print self.id,"va couper l'arbre",sprite.id
+            self.marcheVers(sprite.position)
+            self.coupeArbre(sprite)
 
     #Deplace
     self.appliqueInertie(temps)
 
     if self.vie<=0:
       return False
-      
       
     self.tempBoucle10+=temps
     if self.tempBoucle10>0.1:
@@ -142,6 +154,61 @@ class Sprite:
       
     return True
     
+  def coupeArbre(self, sprite):
+    #Si y a pas d'ai, on a pas besoin de perdre son temps avec ^^
+    if self.ai==None:
+      return
+    self.ai.comportement.loot(sprite, 0.75)
+    
+  def loot(self, sprite):
+    if general.distance(self.position, sprite.position)<=self.distanceProche*1.1:
+      print "Loot :"
+      miamNourriture = 5
+      if sprite.nourriture<miamNourriture:
+        miamNourriture = sprite.nourriture
+      self.nourriture+=miamNourriture
+      sprite.nourriture-=miamNourriture
+      
+      miamConstruction = 5
+      if sprite.construction<miamConstruction:
+        miamConstruction = sprite.construction
+      self.construction+=miamConstruction
+      sprite.construction-=miamConstruction
+      
+      
+      print "- Ressources :",self.nourriture, self.construction
+      print "- Restantes :",sprite.nourriture, sprite.construction
+      if (miamConstruction>0 and self.construction<50) or (miamNourriture>0 and self.nourriture<50):
+        return 1
+      else:
+        print "TODO:",self.id,"va se vider les pocher"
+        self.nourriture = 0
+        self.construction = 0
+        sprite = self.chercheSpriteProche(-1, -1, 1, None)
+        if sprite != None:
+          print self.id,"va couper l'arbre",sprite.id
+          self.marcheVers(sprite.position)
+          self.coupeArbre(sprite)
+        return -1
+    else:
+      return 0
+        
+    
+  def chercheSpriteProche(self, depot, nourriture, construction, joueur):
+    proche = None
+    distance = None
+    
+    for sprite in self.planete.sprites:
+      if joueur==-1 or sprite.joueur==joueur:
+        if nourriture==-1 or sprite.nourriture>0:
+          if construction==-1 or sprite.construction>0:
+            dist = general.distance(self.position, sprite.position)
+            if distance==None or distance>dist:
+              proche = sprite
+              distance = dist
+                
+    return proche
+            
   def blip(self):
     if self.blipid!=None:
       try:
