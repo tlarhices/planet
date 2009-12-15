@@ -209,6 +209,62 @@ class Element:
     self.enfants.append(Element(self.id+"["+str(len(self.enfants))+"]", self.planete.sommets.index(c1), self.planete.sommets.index(c2), self.planete.sommets.index(c3), self.planete, self.profondeur+1, self.parent))
     self.enfants.append(Element(self.id+"["+str(len(self.enfants))+"]", self.planete.sommets.index(c1), self.planete.sommets.index(c3), self.planete.sommets.index(p3), self.planete, self.profondeur+1, self.parent))
     
+  def triangleVersCarte(self, p1, p2, p3):
+    taille = 80.0
+    p1=self.point3DVersCarte(p1, taille)
+    p2=self.point3DVersCarte(p2, taille)
+    p3=self.point3DVersCarte(p3, taille)
+    
+    test=False
+    while not test:
+      test=True
+      minx=min(p1[0], p2[0], p3[0])
+      maxx=max(p1[0], p2[0], p3[0])
+      miny=min(p1[1], p2[1], p3[1])
+      maxy=max(p1[1], p2[1], p3[1])
+      
+      if maxx-minx>taille*2.0/3.0:
+        test=False
+        if p1[0]==minx:
+          p1[0]=p1[0]+taille
+        if p2[0]==minx:
+          p2[0]=p2[0]+taille
+        if p3[0]==minx:
+          p3[0]=p3[0]+taille
+      if maxy-miny>taille*2.0/3.0:
+        test=False
+        if p1[1]==miny:
+          p1[1]=p1[1]+taille
+        if p2[1]==miny:
+          p2[1]=p2[1]+taille
+        if p3[1]==miny:
+          p3[1]=p3[1]+taille
+    
+    return p1, p2, p3
+    
+  def point3DVersCarte(self, point, taille):
+    point = Vec3(point)
+    point.normalize()
+    x,y,z = point
+    lon = math.acos(z)
+    
+    tmp = Vec2(x,y)
+    tmp.normalize()
+    x,y=tmp
+    
+    if x==0.0 and y==0.0:
+      lat=0.0
+    elif y>=0:
+      if x==0:
+        lat=math.acos(0.0)
+      else:
+        lat=math.acos(x/math.sqrt(x*x+y*y))
+    else:
+      lat=2 * math.pi - math.acos(x/math.sqrt(x*x+y*y))
+    lat=lat*taille/(2*math.pi)
+    
+    z=(-z*taille/2+taille/2)
+    return Vec2(lat, z)
 
   def fabriqueModel(self, forceCouleur=None, optimise=True):
     """
@@ -242,8 +298,9 @@ class Element:
     if self.profondeur > 0:
       self.modele = NodePath(self.id)
     elif self.profondeur == 0:
-      rbc = RigidBodyCombiner(self.id+"-rigid")
-      self.modele = NodePath(rbc)
+      #rbc = RigidBodyCombiner(self.id+"-rigid")
+      #self.modele = NodePath(rbc)
+      self.modele = NodePath(self.id+"-rigid")
     self.modele.reparentTo(self.planete.racine)
     
     #S'il y a eut subdivision de cette partie de la géométrie, on ne s'occupe que des enfants
@@ -257,14 +314,12 @@ class Element:
           ##On dit que la couleur proviens des vectrices et qu'il faut pas le perdre
           #self.modele.setAttrib(ColorAttrib.makeVertex()) 
           #Optimise le modèle
-          #self.modele.flattenStrong()
+          self.modele.flattenStrong()
           self.besoinOptimise = False
-          rbc.collect()
+          #rbc.collect()
         else:
           self.besoinOptimise = True
           
-      if self.profondeur == 0:
-        pass
       return self.modele
     
     #S'il n'y a pas eut de subdivision, alors on trace le triange
@@ -283,8 +338,8 @@ class Element:
       self.modele.attachNewNode(nd)
       
     self.modele.setPythonTag("type","sol")
-    if self.profondeur == 0:
-      rbc.collect()
+    #if self.profondeur == 0:
+    #  rbc.collect()
     return self.modele
     
   texturesValides=["subsubaquatique", "subaquatique", "sable", "champ", "herbe",
@@ -362,27 +417,30 @@ class Element:
     n2=self.calculNormale(p2)
     n3=self.calculNormale(p3)
     
+    
+    ct1, ct2, ct3 = self.triangleVersCarte(p1, p2, p3)
+    
     #On écrit le modèle dans cet ordre :
     #-vectrice
     #-normale
     #-texture | couleur
     #3 fois
-    vWriter.addData3f(*p1)
-    nWriter.addData3f(*n1)
+    vWriter.addData3f(p1)
+    nWriter.addData3f(n1)
     if general.TEXTURES:
-      tWriter.addData2f(0,0)
+      tWriter.addData2f(ct1)
     else:
       cWriter.addData4f(*c1)
-    vWriter.addData3f(*p2)
-    nWriter.addData3f(*n2)
+    vWriter.addData3f(p2)
+    nWriter.addData3f(n2)
     if general.TEXTURES:
-      tWriter.addData2f(0,1)
+      tWriter.addData2f(ct2)
     else:
       cWriter.addData4f(*c2)
-    vWriter.addData3f(*p3)
-    nWriter.addData3f(*n3)
+    vWriter.addData3f(p3)
+    nWriter.addData3f(n3)
     if general.TEXTURES:
-      tWriter.addData2f(1,0)
+      tWriter.addData2f(ct3)
     else:
       cWriter.addData4f(*c3)
 
