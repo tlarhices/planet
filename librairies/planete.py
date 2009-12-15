@@ -446,7 +446,7 @@ class Planete:
     
     self.racine.setScale(1.0)
     #self.calculHeightMap()
-    self.ajouteTextures()
+    #self.ajouteTextures()
       
     #On ajoute l'eau
     self.fabriqueEau()
@@ -1209,7 +1209,11 @@ class Planete:
   vdata = None
   def ajouteVerteces(self, vdata, vWriter, nWriter, tcWriter):
     self.vdata = vdata
+    cpt = 0
     for sommet in self.sommets:
+      if cpt%250==0:
+        print "Vectrices %i/%i" %(cpt, len(self.sommets))
+      cpt+=1
       self.ajouteVertex(sommet, self.vdata, vWriter, nWriter, tcWriter)
       
   def ajouteVertex(self, p, vdata, vWriter, nWriter, tcWriter):
@@ -1396,7 +1400,7 @@ class Planete:
     self.neigeRendu.write(Filename("data/cache/zoneneige.png"))
       
   def ajouteTextures(self):
-    if True:
+    if False:
       tex = loader.loadTexture("data/textures/herbe.png")
       self.racine.setTexture(tex, 1)
       return

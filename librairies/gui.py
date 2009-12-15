@@ -653,7 +653,7 @@ class MiniMap(Pane):
             else:
               self.fondRendu.setXel(x,y, px)
         #fond.gaussianFilter(2.0)
-        self.fondRendu.write(Filename("./carte.png"))
+        #self.fondRendu.write(Filename("./carte.png"))
       #La zone d'ombre
       if self.carteSoleilARedessiner and general.configuration.getConfiguration("affichage","minimap","affichesoleil","t")=="t":
         for x in range(0, self.tailleMiniMapX):
@@ -665,7 +665,7 @@ class MiniMap(Pane):
               self.soleilRendu.setXel(x,y, spx)
         #On la rends floue pour qu'elle soit plus jolie
         self.soleilRendu.gaussianFilter(5.0)
-        self.soleilRendu.write(Filename("./soleil.png"))
+        #self.soleilRendu.write(Filename("./soleil.png"))
       #La fusion fond + ombre
       if general.configuration.getConfiguration("affichage","minimap","affichesoleil","t")=="t":
         if self.carteARedessiner or self.carteSoleilARedessiner:
@@ -674,7 +674,7 @@ class MiniMap(Pane):
               px = self.fondRendu.getXel(x,y)
               spx = self.soleilRendu.getXel(x,y)
               self.fusion.setXel(x, y, px[0]*spx[0], px[1]*spx[1], px[2]*spx[2])
-          self.fusion.write(Filename("./fusion.png"))
+          #self.fusion.write(Filename("./fusion.png"))
           texture = Texture("fusion")
           texture.load(self.fusion)
           self.carte.setImage(texture)

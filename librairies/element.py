@@ -178,6 +178,9 @@ class Element:
       /__\/__\
     p1   c1   p3
     """
+    
+    print "Tesselate",self.id
+    
     #Si on a déjà subdivisé le niveau courant, on saute directement sur les enfants
     if self.enfants != None:
       for enfant in self.enfants:
