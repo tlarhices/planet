@@ -444,7 +444,9 @@ class Planete:
       #Ce sont les faces qui vont se charger de faire le modèle pour nous
       element.fabriqueModel()
     
-    self.racine.setScale(1.0)  
+    self.racine.setScale(1.0)
+    self.calculHeightMap()
+    self.ajouteTextures()
       
     #On ajoute l'eau
     self.fabriqueEau()
@@ -1203,3 +1205,203 @@ class Planete:
     general.gui.afficheTexte(joueur.nom+" est entré dans la partie", "info")
     self.joueurs.append(joueur)
   # Fin Fonctions diverses ---------------------------------------------
+  
+  def ajouteVerteces(self, vdata, vWriter, nWriter, tcWriter):
+    for sommet in self.sommets:
+      self.ajouteVertex(sommet, vdata, vWriter, nWriter, tcWriter)
+      
+  def ajouteVertex(self, p, vdata, vWriter, nWriter, tcWriter):
+    #On attrape les couleurs pour chaque sommet
+    c1,t1,h1=self.elements[0].couleurSommet(p)
+
+    #On calcule les normales à chaque sommet
+    n1=self.sommetDansFace[self.sommets.index(p)][0].calculNormale(p)
+    
+    ci1 = self.elements[0].point3DVersCarte(p, 1.0)
+    #On écrit le modèle dans cet ordre :
+    #-vectrice
+    #-normale
+    #-texture | couleur
+    vWriter.addData3f(p)
+    nWriter.addData3f(n1)
+    if general.TEXTURES:
+      tcWriter.addData2f(ci1)
+    else:
+      tcWriter.addData4f(*c1)
+      
+  def dessineCarte(self, p1, p2, p3, c1, c2, c3, taille, carteDure, carteFloue):
+    minx = min(p1[0], p2[0], p3[0])
+    maxx = max(p1[0], p2[0], p3[0])
+    miny = min(p1[1], p2[1], p3[1])
+    maxy = max(p1[1], p2[1], p3[1])
+    taille = float(taille)
+    
+    def signe(p1, p2, p3):
+      return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1]);
+    def estDansTriangle(pt, s1, s2, s3):
+      b1 = signe(pt, s1, s2) < 0.0
+      b2 = signe(pt, s2, s3) < 0.0
+      b3 = signe(pt, s3, s1) < 0.0
+      return ((b1 == b2) and (b2 == b3))
+    
+    #Test des points à cheval sur les bords, s'il y en a, on dessine 2 triangles qui débordent de chaque coté de la carte
+    if maxx-minx>float(taille)*2.0/3.0:
+      p1min = Vec2(*p1[:])
+      p2min = Vec2(*p2[:])
+      p3min = Vec2(*p3[:])
+      if p1min[0]<taille/2.0:
+        p1min[0]=p1min[0]+taille
+      if p2min[0]<taille/2.0:
+        p2min[0]=p2min[0]+taille
+      if p3min[0]<taille/2.0:
+        p3min[0]=p3min[0]+taille
+      
+      if p1!=p1min or p2!=p2min or p3!=p3min:
+        self.dessineCarte(p1min, p2min, p3min, c1, c2, c3, taille, carteDure, carteFloue)
+
+      p1max = Vec2(p1[:])
+      p2max = Vec2(p2[:])
+      p3max = Vec2(p3[:])
+      if p1max[0]>taille/2.0:
+        p1max[0]=p1max[0]-taille
+      if p2max[0]>taille/2.0:
+        p2max[0]=p2max[0]-taille
+      if p3max[0]>taille/2.0:
+        p3max[0]=p3max[0]-taille
+      
+      if p1!=p1max or p2!=p2max or p3!=p3max:
+        self.dessineCarte(p1max, p2max, p3max, c1, c2, c3, taille, carteDure, carteFloue)
+      return
+      
+    if maxy-miny>taille*2.0/3.0:
+      p1min = Vec2(p1[:])
+      p2min = Vec2(p2[:])
+      p3min = Vec2(p3[:])
+      if p1min[1]<taille/2.0:
+        p1min[1]=p1min[1]+taille
+      if p2min[1]<taille/2.0:
+        p2min[1]=p2min[1]+taille
+      if p3min[1]<taille/2.0:
+        p3min[1]=p3min[1]+taille
+      print p1,p2,p3,"min ->", p1min, p2min, p3min
+      if p1!=p1min or p2!=p2min or p3!=p3min:
+        self.dessineCarte(p1min, p2min, p3min, c1, c2, c3, taille, carteDure, carteFloue)
+
+      p1max = Vec2(p1[:])
+      p2max = Vec2(p2[:])
+      p3max = Vec2(p3[:])
+      if p1max[1]>taille/2.0:
+        p1max[1]=p1max[1]-taille
+      if p2max[1]>taille/2.0:
+        p2max[1]=p2max[1]-taille
+      if p3max[1]>taille/2.0:
+        p3max[1]=p3max[1]-taille
+      print p1,p2,p3,"max ->", p1max, p2max, p3max
+      if p1!=p1max or p2!=p2max or p3!=p3max:
+        self.dessineCarte(p1max, p2max, p3max, c1, c2, c3, taille, carteDure, carteFloue)
+      return
+      
+      
+    #Dessine le triangle
+    for x in range(int(minx+0.5), int(maxx+0.5)):
+      if x in range(0, taille):
+        for y in range(int(miny+0.5), int(maxy+0.5)):
+          if y in range(0, taille):
+            d1=(Vec2(x,y)-Vec2(p1[0], p1[1])).length()
+            d2=(Vec2(x,y)-Vec2(p2[0], p2[1])).length()
+            d3=(Vec2(x,y)-Vec2(p3[0], p3[1])).length()
+            fact=(d1+d2+d3)/2
+            d1=1-d1/fact
+            d2=1-d2/fact
+            d3=1-d3/fact
+            couleur=c1[0]*d1+c2[0]*d2+c3[0]*d3, c1[1]*d1+c2[1]*d2+c3[1]*d3, c1[2]*d1+c2[2]*d2+c3[2]*d3
+            carteFloue.setXel(x, y, couleur[0], couleur[1], couleur[2])
+            if estDansTriangle((x,y),p1,p2,p3):
+                carteDure.setXel(x, y, couleur[0], couleur[1], couleur[2])
+                self.carteARedessiner = True
+      
+  def calculHeightMap(self, listeSommets=None):
+    tailleHeightMap = 256
+    if listeSommets==None:
+      listeSommets=self.sommets
+      
+    self.heightMap = PNMImage(tailleHeightMap,tailleHeightMap)
+    self.heightMap.fillVal(0, 0, 0)
+    self.heightMapFlou = PNMImage(tailleHeightMap,tailleHeightMap)
+    self.heightMapFlou.fillVal(0, 0, 0)
+    
+    
+    def procedeElement(element, taille):
+      s1,s2,s3 = element.sommets
+      s1=self.sommets[s1]
+      s2=self.sommets[s2]
+      s3=self.sommets[s3]
+      x1,y1 = element.point3DVersCarte(s1, taille)
+      c1 = (max(1.0-self.delta, min(1.0+self.delta, s1.length()))-1.0)/2/self.delta
+      x2,y2 = element.point3DVersCarte(s2, taille)
+      c2 = (max(1.0-self.delta, min(1.0+self.delta, s1.length()))-1.0)/2/self.delta
+      x3,y3 = element.point3DVersCarte(s3, taille)
+      c3 = (max(1.0-self.delta, min(1.0+self.delta, s1.length()))-1.0)/2/self.delta
+      self.dessineCarte(s1, s2, s3, (c1,c1,c1), (c2,c2,c2), (c3,c3,c3), taille, self.heightMap, self.heightMapFlou)
+      if element.enfants!=None:
+        for element2 in element.enfants:
+          procedeElement(element2, taille)
+          
+          
+    for element in self.elements:
+      procedeElement(element, tailleHeightMap)
+      
+    self.heightMap.write(Filename("data/cache/zoneherbe.png"))
+    self.heightMap.write(Filename("data/cache/zoneneige.png"))
+      
+  def ajouteTextures(self):
+    # Stage 1: alpha maps
+    ts = TextureStage("stage-alphamaps")
+    ts.setSort(00)
+    ts.setPriority(1)
+    ts.setMode(TextureStage.MReplace)
+    ts.setSavedResult(True)
+    self.racine.setTexture(ts, loader.loadTexture("data/cache/zoneherbe.png", "data/cache/zoneneige.png"))
+
+    # Stage 2: the first texture
+    ts = TextureStage("stage-first")
+    ts.setSort(10)
+    ts.setPriority(1)
+    ts.setMode(TextureStage.MReplace)
+    self.racine.setTexture(ts, loader.loadTexture("data/textures/sable.png"))
+    self.racine.setTexScale(ts, 256, 256)
+
+    # Stage 3: the second texture
+    ts = TextureStage("stage-second")
+    ts.setSort(20)
+    ts.setPriority(1)
+    ts.setCombineRgb(TextureStage.CMInterpolate, TextureStage.CSTexture, TextureStage.COSrcColor,
+                                                 TextureStage.CSPrevious, TextureStage.COSrcColor,
+                                                 TextureStage.CSLastSavedResult, TextureStage.COOneMinusSrcColor)
+    self.racine.setTexture(ts, loader.loadTexture("data/textures/herbe.png"))
+    self.racine.setTexScale(ts, 256, 256)
+
+    # Stage 4: the third texture
+    ts = TextureStage("stage-third")
+    ts.setSort(30)
+    ts.setPriority(0)
+    ts.setCombineRgb(TextureStage.CMInterpolate, TextureStage.CSTexture, TextureStage.COSrcColor,
+                                                 TextureStage.CSPrevious, TextureStage.COSrcColor,
+                                                 TextureStage.CSLastSavedResult, TextureStage.COOneMinusSrcAlpha)
+    self.racine.setTexture(ts, loader.loadTexture("data/textures/neige.png"))
+    self.racine.setTexScale(ts, 256, 256)
+    
+    # Stage 5: the extra pre-generated octave added on top. This one is multiplied with the rest. 
+    # Why aren't we using the MModulate blend mode to multiply the result, and are we doing the
+    # same thing with combine modes? Well, this allows us to use setRgbScale, which we use to
+    # make the terrain a bit brighter - otherwise it would become too dark, because we are
+    # multipling the two texture octaves.
+    ts = TextureStage("stage-global")
+    ts.setSort(40)
+    ts.setPriority(2)
+    ts.setCombineRgb(TextureStage.CMModulate, TextureStage.CSPrevious, TextureStage.COSrcColor,
+                                              TextureStage.CSTexture, TextureStage.COSrcColor)
+    ts.setRgbScale(1)
+    self.racine.setTexture(ts, loader.loadTexture("data/textures/oct.png"))
+
+

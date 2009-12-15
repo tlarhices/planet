@@ -271,77 +271,32 @@ class Element:
     Fabrique le modèle 3D
     Si forceCouleur est different de None, alors sa valeur sera utilisée comme couleur pour la facette
     """
-    if general.DEBUG_CONSTRUCTION_SPHERE:
-      return self.modele
-    #Si on recalcule le modele, on met a jour le temps depuis la derniere modification
-    self.parent.pileOptimise = 0.0
+    lvlOpt = 1
     
-    couleur = self.couleur
-    if forceCouleur!=None:
-      couleur = forceCouleur
-      
-    #On regarde si curseur n'est pas au dessus de cette facette
-    #if self.planete.survol!=None:
-    #  if self.planete.survol in self.sommets:
-    #    forceCouleur = [0.0, 0.0, 1.0, 1.0] #Couleur de survol
-      
-    #On supprime le modèle 3D existant s'il y en a un
-    if self.modele != None:
-      self.modele.detachNode()
-      self.modele.removeNode()
-    self.modele = None
-    self.lignes = []
-      
-    #On crée un nouveau point d'encrage pour le modèle 3D
-    p1, p2, p3 = self.sommets
-    
-    if self.profondeur > 0:
-      self.modele = NodePath(self.id)
-    elif self.profondeur == 0:
-      #rbc = RigidBodyCombiner(self.id+"-rigid")
-      #self.modele = NodePath(rbc)
-      self.modele = NodePath(self.id+"-rigid")
-    self.modele.reparentTo(self.planete.racine)
-    
-    #S'il y a eut subdivision de cette partie de la géométrie, on ne s'occupe que des enfants
-    if self.enfants != None:
+    if self.profondeur == lvlOpt:
+      vdata, vWriter, nWriter, tcWriter = self.fabriqueGeomVertex()
+      self.planete.ajouteVerteces(vdata, vWriter, nWriter, tcWriter)
+      primitives = []
       for enfant in self.enfants:
-        #On place hiérarchiquement les enfants en dessous des parents
-        mdl = enfant.fabriqueModel(forceCouleur)
-        mdl.reparentTo(self.modele)
-      if self.profondeur == 0:
-        if optimise:
-          ##On dit que la couleur proviens des vectrices et qu'il faut pas le perdre
-          #self.modele.setAttrib(ColorAttrib.makeVertex()) 
-          #Optimise le modèle
-          self.modele.flattenStrong()
-          self.besoinOptimise = False
-          #rbc.collect()
-        else:
-          self.besoinOptimise = True
-          
-      return self.modele
-    
-    #S'il n'y a pas eut de subdivision, alors on trace le triange
-    a, b, c = self.sommets
-    p1, p2, p3 = self.planete.sommets[a], self.planete.sommets[b], self.planete.sommets[c]
-    
-    if not general.WIREFRAME:
-      nd = self.fabriqueTriangle(p1, p2, p3, forceCouleur)
-      nd.reparentTo(self.modele)
-    else:
-      nd = self.dessineLigne(couleur, p1, p2)
-      self.modele.attachNewNode(nd)
-      nd = self.dessineLigne(couleur, p1, p3)
-      self.modele.attachNewNode(nd)
-      nd = self.dessineLigne(couleur, p2, p3)
-      self.modele.attachNewNode(nd)
+        primitives += enfant.assemblePrimitives(vdata, vWriter, nWriter, tcWriter)
+      geom = Geom(vdata)
+      for prim in primitives:
+        geom.addPrimitive(prim)
+
+      node = GeomNode('gnode')
+      node.addGeom(geom)
+      self.modele = NodePath(node)
       
+    else:
+      self.modele = NodePath("")
+      for enfant in self.enfants:
+        mdl = enfant.fabriqueModel()
+        mdl.reparentTo(self.modele)
+        
+    self.modele.reparentTo(self.planete.racine)
     self.modele.setPythonTag("type","sol")
-    #if self.profondeur == 0:
-    #  rbc.collect()
     return self.modele
-    
+        
   texturesValides=["subsubaquatique", "subaquatique", "sable", "champ", "herbe",
   "feuillesa", "feuillesb", "feuillesc", "cailloux", "neige"]
     
@@ -384,9 +339,7 @@ class Element:
       return ls.create()
     
     
-  decideArbre = None
-  def fabriqueTriangle(self, p1, p2, p3, forceCouleur=None):
-    """Fabrique la géométrie de la face triangulaire définie par p1, p2 et p3"""
+  def fabriqueGeomVertex(self):
     #Prepare la création du triangle
     if general.TEXTURES:
       format = GeomVertexFormat.getV3n3t2() #On donne les vectrices, les normales et les textures
@@ -398,118 +351,43 @@ class Element:
     vWriter = GeomVertexWriter(vdata, 'vertex')
     nWriter = GeomVertexWriter(vdata, 'normal')
     if general.TEXTURES:
-      tWriter = GeomVertexWriter(vdata, 'texcoord')
+      tcWriter = GeomVertexWriter(vdata, 'texcoord')
     else:
-      cWriter = GeomVertexWriter(vdata, 'color')
+      tcWriter = GeomVertexWriter(vdata, 'color')
     
-    #On attrape les couleurs pour chaque sommet
-    if forceCouleur==None:
-      c1,t1,h1=self.couleurSommet(p1)
-      c2,t2,h2=self.couleurSommet(p2)
-      c3,t3,h3=self.couleurSommet(p3)
-    else:
-      c1,t1,h1 = forceCouleur
-      c2,t2,h2 = forceCouleur
-      c3,t3,h3 = forceCouleur
-
-    #On calcule les normales à chaque sommet
-    n1=self.calculNormale(p1)
-    n2=self.calculNormale(p2)
-    n3=self.calculNormale(p3)
+    return vdata, vWriter, nWriter, tcWriter
     
+  def assemblePrimitives(self, vdata, vWriter, nWriter, tcWriter):
+    primitives = []
+    if self.enfants != None:
+      for enfant in self.enfants:
+        primitives+=enfant.assemblePrimitives(vdata, vWriter, nWriter, tcWriter)
+    else:
+      p1, p2, p3 = self.sommets
+      primitives.append(self.ajouteFace(p1, p2, p3, vdata, vWriter, nWriter, tcWriter))
+    return primitives
     
-    ct1, ct2, ct3 = self.triangleVersCarte(p1, p2, p3)
-    
-    #On écrit le modèle dans cet ordre :
-    #-vectrice
-    #-normale
-    #-texture | couleur
-    #3 fois
-    vWriter.addData3f(p1)
-    nWriter.addData3f(n1)
-    if general.TEXTURES:
-      tWriter.addData2f(ct1)
-    else:
-      cWriter.addData4f(*c1)
-    vWriter.addData3f(p2)
-    nWriter.addData3f(n2)
-    if general.TEXTURES:
-      tWriter.addData2f(ct2)
-    else:
-      cWriter.addData4f(*c2)
-    vWriter.addData3f(p3)
-    nWriter.addData3f(n3)
-    if general.TEXTURES:
-      tWriter.addData2f(ct3)
-    else:
-      cWriter.addData4f(*c3)
-
+  def ajouteFace(self, o1, o2, o3, vdata, vWriter, nWriter, tcWriter):
     #On fabrique la géométrie
     prim = GeomTriangles(Geom.UHStatic)
-    prim.addVertex(0)
-    prim.addVertex(1)
-    prim.addVertex(2)
+    prim.addVertex(o1)
+    prim.addVertex(o2)
+    prim.addVertex(o3)
     prim.closePrimitive()
+    return prim
+    
+  decideArbre = None
+  def bouecfabriqueTriangle(self, p1, p2, p3, forceCouleur=None):
+    """Fabrique la géométrie de la face triangulaire définie par p1, p2 et p3"""
+    
 
-    geom = Geom(vdata)
-    geom.addPrimitive(prim)
 
-    node = GeomNode('gnode')
-    node.addGeom(geom)
-    nd = NodePath(node)
+
     
     #On applique la texture
 #    tex = self.textureMixer("bl", "wh", "wh")
     #nd.setTexture(tex)
     
-    # Stage 1: alpha maps
-    ts = TextureStage("stage-alphamaps")
-    ts.setSort(00)
-    ts.setPriority(1)
-    ts.setMode(TextureStage.MReplace)
-    ts.setSavedResult(True)
-    nd.setTexture(ts, loader.loadTexture("data/textures/bl-wh-wh.png", "data/textures/wh-bl-wh.png"))
-
-    # Stage 2: the first texture
-    ts = TextureStage("stage-first")
-    ts.setSort(10)
-    ts.setPriority(1)
-    ts.setMode(TextureStage.MReplace)
-    nd.setTexture(ts, loader.loadTexture("data/textures/"+t1+".png"))
-    nd.setTexScale(ts, 256, 256)
-
-    # Stage 3: the second texture
-    ts = TextureStage("stage-second")
-    ts.setSort(20)
-    ts.setPriority(1)
-    ts.setCombineRgb(TextureStage.CMInterpolate, TextureStage.CSTexture, TextureStage.COSrcColor,
-                                                 TextureStage.CSPrevious, TextureStage.COSrcColor,
-                                                 TextureStage.CSLastSavedResult, TextureStage.COOneMinusSrcColor)
-    nd.setTexture(ts, loader.loadTexture("data/textures/"+t2+".png"))
-    nd.setTexScale(ts, 256, 256)
-
-    # Stage 4: the third texture
-    ts = TextureStage("stage-third")
-    ts.setSort(30)
-    ts.setPriority(0)
-    ts.setCombineRgb(TextureStage.CMInterpolate, TextureStage.CSTexture, TextureStage.COSrcColor,
-                                                 TextureStage.CSPrevious, TextureStage.COSrcColor,
-                                                 TextureStage.CSLastSavedResult, TextureStage.COOneMinusSrcAlpha)
-    nd.setTexture(ts, loader.loadTexture("data/textures/"+t3+".png"))
-    nd.setTexScale(ts, 256, 256)
-    
-    # Stage 5: the extra pre-generated octave added on top. This one is multiplied with the rest. 
-    # Why aren't we using the MModulate blend mode to multiply the result, and are we doing the
-    # same thing with combine modes? Well, this allows us to use setRgbScale, which we use to
-    # make the terrain a bit brighter - otherwise it would become too dark, because we are
-    # multipling the two texture octaves.
-    ts = TextureStage("stage-global")
-    ts.setSort(40)
-    ts.setPriority(2)
-    ts.setCombineRgb(TextureStage.CMModulate, TextureStage.CSPrevious, TextureStage.COSrcColor,
-                                              TextureStage.CSTexture, TextureStage.COSrcColor)
-    ts.setRgbScale(1)
-    nd.setTexture(ts, loader.loadTexture("data/textures/oct.png"))
 
 
     #if general.configuration.getConfiguration("affichage", "effets", "normalmapping", "f")=="t":
