@@ -445,7 +445,7 @@ class Planete:
       element.fabriqueModel()
     
     self.racine.setScale(1.0)
-    self.calculHeightMap()
+    #self.calculHeightMap()
     self.ajouteTextures()
       
     #On ajoute l'eau
@@ -1206,9 +1206,11 @@ class Planete:
     self.joueurs.append(joueur)
   # Fin Fonctions diverses ---------------------------------------------
   
+  vdata = None
   def ajouteVerteces(self, vdata, vWriter, nWriter, tcWriter):
+    self.vdata = vdata
     for sommet in self.sommets:
-      self.ajouteVertex(sommet, vdata, vWriter, nWriter, tcWriter)
+      self.ajouteVertex(sommet, self.vdata, vWriter, nWriter, tcWriter)
       
   def ajouteVertex(self, p, vdata, vWriter, nWriter, tcWriter):
     #On attrape les couleurs pour chaque sommet
@@ -1394,21 +1396,28 @@ class Planete:
     self.neigeRendu.write(Filename("data/cache/zoneneige.png"))
       
   def ajouteTextures(self):
+    if True:
+      tex = loader.loadTexture("data/textures/herbe.png")
+      self.racine.setTexture(tex, 1)
+      return
+    
+    root = self.racine
+    
     # Stage 1: alpha maps
     ts = TextureStage("stage-alphamaps")
     ts.setSort(00)
     ts.setPriority(1)
     ts.setMode(TextureStage.MReplace)
     ts.setSavedResult(True)
-    self.racine.setTexture(ts, loader.loadTexture("data/cache/zoneherbe.png", "data/cache/zoneneige.png"))
+    root.setTexture(ts, loader.loadTexture("data/cache/zoneherbe.png", "data/cache/zoneneige.png"))
 
     # Stage 2: the first texture
     ts = TextureStage("stage-first")
     ts.setSort(10)
     ts.setPriority(1)
     ts.setMode(TextureStage.MReplace)
-    self.racine.setTexture(ts, loader.loadTexture("data/textures/sable.png"))
-    self.racine.setTexScale(ts, 256, 256)
+    root.setTexture(ts, loader.loadTexture("data/textures/sable.png"))
+    #root.setTexScale(ts, 256, 256)
 
     # Stage 3: the second texture
     ts = TextureStage("stage-second")
@@ -1417,8 +1426,8 @@ class Planete:
     ts.setCombineRgb(TextureStage.CMInterpolate, TextureStage.CSTexture, TextureStage.COSrcColor,
                                                  TextureStage.CSPrevious, TextureStage.COSrcColor,
                                                  TextureStage.CSLastSavedResult, TextureStage.COSrcColor)
-    self.racine.setTexture(ts, loader.loadTexture("data/textures/herbe.png"))
-    self.racine.setTexScale(ts, 256, 256)
+    root.setTexture(ts, loader.loadTexture("data/textures/herbe.png"))
+    #root.setTexScale(ts, 256, 256)
 
     # Stage 4: the third texture
     ts = TextureStage("stage-third")
@@ -1427,20 +1436,6 @@ class Planete:
     ts.setCombineRgb(TextureStage.CMInterpolate, TextureStage.CSTexture, TextureStage.COSrcColor,
                                                  TextureStage.CSPrevious, TextureStage.COSrcColor,
                                                  TextureStage.CSLastSavedResult, TextureStage.COSrcAlpha)
-    self.racine.setTexture(ts, loader.loadTexture("data/textures/neige.png"))
-    self.racine.setTexScale(ts, 256, 256)
-    
-    # Stage 5: the extra pre-generated octave added on top. This one is multiplied with the rest. 
-    # Why aren't we using the MModulate blend mode to multiply the result, and are we doing the
-    # same thing with combine modes? Well, this allows us to use setRgbScale, which we use to
-    # make the terrain a bit brighter - otherwise it would become too dark, because we are
-    # multipling the two texture octaves.
-    ts = TextureStage("stage-global")
-    ts.setSort(40)
-    ts.setPriority(2)
-    ts.setCombineRgb(TextureStage.CMModulate, TextureStage.CSPrevious, TextureStage.COSrcColor,
-                                              TextureStage.CSTexture, TextureStage.COSrcColor)
-    ts.setRgbScale(1)
-    self.racine.setTexture(ts, loader.loadTexture("data/textures/oct.png"))
-
+    root.setTexture(ts, loader.loadTexture("data/textures/neige.png"))
+    #root.setTexScale(ts, 256, 256)
 

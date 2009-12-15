@@ -275,7 +275,8 @@ class Element:
     
     if self.profondeur == lvlOpt:
       vdata, vWriter, nWriter, tcWriter = self.fabriqueGeomVertex()
-      self.planete.ajouteVerteces(vdata, vWriter, nWriter, tcWriter)
+      if self.planete.vdata == None:
+        self.planete.ajouteVerteces(vdata, vWriter, nWriter, tcWriter)
       primitives = []
       for enfant in self.enfants:
         primitives += enfant.assemblePrimitives(vdata, vWriter, nWriter, tcWriter)
@@ -341,12 +342,15 @@ class Element:
     
   def fabriqueGeomVertex(self):
     #Prepare la création du triangle
-    if general.TEXTURES:
-      format = GeomVertexFormat.getV3n3t2() #On donne les vectrices, les normales et les textures
+    if self.planete.vdata == None:
+      if general.TEXTURES:
+        format = GeomVertexFormat.getV3n3t2() #On donne les vectrices, les normales et les textures
+      else:
+        format = GeomVertexFormat.getV3n3c4() #On donne les vectrices, les normales et les couleurs
+        
+      vdata = GeomVertexData('TriangleVertices',format,Geom.UHStatic)
     else:
-      format = GeomVertexFormat.getV3n3c4() #On donne les vectrices, les normales et les couleurs
-      
-    vdata = GeomVertexData('TriangleVertices',format,Geom.UHStatic)
+      vdata = self.planete.vdata
 
     vWriter = GeomVertexWriter(vdata, 'vertex')
     nWriter = GeomVertexWriter(vdata, 'normal')
