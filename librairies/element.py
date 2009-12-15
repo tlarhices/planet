@@ -210,7 +210,7 @@ class Element:
     self.enfants.append(Element(self.id+"["+str(len(self.enfants))+"]", self.planete.sommets.index(c1), self.planete.sommets.index(c3), self.planete.sommets.index(p3), self.planete, self.profondeur+1, self.parent))
     
   def triangleVersCarte(self, p1, p2, p3):
-    taille = 80.0
+    taille = 0.2
     p1=self.point3DVersCarte(p1, taille)
     p2=self.point3DVersCarte(p2, taille)
     p3=self.point3DVersCarte(p3, taille)
@@ -459,12 +459,63 @@ class Element:
     nd = NodePath(node)
     
     #On applique la texture
-    tex = self.textureMixer(t1, t2, t3)
-    nd.setTexture(tex)
-    if general.configuration.getConfiguration("affichage", "effets", "normalmapping", "f")=="t":
-      ts = TextureStage('ts')
-      ts.setMode(TextureStage.MNormal)
-      nd.setTexture(ts, tex)
+#    tex = self.textureMixer("bl", "wh", "wh")
+    #nd.setTexture(tex)
+    
+    # Stage 1: alpha maps
+    ts = TextureStage("stage-alphamaps")
+    ts.setSort(00)
+    ts.setPriority(1)
+    ts.setMode(TextureStage.MReplace)
+    ts.setSavedResult(True)
+    nd.setTexture(ts, loader.loadTexture("data/textures/bl-wh-wh.png", "data/textures/wh-bl-wh.png"))
+
+    # Stage 2: the first texture
+    ts = TextureStage("stage-first")
+    ts.setSort(10)
+    ts.setPriority(1)
+    ts.setMode(TextureStage.MReplace)
+    nd.setTexture(ts, loader.loadTexture("data/textures/"+t1+".png"))
+    nd.setTexScale(ts, 256, 256)
+
+    # Stage 3: the second texture
+    ts = TextureStage("stage-second")
+    ts.setSort(20)
+    ts.setPriority(1)
+    ts.setCombineRgb(TextureStage.CMInterpolate, TextureStage.CSTexture, TextureStage.COSrcColor,
+                                                 TextureStage.CSPrevious, TextureStage.COSrcColor,
+                                                 TextureStage.CSLastSavedResult, TextureStage.COOneMinusSrcColor)
+    nd.setTexture(ts, loader.loadTexture("data/textures/"+t2+".png"))
+    nd.setTexScale(ts, 256, 256)
+
+    # Stage 4: the third texture
+    ts = TextureStage("stage-third")
+    ts.setSort(30)
+    ts.setPriority(0)
+    ts.setCombineRgb(TextureStage.CMInterpolate, TextureStage.CSTexture, TextureStage.COSrcColor,
+                                                 TextureStage.CSPrevious, TextureStage.COSrcColor,
+                                                 TextureStage.CSLastSavedResult, TextureStage.COOneMinusSrcAlpha)
+    nd.setTexture(ts, loader.loadTexture("data/textures/"+t3+".png"))
+    nd.setTexScale(ts, 256, 256)
+    
+    # Stage 5: the extra pre-generated octave added on top. This one is multiplied with the rest. 
+    # Why aren't we using the MModulate blend mode to multiply the result, and are we doing the
+    # same thing with combine modes? Well, this allows us to use setRgbScale, which we use to
+    # make the terrain a bit brighter - otherwise it would become too dark, because we are
+    # multipling the two texture octaves.
+    ts = TextureStage("stage-global")
+    ts.setSort(40)
+    ts.setPriority(2)
+    ts.setCombineRgb(TextureStage.CMModulate, TextureStage.CSPrevious, TextureStage.COSrcColor,
+                                              TextureStage.CSTexture, TextureStage.COSrcColor)
+    ts.setRgbScale(1)
+    nd.setTexture(ts, loader.loadTexture("data/textures/oct.png"))
+
+
+    #if general.configuration.getConfiguration("affichage", "effets", "normalmapping", "f")=="t":
+    #  ts = TextureStage('ts')
+    #  ts.setMode(TextureStage.MNormal)
+    #  nd.setTexture(ts, tex)
       
     if general.gui.menuCourant !=None:
       try:
