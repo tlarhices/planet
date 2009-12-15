@@ -1246,9 +1246,9 @@ class Planete:
     
     #Test des points à cheval sur les bords, s'il y en a, on dessine 2 triangles qui débordent de chaque coté de la carte
     if maxx-minx>float(taille)*2.0/3.0:
-      p1min = Vec2(*p1[:])
-      p2min = Vec2(*p2[:])
-      p3min = Vec2(*p3[:])
+      p1min = Vec2(p1)
+      p2min = Vec2(p2)
+      p3min = Vec2(p3)
       if p1min[0]<taille/2.0:
         p1min[0]=p1min[0]+taille
       if p2min[0]<taille/2.0:
@@ -1259,9 +1259,9 @@ class Planete:
       if p1!=p1min or p2!=p2min or p3!=p3min:
         self.dessineCarte(p1min, p2min, p3min, c1, c2, c3, taille, carteDure, carteFloue)
 
-      p1max = Vec2(p1[:])
-      p2max = Vec2(p2[:])
-      p3max = Vec2(p3[:])
+      p1max = Vec2(p1)
+      p2max = Vec2(p2)
+      p3max = Vec2(p3)
       if p1max[0]>taille/2.0:
         p1max[0]=p1max[0]-taille
       if p2max[0]>taille/2.0:
@@ -1274,9 +1274,9 @@ class Planete:
       return
       
     if maxy-miny>taille*2.0/3.0:
-      p1min = Vec2(p1[:])
-      p2min = Vec2(p2[:])
-      p3min = Vec2(p3[:])
+      p1min = Vec2(p1)
+      p2min = Vec2(p2)
+      p3min = Vec2(p3)
       if p1min[1]<taille/2.0:
         p1min[1]=p1min[1]+taille
       if p2min[1]<taille/2.0:
@@ -1287,9 +1287,9 @@ class Planete:
       if p1!=p1min or p2!=p2min or p3!=p3min:
         self.dessineCarte(p1min, p2min, p3min, c1, c2, c3, taille, carteDure, carteFloue)
 
-      p1max = Vec2(p1[:])
-      p2max = Vec2(p2[:])
-      p3max = Vec2(p3[:])
+      p1max = Vec2(p1)
+      p2max = Vec2(p2)
+      p3max = Vec2(p3)
       if p1max[1]>taille/2.0:
         p1max[1]=p1max[1]-taille
       if p2max[1]>taille/2.0:
@@ -1304,9 +1304,9 @@ class Planete:
       
     #Dessine le triangle
     for x in range(int(minx+0.5), int(maxx+0.5)):
-      if x in range(0, taille):
+      if x in range(0, int(taille)):
         for y in range(int(miny+0.5), int(maxy+0.5)):
-          if y in range(0, taille):
+          if y in range(0, int(taille)):
             d1=(Vec2(x,y)-Vec2(p1[0], p1[1])).length()
             d2=(Vec2(x,y)-Vec2(p2[0], p2[1])).length()
             d3=(Vec2(x,y)-Vec2(p3[0], p3[1])).length()
@@ -1320,15 +1320,19 @@ class Planete:
                 carteDure.setXel(x, y, couleur[0], couleur[1], couleur[2])
                 self.carteARedessiner = True
       
-  def calculHeightMap(self, listeSommets=None):
+  def calculHeightMap(self, listeElements=None):
     tailleHeightMap = 256
-    if listeSommets==None:
-      listeSommets=self.sommets
+    if listeElements==None:
+      listeElements=self.elements
       
     self.heightMap = PNMImage(tailleHeightMap,tailleHeightMap)
     self.heightMap.fillVal(0, 0, 0)
     self.heightMapFlou = PNMImage(tailleHeightMap,tailleHeightMap)
     self.heightMapFlou.fillVal(0, 0, 0)
+    self.neige = PNMImage(tailleHeightMap,tailleHeightMap)
+    self.neige.fillVal(0, 0, 0)
+    self.neigeFlou = PNMImage(tailleHeightMap,tailleHeightMap)
+    self.neigeFlou.fillVal(0, 0, 0)
     
     
     def procedeElement(element, taille):
@@ -1336,23 +1340,58 @@ class Planete:
       s1=self.sommets[s1]
       s2=self.sommets[s2]
       s3=self.sommets[s3]
-      x1,y1 = element.point3DVersCarte(s1, taille)
-      c1 = (max(1.0-self.delta, min(1.0+self.delta, s1.length()))-1.0)/2/self.delta
-      x2,y2 = element.point3DVersCarte(s2, taille)
-      c2 = (max(1.0-self.delta, min(1.0+self.delta, s1.length()))-1.0)/2/self.delta
-      x3,y3 = element.point3DVersCarte(s3, taille)
-      c3 = (max(1.0-self.delta, min(1.0+self.delta, s1.length()))-1.0)/2/self.delta
-      self.dessineCarte(s1, s2, s3, (c1,c1,c1), (c2,c2,c2), (c3,c3,c3), taille, self.heightMap, self.heightMapFlou)
+      p1 = element.point3DVersCarte(s1, taille)
+      p2 = element.point3DVersCarte(s2, taille)
+      p3 = element.point3DVersCarte(s3, taille)
+      c1 = (max(self.niveauEau, min(1.0+self.delta, s1.length()))-1.0)/(self.delta+self.niveauEau-1.0)
+      c2 = (max(self.niveauEau, min(1.0+self.delta, s1.length()))-1.0)/(self.delta+self.niveauEau-1.0)
+      c3 = (max(self.niveauEau, min(1.0+self.delta, s1.length()))-1.0)/(self.delta+self.niveauEau-1.0)
+      self.dessineCarte(p1, p2, p3, (c1,c1,c1), (c2,c2,c2), (c3,c3,c3), taille, self.heightMap, self.heightMapFlou)
+      if s1.length() < 1.0+self.delta*2.0/3.0:
+        c1 = 0.0
+      else:
+        c1 = (max(1.0+self.delta*2.0/3.0, min(1.0+self.delta, s1.length()))-1.0)/(self.delta+self.delta*2.0/3.0)
+      if s2.length() < 1.0+self.delta*2.0/3.0:
+        c2 = 0.0
+      else:
+        c2 = (max(1.0+self.delta*2.0/3.0, min(1.0+self.delta, s1.length()))-1.0)/(self.delta+self.delta*2.0/3.0)
+      if s3.length() < 1.0+self.delta*2.0/3.0:
+        c3 = 0.0
+      else:
+        c3 = (max(1.0+self.delta*2.0/3.0, min(1.0+self.delta, s1.length()))-1.0)/(self.delta+self.delta*2.0/3.0)
+      self.dessineCarte(p1, p2, p3, (c1,c1,c1), (c2,c2,c2), (c3,c3,c3), taille, self.neige, self.neigeFlou)
+      
       if element.enfants!=None:
         for element2 in element.enfants:
           procedeElement(element2, taille)
           
-          
-    for element in self.elements:
+    cpt = 0
+    for element in listeElements:
+      print "heightmap",cpt,"/",len(listeElements)
       procedeElement(element, tailleHeightMap)
-      
-    self.heightMap.write(Filename("data/cache/zoneherbe.png"))
-    self.heightMap.write(Filename("data/cache/zoneneige.png"))
+      cpt+=1
+
+    self.heightMapRendu = PNMImage(tailleHeightMap,tailleHeightMap)
+    self.neigeRendu = PNMImage(tailleHeightMap,tailleHeightMap)
+    for x in range(0, tailleHeightMap):
+      for y in range(0, tailleHeightMap):
+        c=self.heightMap.getXel(x,y)
+        if c[0]==0.0 and c[2]==0.0 and c[2]==0.0:
+          self.heightMapRendu.setXel(x,y,self.heightMapFlou.getXel(x,y))
+        else:
+          self.heightMapRendu.setXel(x,y,c)
+          
+        c=self.neige.getXel(x,y)
+        if c[0]==0.0 and c[2]==0.0 and c[2]==0.0:
+          self.neigeRendu.setXel(x,y,self.neigeFlou.getXel(x,y))
+        else:
+          self.neigeRendu.setXel(x,y,c)
+          
+    self.heightMapRendu.gaussianFilter(5.0)
+    self.neigeRendu.gaussianFilter(5.0)
+    
+    self.heightMapRendu.write(Filename("data/cache/zoneherbe.png"))
+    self.neigeRendu.write(Filename("data/cache/zoneneige.png"))
       
   def ajouteTextures(self):
     # Stage 1: alpha maps
@@ -1377,7 +1416,7 @@ class Planete:
     ts.setPriority(1)
     ts.setCombineRgb(TextureStage.CMInterpolate, TextureStage.CSTexture, TextureStage.COSrcColor,
                                                  TextureStage.CSPrevious, TextureStage.COSrcColor,
-                                                 TextureStage.CSLastSavedResult, TextureStage.COOneMinusSrcColor)
+                                                 TextureStage.CSLastSavedResult, TextureStage.COSrcColor)
     self.racine.setTexture(ts, loader.loadTexture("data/textures/herbe.png"))
     self.racine.setTexScale(ts, 256, 256)
 
@@ -1387,7 +1426,7 @@ class Planete:
     ts.setPriority(0)
     ts.setCombineRgb(TextureStage.CMInterpolate, TextureStage.CSTexture, TextureStage.COSrcColor,
                                                  TextureStage.CSPrevious, TextureStage.COSrcColor,
-                                                 TextureStage.CSLastSavedResult, TextureStage.COOneMinusSrcAlpha)
+                                                 TextureStage.CSLastSavedResult, TextureStage.COSrcAlpha)
     self.racine.setTexture(ts, loader.loadTexture("data/textures/neige.png"))
     self.racine.setTexScale(ts, 256, 256)
     
