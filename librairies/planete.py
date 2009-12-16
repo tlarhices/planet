@@ -1285,11 +1285,19 @@ class Planete:
     vWriter.setRow(indice)
     vWriter.setData3f(self.sommets[indice])
     
+    #On recalcul sa normale
+    nWriter = GeomVertexWriter(self.vdata, 'normal')
+    nWriter.setRow(indice)
+    nWriter.setData3f(self.sommetDansFace[indice][0].calculNormale(self.sommets[indice]))
+    
     #On change sa couleur
     if not general.TEXTURES:
       tcWriter = GeomVertexWriter(self.vdata, 'color')
       tcWriter.setRow(indice)
       tcWriter.setData4f(self.elements[0].couleurSommet(self.sommets[indice])[0])
+      
+    #On met à jour la minimap
+    self.calculMiniMap(self.sommetDansFace[indice])
       
   def dessineCarte(self, p1, p2, p3, c1, c2, c3, taille, carteDure, carteFloue):
     minx = min(p1[0], p2[0], p3[0])
@@ -1454,7 +1462,7 @@ class Planete:
     self.heightMapRendu.write(Filename("data/cache/zoneherbe.png"))
     self.neigeRendu.write(Filename("data/cache/zoneneige.png"))
       
-  def calculMiniMap(self):
+  def calculMiniMap(self, listeElements=None):
     def procedeElement(element):
       if element.enfants!=None:
         for element2 in element.enfants:
@@ -1471,7 +1479,11 @@ class Planete:
 
     if general.gui.menuCourant !=None:
       if general.gui.menuCourant.miniMap !=None:
-        for element in self.elements:
+        
+        if listeElements == None:
+          listeElements = self.elements
+          
+        for element in listeElements:
           procedeElement(element)
       
   def ajouteTextures(self):
