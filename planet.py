@@ -149,19 +149,15 @@ class Start:
     """Construit une nouvelle planète via les gentils algos"""
     self.detruit()
     self.planete = Planete()
-    general.configuration.effacePlanete()
     tesselation = int(general.configuration.getConfiguration("planete", "generation", "tesselation", "4"))
     delta = float(general.configuration.getConfiguration("planete", "generation", "delta", "0.2"))
     self.planete.fabriqueNouvellePlanete(tesselation=tesselation, delta=delta)
-    #self.camera.reparentTo(self.planete.racine)
     
   def chargePlanete(self, fichierPlanete):
-    """Construit une nouvelle planète via les gentils algos"""
+    """Charge une planète depuis un fichier"""
     self.detruit()
     self.planete = Planete()
-    general.configuration.effacePlanete()
     self.planete.charge(fichier=fichierPlanete)
-    #self.camera.reparentTo(self.planete.racine)
     
   def detruit(self):
     """Supprime le modèle et retire les structures de données"""

@@ -54,17 +54,18 @@ class Configuration:
     
   def sauve(self, fichier):
     """Sauvegarde un fichier de configuration (ne garde pas les commentaires)"""
+    #Formatte les valeurs pour un sotckage vers le fichier
     def versStr(valeur):
       if isinstance(valeur, bool):
-        return str(valeur)[0]
+        return str(valeur)[0] #Transforme True en 'T' et False en 'F'
       return str(valeur)
       
     fichier = open(fichier, "w")
-    for section in self.configuration.keys():
+    for section in self.configuration.keys(): #Sauve les sections
       fichier.write("[["+str(section)+"]]\r\n")
-      for soussection in self.configuration[section].keys():
+      for soussection in self.configuration[section].keys(): #Sauve les sous-sections
         fichier.write(str(soussection)+":\r\n")
-        for element in self.configuration[section][soussection].keys():
+        for element in self.configuration[section][soussection].keys(): #Sauve les clefs
           fichier.write(str(element)+" = "+versStr(self.configuration[section][soussection][element])+"\r\n")
         fichier.write("\r\n")
     fichier.write("\r\n")
@@ -82,6 +83,7 @@ class Configuration:
     return out
     
   def parseSprite(self, fichier):
+    """Charge un fichier de définition de sprite et range les valeurs au bon format dans un dictionnaire"""
     sprite={}
     self.fichierConfig = fichier
     fichier = open(fichier, "r")
@@ -93,6 +95,7 @@ class Configuration:
         b = b.strip()
         sprite[a]=b
       
+    #Type les variables correctement
     def config(tab, clef, type, defaut):
       clef=clef.lower().strip()
       if not clef in tab.keys():
@@ -124,13 +127,9 @@ class Configuration:
     sprite["constr"] = config(sprite, "constr", int, 0)
       
     return sprite
-    
-  def effacePlanete(self):
-    return
-    for clef in self.configuration.keys()[:]:
-      del self.configuration[clef]
       
   def setConfiguration(self, section, sousection, champ, valeur):
+    """Change une valeur de la configuration courante"""
     section=str(section).lower()
     champ=str(champ).lower()
     

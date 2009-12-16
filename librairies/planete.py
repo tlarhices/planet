@@ -461,7 +461,6 @@ class Planete:
     general.stopChrono("Planete::fabriqueModel")
 
   def fabriqueVegetation(self):
-    return
     vegetation=[]
     vegetation.append([]) #Vide
     vegetation.append(["palmier",]) #Sable/plage
@@ -469,29 +468,38 @@ class Planete:
     vegetation.append(["sapin2","cerisier","boulot1","boulot2","arbrerond"]) #Feuilluts
     vegetation.append(["sapin3","petitarbre","sapin2","sapin1"]) #Altitude
         
-    if self.decideArbre==None:
-      self.decideArbre = True
-      if h1!=0 and h2!=0 and h3!=0:
-        for i in range(0, int(random.random()*5.0)):
-          if random.random()>0.8:
-            r1=random.random()
-            r2=random.random()
-            if r1+r2>=1.0:
-              r2=1.0-r1
-            r3=1.0-r1-r2
-            p = Vec3(p1[0]*r1+p2[0]*r2+p3[0]*r3, p1[1]*r1+p2[1]*r2+p3[1]*r3, p1[2]*r1+p2[2]*r2+p3[2]*r3)
-            controle = random.choice([h1,h2,h3])
-            typeVegetation = random.choice(vegetation[h1])
-            sprite = self.planete.ajouteSprite(typeVegetation, p, typeVegetation)
-            sprite.rac.reparentTo(self.vegetation)
-            sprite.racine.flattenStrong()
-            
-            #On tourne les arbres un peu aléatoirement et on change d'échelle pour varier un peu plus
-            sprite.racine.setH(random.random()*5)
-            sprite.racine.setR(random.random()*7)
-            sprite.echelle = sprite.echelle*(1.0-random.random()/8)
-            sprite.racine.setScale(sprite.echelle)
-    return nd
+    self.vegetation = NodePath("vegetation")
+    self.vegetation.reparentTo(self.racine)
+        
+    for sommet in self.sommets:
+      if sommet.length()>self.niveauEau:
+        h1 = self.elements[0].couleurSommet(sommet)[2]
+        if h1>0:
+          for i in range(0, int(random.random()*5.0)):
+            if random.random()>0.8:
+              alt=-1
+              cpt=0
+              while alt<=self.niveauEau and cpt<10:
+                cpt+=1
+                r1=random.random()
+                r2=random.random()
+                r3=random.random()
+                
+                p = sommet+Vec3(r1, r2, r3)
+                alt = self.altitude(p)
+              if alt>self.niveauEau:
+                p.normalize()
+                p=p*alt
+                typeVegetation = random.choice(vegetation[h1])
+                sprite = self.ajouteSprite(typeVegetation, p, typeVegetation)
+                sprite.rac.reparentTo(self.vegetation)
+                sprite.racine.flattenStrong()
+                  
+                #On tourne les arbres un peu aléatoirement et on change d'échelle pour varier un peu plus
+                sprite.racine.setH(random.random()*5)
+                sprite.racine.setR(random.random()*7)
+                sprite.echelle = sprite.echelle*(1.0-random.random()/8)
+                sprite.racine.setScale(sprite.echelle)
 
   def fabriqueEau(self):
     """Ajoute une sphère qui représente l'eau"""
@@ -939,14 +947,6 @@ class Planete:
       
     if self.azure != None:
       self.azure.lookAt(self.soleil)
-
-    #Regarde s'il faut optimiser le modèle 3D, passe au minimum (apr défaut) 3 secondes après la dernière modification du modèle
-    dureeOptimise = float(general.configuration.getConfiguration("Planete", "MAJ", "duree-optimisation", 3.0))
-    for element in self.elements:
-      if element.besoinOptimise:
-        element.pileOptimise+=temps
-        if element.pileOptimise > dureeOptimise:
-          element.fabriqueModel(optimise=True)
       
     #Met à jour l'état des joueurs
     for joueur in self.joueurs:
@@ -960,7 +960,8 @@ class Planete:
       if not sprite.ping(temps):
         if sprite.joueur !=None:
           sprite.joueur.spriteMort(sprite)
-        self.sprites.remove(sprite)
+        while sprite in self.sprites:
+          self.sprites.remove(sprite)
         
     #Sauvegarde automatique
     self.lastSave += temps
@@ -1065,9 +1066,9 @@ class Planete:
       dc = Vec3(self.sommets[tri[2]])
       dc.normalize()
       
-      da = (cible - da).lenghSquared()
-      db = (cible - db).lenghSquared()
-      dc = (cible - dc).lenghSquared()
+      da = (cible - da).lengthSquared()
+      db = (cible - db).lengthSquared()
+      dc = (cible - dc).lengthSquared()
       
       #Si on a une plus proche, elle remplace la meilleure
       if math.sqrt(da*da+db*db+dc*dc) < math.sqrt(d1*d1+d2*d2+d3*d3):
@@ -1167,18 +1168,18 @@ class Planete:
     pt = Vec3(point)
     pt = pt/pt.lengthSquared()
     
-    d1 = (d1 - pt).lenghSquared()
-    d2 = (d2 - pt).lenghSquared()
-    d3 = (d3 - pt).lenghSquared()
+    d1 = (d1 - pt).lengthSquared()
+    d2 = (d2 - pt).lengthSquared()
+    d3 = (d3 - pt).lengthSquared()
     d=d1+d2+d3
     if d!=0:
       d1=d1/d
       d2=d2/d
       d3=d3/d
     #Attrape les altitude de chaque sommet
-    r1=pt1.lenghSquared()
-    r2=pt2.lenghSquared()
-    r3=pt3.lenghSquared()
+    r1=pt1.lengthSquared()
+    r2=pt2.lengthSquared()
+    r3=pt3.lengthSquared()
     
     general.stopChrono("Planete::altitude")
     #Calcule l'altitude moyenne pondérée
@@ -1208,27 +1209,10 @@ class Planete:
     self.modifieVertex(idx)
     
     elements = self.sommetDansFace[idx]
-    elementsParents = {}
-    for element in elements:
-      if element.parent!=None:
-        if element.parent not in elementsParents.keys():
-          elementsParents[element.parent]=[]
-        elementsParents[element.parent].append(element)
-      else:
-        if element not in elementsParents.keys():
-          elementsParents[element] = []
-          elementsParents[element].append(element)
         
     for element in elements:
       element.normale = None #On a bougé un point, donc sa normale a changée
-    #  
-    #  
-    #for element in elementsParents.keys():
-    #  if element.besoinOptimise:
-    #    for enfant in elementsParents[element]:
-    #      enfant.fabriqueModel(optimise=False)
-    #  else:
-    #    element.fabriqueModel(optimise=False)
+
     self.aiNavigation.maj(idx)
     general.stopChrono("Planete::changeCoordPoint")
     

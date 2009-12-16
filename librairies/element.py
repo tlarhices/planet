@@ -16,7 +16,6 @@ class Element:
   id = None #Identifiant de la face, utilisé pour reconstruire la géométrie au chargement
   sommets = None #Liste des 3 sommets de la face
   modele = None #Modele 3D de la face
-  vegetation = None
   lignes = None #Elements du fil de fer
   profondeur = None #Profondeur de tesselation courante de cette face
   enfants = None #Liste des sous face si elle a été tesselée
@@ -25,7 +24,6 @@ class Element:
   
   normale = None #La normale de la face
   parent = None
-  besoinOptimise = False
   
   #Coloriage des vectrices
   subSubAquatique = (38.0/255, 38.0/255, 97.0/255, 1.0)
@@ -34,9 +32,6 @@ class Element:
   herbe = (116.0/255, 212.0/255, 64.0/255, 1.0)
   terre = (209.0/255, 140.0/255, 37.0/255, 1.0)
   neige = (215.0/255, 223.0/255, 241.0/255, 1.0)
-  
-  pileOptimise = None #Temps écoulé depuis la dernière mise a jour
-  
   
   def __init__(self, id, p1, p2, p3, planete, profondeur, parent):
     """
@@ -52,7 +47,6 @@ class Element:
     self.lignes = []
     self.couleur = (random.random(),random.random(),random.random(),1.0)
     self.profondeur = profondeur
-    self.pileOptimise = 0.0
     
     if parent!=None:
       self.parent = parent
@@ -202,7 +196,7 @@ class Element:
     z=(-z*taille/2+taille/2)
     return Vec2(lat, z)
 
-  def fabriqueModel(self, forceCouleur=None, optimise=True):
+  def fabriqueModel(self):
     """
     Fabrique le modèle 3D
     Si forceCouleur est different de None, alors sa valeur sera utilisée comme couleur pour la facette
@@ -278,7 +272,6 @@ class Element:
       ls.moveTo(depart[0], depart[1], depart[2])
       ls.drawTo(arrivee[0], arrivee[1], arrivee[2])
       return ls.create()
-    
     
   def fabriqueGeomVertex(self):
     #Prepare la création du triangle

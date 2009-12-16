@@ -82,14 +82,6 @@ class AINavigation:
         self.ajouteNoeud(source, voisin)
       cpt+=1.0
     general.stopChrono("AINavigation::grapheDeplacement")
-    #test=None
-    #a=None
-    #b=None
-    #while test==None:
-    #  a = random.choice(self.graph.keys())
-    #  b = random.choice(self.graph.keys())
-    #  test = self.aStar(a, b)
-    #print a,"->",b,":",test
         
   def ajouteNoeud(self, pt1, pt2):
     """Ajoute un noeud au graphe"""
@@ -282,9 +274,11 @@ class SuitChemin(AIComportementUnitaire):
     if len(chemin)>2:
       if (self.getCoord(chemin[0])-self.getCoord(chemin[1])).lengthSquared() > (self.getCoord(chemin[0])-self.getCoord(chemin[2])).lengthSquared():
         chemin.remove(chemin[1])
+        print "Troncage du chemin pour",chemin
     if len(chemin)>2:
       if (self.getCoord(chemin[-1])-self.getCoord(chemin[-2])).lengthSquared() > (self.getCoord(chemin[-1])-self.getCoord(chemin[-3])).lengthSquared():
         chemin.remove(chemin[-2])
+        print "Troncage du chemin pour",chemin
     
     if general.DEBUG_AI_SUIT_CHEMIN:
       prev=None
@@ -397,12 +391,19 @@ class AppelFonction(AIComportementUnitaire):
 class Routine(AIComportementUnitaire):
   elements = None
   courant = None
+  comportementBC = None
   
   def __init__(self, comportement, priorite):
     AIComportementUnitaire.__init__(self, comportement, priorite)
     self.elements = []
+    self.comportementBC = comportement
     
   def ajouteCheck(self, element, cyclique, priorite):
+    if self.elements == None:
+      self.elements = []
+      self.fini = False
+      self.courant = None
+      self.comportement = self.comportementBC
     self.elements.append((element, cyclique, priorite))
     
   def ping(self, temps):

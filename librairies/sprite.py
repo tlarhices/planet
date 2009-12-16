@@ -206,6 +206,7 @@ class Sprite:
   def chercheSpriteProche(self, depot, nourriture, construction, joueur):
     proche = None
     distance = None
+    distanceA = None
     
     for sprite in self.planete.sprites:
       if joueur==-1 or sprite.joueur==joueur:
@@ -213,8 +214,13 @@ class Sprite:
           if construction==-1 or sprite.construction>0:
             dist = (self.position - sprite.position).length()
             if distance==None or distance>dist:
-              proche = sprite
-              distance = dist
+              distA = self.planete.aiNavigation.aStar(self.planete.trouveSommet(self.position), self.planete.trouveSommet(sprite.position))
+              if distA!=None:
+                distA=len(distA)
+              if distA!=None and (distanceA==None or distanceA>distA):
+                proche = sprite
+                distanceA = distA
+                distance = dist
                 
     return proche
             
@@ -372,6 +378,8 @@ class Sprite:
     if self.ai != None:
       self.ai.clear()
       self.ai = None
+    while self.planete.sprites.count(self)>0:
+      self.planete.sprites.remove(self)
     
   def sauvegarde(self):
     """Retoune une chaine qui représente l'objet"""
@@ -380,7 +388,8 @@ class Sprite:
       nom = self.joueur.nom
     out = "s:"+self.id+":"+nom+":"+self.fichierModele+":"+self.fichierSymbole
     out += ":"+str(self.position)+":"+str(self.vitesse)+":"+str(self.vie)+":"+str(self.bouge)+":"+str(self.aquatique)+":\r\n"
-    print "SPRITE :: Erreur : comportement non sauvegardé"
+    if self.ai != None:
+      print "SPRITE :: Erreur : comportement non sauvegardé"
     if self.contenu != None:
       print "SPRITE :: Erreur : contenu non géré dans la sauvegarde"
     return out
