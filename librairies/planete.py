@@ -1221,14 +1221,14 @@ class Planete:
         
     for element in elements:
       element.normale = None #On a bougé un point, donc sa normale a changée
-      
-      
-    for element in elementsParents.keys():
-      if element.besoinOptimise:
-        for enfant in elementsParents[element]:
-          enfant.fabriqueModel(optimise=False)
-      else:
-        element.fabriqueModel(optimise=False)
+    #  
+    #  
+    #for element in elementsParents.keys():
+    #  if element.besoinOptimise:
+    #    for enfant in elementsParents[element]:
+    #      enfant.fabriqueModel(optimise=False)
+    #  else:
+    #    element.fabriqueModel(optimise=False)
     self.aiNavigation.maj(idx)
     general.stopChrono("Planete::changeCoordPoint")
     
@@ -1280,12 +1280,16 @@ class Planete:
     if self.vdata == None:
       return
       
+    #On bouge le point
     vWriter = GeomVertexWriter(self.vdata, 'vertex')
-    #for sommet in self.sommets:
-    #  vWriter.setData3f(sommet)
     vWriter.setRow(indice)
     vWriter.setData3f(self.sommets[indice])
-      
+    
+    #On change sa couleur
+    if not general.TEXTURES:
+      tcWriter = GeomVertexWriter(self.vdata, 'color')
+      tcWriter.setRow(indice)
+      tcWriter.setData4f(self.elements[0].couleurSommet(self.sommets[indice])[0])
       
   def dessineCarte(self, p1, p2, p3, c1, c2, c3, taille, carteDure, carteFloue):
     minx = min(p1[0], p2[0], p3[0])
