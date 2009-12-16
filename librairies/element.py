@@ -100,73 +100,6 @@ class Element:
       self.modele = None
     self.lignes = []
     
-  textures={}
-    
-  def textureMixer(self, t1, t2, t3):
-    """Mixe les textures t1, t2 et t3"""
-    tailleTexture = int(general.configuration.getConfiguration("affichage", "general", "taille-texture","256"))
-    if t1 not in self.texturesValides:
-      print "Avertissement :: Texture non validee :",t1
-    if t2 not in self.texturesValides:
-      print "Avertissement :: Texture non validee :",t2
-    if t3 not in self.texturesValides:
-      print "Avertissement :: Texture non validee :",t3
-    #On regarde si on a pas déjà calculé cette texture
-    clef = t1+"-"+t2+"-"+t3
-    if clef in self.textures.keys():
-      return self.textures[clef]
-    if general.configuration.getConfiguration("affichage", "general", "cache-texture","t")=="t":
-      if clef+".png" in os.listdir(os.path.join(".","data","cache")):
-        texture = loader.loadTexture("data/cache/"+clef+".png")
-        self.textures[clef] = texture
-        return texture
-    print "Création de la texture", clef
-    #Charge les 3 textures et les redimentionne en 256x256
-    tmp1 = PNMImage()
-    tmp1.read(Filename("data/textures/"+t1+".png"))
-    i1 = PNMImage(tailleTexture, tailleTexture)
-    i1.gaussianFilterFrom(1.0, tmp1)
-    tmp2 = PNMImage()
-    tmp2.read(Filename("data/textures/"+t2+".png"))
-    i2 = PNMImage(tailleTexture, tailleTexture)
-    i2.gaussianFilterFrom(1.0, tmp2)
-    tmp3 = PNMImage()
-    tmp3.read(Filename("data/textures/"+t3+".png"))
-    i3 = PNMImage(tailleTexture, tailleTexture)
-    i3.gaussianFilterFrom(1.0, tmp3)
-    
-    #On produit une image vierge qui contiendra notre texture finale
-    imageFinale = PNMImage(tailleTexture, tailleTexture)
-    imageFinale.fill(1, 1, 1)
-    
-    for x in range(0, tailleTexture):
-      for y in range(0, tailleTexture):
-        c1 = i1.getXel(x,y)
-        c2 = i2.getXel(x,y)
-        c3 = i3.getXel(x,y)
-        
-        #Interpole les couleurs de pixels
-        def interpole(a, b, c, x, y):
-          fa = (Vec3(x,y,0)-Vec3(0.0,0.0,0.0)).length() #HG
-          fb = (Vec3(x,y,0)-Vec3(tailleTexture,tailleTexture,0.0)).length() #BD
-          fc = (Vec3(x,y,0)-Vec3(0.0,tailleTexture,0.0)).length() #BG
-          fac = (fa+fb+fc)/2
-          fa = 1-fa/fac
-          fb = 1-fb/fac
-          fc = 1-fc/fac
-          return b*fa+c*fb+a*fc
-        c = interpole(c1[0], c2[0], c3[0], x, y), interpole(c1[1], c2[1], c3[1], x, y), interpole(c1[2], c2[2], c3[2], x, y)
-        
-        imageFinale.setXel(x, y, c)
-        
-    #On garde la texture en mémoire pour de futures utilisations
-    if general.configuration.getConfiguration("affichage", "general", "cache-texture","t")=="t":
-      imageFinale.write(Filename("data/cache/"+clef+".png")); 
-    texture = Texture("imageFinale")
-    texture.load(imageFinale)
-    self.textures[clef] = texture
-    return texture
-    
   def tesselate(self):
     """
     Découpe la face courante en 4 facette triangulaires
@@ -276,6 +209,10 @@ class Element:
     """
     lvlOpt = 1
     
+    if self.modele!=None:
+      self.modele.detachNode()
+      self.modele.removeNode()
+    
     if self.profondeur == lvlOpt:
       vdata, vWriter, nWriter, tcWriter = self.fabriqueGeomVertex()
       if self.planete.vdata == None:
@@ -382,63 +319,6 @@ class Element:
     prim.addVertex(o3)
     prim.closePrimitive()
     return prim
-    
-  decideArbre = None
-  def bouecfabriqueTriangle(self, p1, p2, p3, forceCouleur=None):
-    """Fabrique la géométrie de la face triangulaire définie par p1, p2 et p3"""
-    
-
-
-
-    
-    #On applique la texture
-#    tex = self.textureMixer("bl", "wh", "wh")
-    #nd.setTexture(tex)
-    
-
-
-    #if general.configuration.getConfiguration("affichage", "effets", "normalmapping", "f")=="t":
-    #  ts = TextureStage('ts')
-    #  ts.setMode(TextureStage.MNormal)
-    #  nd.setTexture(ts, tex)
-      
-    if general.gui.menuCourant !=None:
-      try:
-        if general.gui.menuCourant.miniMap !=None:
-          general.gui.menuCourant.miniMap.dessineCarte(p1,p2,p3,c1,c2,c3)
-      except AttributeError:
-        pass
-        
-    vegetation=[]
-    vegetation.append([]) #Vide
-    vegetation.append(["palmier",]) #Sable/plage
-    vegetation.append(["sapin1","cerisier","boulot1","boulot2"]) #Herbe/champ
-    vegetation.append(["sapin2","cerisier","boulot1","boulot2","arbrerond"]) #Feuilluts
-    vegetation.append(["sapin3","petitarbre","sapin2","sapin1"]) #Altitude
-        
-    if self.decideArbre==None:
-      self.decideArbre = True
-      if h1!=0 and h2!=0 and h3!=0:
-        for i in range(0, int(random.random()*5.0)):
-          if random.random()>0.8:
-            r1=random.random()
-            r2=random.random()
-            if r1+r2>=1.0:
-              r2=1.0-r1
-            r3=1.0-r1-r2
-            p = Vec3(p1[0]*r1+p2[0]*r2+p3[0]*r3, p1[1]*r1+p2[1]*r2+p3[1]*r3, p1[2]*r1+p2[2]*r2+p3[2]*r3)
-            controle = random.choice([h1,h2,h3])
-            typeVegetation = random.choice(vegetation[h1])
-            sprite = self.planete.ajouteSprite(typeVegetation, p, typeVegetation)
-            sprite.rac.reparentTo(self.vegetation)
-            sprite.racine.flattenStrong()
-            
-            #On tourne les arbres un peu aléatoirement et on change d'échelle pour varier un peu plus
-            sprite.racine.setH(random.random()*5)
-            sprite.racine.setR(random.random()*7)
-            sprite.echelle = sprite.echelle*(1.0-random.random()/8)
-            sprite.racine.setScale(sprite.echelle)
-    return nd
     
   def calculNormale(self, point=None):
     """

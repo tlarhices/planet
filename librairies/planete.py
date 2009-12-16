@@ -445,16 +445,53 @@ class Planete:
       element.fabriqueModel()
     
     self.racine.setScale(1.0)
-    #self.calculHeightMap()
-    #self.ajouteTextures()
       
     #On ajoute l'eau
     self.fabriqueEau()
     #On ajoute le ciel
     self.fabriqueCiel()
     
+    self.fabriqueVegetation()
+    
+    self.calculMiniMap()
+    #self.calculHeightMap()
+    #self.ajouteTextures()
+
     self.racine.analyze()
     general.stopChrono("Planete::fabriqueModel")
+
+  def fabriqueVegetation(self):
+    return
+    vegetation=[]
+    vegetation.append([]) #Vide
+    vegetation.append(["palmier",]) #Sable/plage
+    vegetation.append(["sapin1","cerisier","boulot1","boulot2"]) #Herbe/champ
+    vegetation.append(["sapin2","cerisier","boulot1","boulot2","arbrerond"]) #Feuilluts
+    vegetation.append(["sapin3","petitarbre","sapin2","sapin1"]) #Altitude
+        
+    if self.decideArbre==None:
+      self.decideArbre = True
+      if h1!=0 and h2!=0 and h3!=0:
+        for i in range(0, int(random.random()*5.0)):
+          if random.random()>0.8:
+            r1=random.random()
+            r2=random.random()
+            if r1+r2>=1.0:
+              r2=1.0-r1
+            r3=1.0-r1-r2
+            p = Vec3(p1[0]*r1+p2[0]*r2+p3[0]*r3, p1[1]*r1+p2[1]*r2+p3[1]*r3, p1[2]*r1+p2[2]*r2+p3[2]*r3)
+            controle = random.choice([h1,h2,h3])
+            typeVegetation = random.choice(vegetation[h1])
+            sprite = self.planete.ajouteSprite(typeVegetation, p, typeVegetation)
+            sprite.rac.reparentTo(self.vegetation)
+            sprite.racine.flattenStrong()
+            
+            #On tourne les arbres un peu aléatoirement et on change d'échelle pour varier un peu plus
+            sprite.racine.setH(random.random()*5)
+            sprite.racine.setR(random.random()*7)
+            sprite.echelle = sprite.echelle*(1.0-random.random()/8)
+            sprite.racine.setScale(sprite.echelle)
+    return nd
 
   def fabriqueEau(self):
     """Ajoute une sphère qui représente l'eau"""
@@ -1162,11 +1199,14 @@ class Planete:
     Met à jour la géométrie qui en a besoin
     """
     general.startChrono("Planete::changeCoordPoint")
+    
     if self.sommets.count(oldCoord)<1:
       print "Erreur planete::changeCoordPoint,",oldCoord,"ce sommet n'existe pas"
       raw_input()
     idx = self.sommets.index(oldCoord)
     self.sommets[idx] = Vec3(*general.floatise(newCoord))
+    self.modifieVertex(idx)
+    
     elements = self.sommetDansFace[idx]
     elementsParents = {}
     for element in elements:
@@ -1181,6 +1221,7 @@ class Planete:
         
     for element in elements:
       element.normale = None #On a bougé un point, donc sa normale a changée
+      
       
     for element in elementsParents.keys():
       if element.besoinOptimise:
@@ -1234,6 +1275,17 @@ class Planete:
       tcWriter.addData2f(ci1)
     else:
       tcWriter.addData4f(*c1)
+      
+  def modifieVertex(self, indice):
+    if self.vdata == None:
+      return
+      
+    vWriter = GeomVertexWriter(self.vdata, 'vertex')
+    #for sommet in self.sommets:
+    #  vWriter.setData3f(sommet)
+    vWriter.setRow(indice)
+    vWriter.setData3f(self.sommets[indice])
+      
       
   def dessineCarte(self, p1, p2, p3, c1, c2, c3, taille, carteDure, carteFloue):
     minx = min(p1[0], p2[0], p3[0])
@@ -1340,7 +1392,6 @@ class Planete:
     self.neigeFlou = PNMImage(tailleHeightMap,tailleHeightMap)
     self.neigeFlou.fillVal(0, 0, 0)
     
-    
     def procedeElement(element, taille):
       s1,s2,s3 = element.sommets
       s1=self.sommets[s1]
@@ -1398,6 +1449,26 @@ class Planete:
     
     self.heightMapRendu.write(Filename("data/cache/zoneherbe.png"))
     self.neigeRendu.write(Filename("data/cache/zoneneige.png"))
+      
+  def calculMiniMap(self):
+    def procedeElement(element):
+      if element.enfants!=None:
+        for element2 in element.enfants:
+          procedeElement(element2)
+      else:
+        p1,p2,p3 = element.sommets
+        p1=self.sommets[p1]
+        p2=self.sommets[p2]
+        p3=self.sommets[p3]
+        c1 = element.couleurSommet(p1)[0]
+        c2 = element.couleurSommet(p2)[0]
+        c3 = element.couleurSommet(p3)[0]
+        general.gui.menuCourant.miniMap.dessineCarte(p1,p2,p3,c1,c2,c3)
+
+    if general.gui.menuCourant !=None:
+      if general.gui.menuCourant.miniMap !=None:
+        for element in self.elements:
+          procedeElement(element)
       
   def ajouteTextures(self):
     if False:

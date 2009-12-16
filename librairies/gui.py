@@ -492,9 +492,9 @@ class MiniMap(Pane):
     
     #Test des points à cheval sur les bords, s'il y en a, on dessine 2 triangles qui débordent de chaque coté de la carte
     if maxx-minx>float(self.tailleMiniMapX)*2.0/3.0:
-      p1min = Vec2(*p1[:])
-      p2min = Vec2(*p2[:])
-      p3min = Vec2(*p3[:])
+      p1min = Vec2(p1)
+      p2min = Vec2(p2)
+      p3min = Vec2(p3)
       if p1min[0]<float(self.tailleMiniMapX)/2.0:
         p1min[0]=p1min[0]+float(self.tailleMiniMapX)
       if p2min[0]<float(self.tailleMiniMapX)/2.0:
@@ -505,9 +505,9 @@ class MiniMap(Pane):
       if p1!=p1min or p2!=p2min or p3!=p3min:
         self.dessineCarte(p1min, p2min, p3min, c1, c2, c3, estSoleil)
 
-      p1max = Vec2(p1[:])
-      p2max = Vec2(p2[:])
-      p3max = Vec2(p3[:])
+      p1max = Vec2(p1)
+      p2max = Vec2(p2)
+      p3max = Vec2(p3)
       if p1max[0]>float(self.tailleMiniMapX)/2.0:
         p1max[0]=p1max[0]-float(self.tailleMiniMapX)
       if p2max[0]>float(self.tailleMiniMapX)/2.0:
@@ -520,9 +520,9 @@ class MiniMap(Pane):
       return
       
     if maxy-miny>float(self.tailleMiniMapY)*2.0/3.0:
-      p1min = Vec2(p1[:])
-      p2min = Vec2(p2[:])
-      p3min = Vec2(p3[:])
+      p1min = Vec2(p1)
+      p2min = Vec2(p2)
+      p3min = Vec2(p3)
       if p1min[1]<float(self.tailleMiniMapY)/2.0:
         p1min[1]=p1min[1]+float(self.tailleMiniMapY)
       if p2min[1]<float(self.tailleMiniMapY)/2.0:
@@ -533,9 +533,9 @@ class MiniMap(Pane):
       if p1!=p1min or p2!=p2min or p3!=p3min:
         self.dessineCarte(p1min, p2min, p3min, c1, c2, c3, estSoleil)
 
-      p1max = Vec2(p1[:])
-      p2max = Vec2(p2[:])
-      p3max = Vec2(p3[:])
+      p1max = Vec2(p1)
+      p2max = Vec2(p2)
+      p3max = Vec2(p3)
       if p1max[1]>float(self.tailleMiniMapY)/2.0:
         p1max[1]=p1max[1]-float(self.tailleMiniMapY)
       if p2max[1]>float(self.tailleMiniMapY)/2.0:
@@ -560,6 +560,7 @@ class MiniMap(Pane):
             d1=1-d1/fact
             d2=1-d2/fact
             d3=1-d3/fact
+            
             couleur=c1[0]*d1+c2[0]*d2+c3[0]*d3, c1[1]*d1+c2[1]*d2+c3[1]*d3, c1[2]*d1+c2[2]*d2+c3[2]*d3
             if not estSoleil:
               self.fondFlou.setXel(x, y, couleur[0], couleur[1], couleur[2])

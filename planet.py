@@ -173,7 +173,6 @@ class Start:
   ### Autres -----------------------------------------------------------
   def modifieAltitude(self, direction):
     """Change l'altitude d'un point, si direction>0 alors l'altitude sera accrue sinon diminuée"""
-    
     general.gui.io.testeSouris()
     
     if self.planete!=None:
