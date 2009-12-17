@@ -18,6 +18,9 @@ from ai import *
 from sprite import *
 from joueur import *
 
+import ImageDraw
+import Image
+
 #from pandac.PandaModules import *
 
 class Planete:
@@ -1456,10 +1459,12 @@ class Planete:
     self.neigeRendu.write(Filename("data/cache/zoneneige.png"))
       
   def calculMiniMap(self, listeElements=None):
-    def procedeElement(element):
+    image = Image.new(mode="RGB",size=(256, 256),color=(0,255,0))
+    draw  =  ImageDraw.Draw(image)
+    def procedeElement(element, draw):
       if element.enfants!=None:
         for element2 in element.enfants:
-          procedeElement(element2)
+          procedeElement(element2, draw)
       else:
         p1,p2,p3 = element.sommets
         p1=self.sommets[p1]
@@ -1468,6 +1473,15 @@ class Planete:
         c1 = element.couleurSommet(p1)[0]
         c2 = element.couleurSommet(p2)[0]
         c3 = element.couleurSommet(p3)[0]
+        c = (Vec4(c1)+Vec4(c2)+Vec4(c3))/3.0
+        c = c[0]*255, c[1]*255, c[2]*255
+        a1 = self.elements[0].point3DVersCarte(p1, 256)
+        a1 = a1[0], a1[1]
+        a2 = self.elements[0].point3DVersCarte(p2, 256)
+        a2 = a2[0], a2[1]
+        a3 = self.elements[0].point3DVersCarte(p3, 256)
+        a3 = a3[0], a3[1]
+        draw.polygon((a1,a2,a3), fill=c, outline=None)
         general.gui.menuCourant.miniMap.dessineCarte(p1,p2,p3,c1,c2,c3)
 
     if general.gui.menuCourant !=None:
@@ -1481,7 +1495,9 @@ class Planete:
           if listeElements == self.elements:
             self.afficheTexte("Rendu de la minimap : %.2f%%" %((compte*1.0)/len(listeElements)*100))
           compte+=1
-          procedeElement(element)
+          procedeElement(element, draw)
+    del draw
+    #image.show()
       
   def ajouteTextures(self):
     return
