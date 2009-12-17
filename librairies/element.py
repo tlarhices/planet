@@ -136,8 +136,9 @@ class Element:
     self.enfants.append(Element(self.id+"["+str(len(self.enfants))+"]", self.planete.sommets.index(c1), self.planete.sommets.index(c2), self.planete.sommets.index(c3), self.planete, self.profondeur+1, self.parent))
     self.enfants.append(Element(self.id+"["+str(len(self.enfants))+"]", self.planete.sommets.index(c1), self.planete.sommets.index(c3), self.planete.sommets.index(p3), self.planete, self.profondeur+1, self.parent))
     
-  def triangleVersCarte(self, p1, p2, p3):
-    taille = 0.2
+  def triangleVersCarte(self, p1, p2, p3, taille=None):
+    if taille == None:
+      taille = 0.2
     p1=self.point3DVersCarte(p1, taille)
     p2=self.point3DVersCarte(p2, taille)
     p3=self.point3DVersCarte(p3, taille)

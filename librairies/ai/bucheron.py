@@ -29,4 +29,4 @@ class Bulbe(std):
     if sprite != None:
       print self.sprite.id,"va couper l'arbre",sprite.id
       self.sprite.marcheVers(sprite.position)
-      self.sprite.coupeArbre(sprite)
+      self.sprite.ai.comportement.piller(sprite, 0.75)

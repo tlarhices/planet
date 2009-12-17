@@ -1475,11 +1475,12 @@ class Planete:
         c3 = element.couleurSommet(p3)[0]
         c = (Vec4(c1)+Vec4(c2)+Vec4(c3))/3.0
         c = c[0]*255, c[1]*255, c[2]*255
-        a1 = self.elements[0].point3DVersCarte(p1, 256)
+        a1,a2,a3 = self.elements[0].triangleVersCarte(p1, p2, p3, 256)
+#        a1 = self.elements[0].point3DVersCarte(p1, 256)
         a1 = a1[0], a1[1]
-        a2 = self.elements[0].point3DVersCarte(p2, 256)
+#        a2 = self.elements[0].point3DVersCarte(p2, 256)
         a2 = a2[0], a2[1]
-        a3 = self.elements[0].point3DVersCarte(p3, 256)
+#        a3 = self.elements[0].point3DVersCarte(p3, 256)
         a3 = a3[0], a3[1]
         draw.polygon((a1,a2,a3), fill=c, outline=None)
         general.gui.menuCourant.miniMap.dessineCarte(p1,p2,p3,c1,c2,c3)

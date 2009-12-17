@@ -566,9 +566,9 @@ class AIComportement:
     else:
       print "impossible"
     
-  def loot(self, sprite, priorite):
+  def piller(self, sprite, priorite):
     print self.ai.sprite.id, "va chopper des ressources à",sprite.id
-    self.routine([self.ai.sprite.loot, {"sprite":sprite, "temps":0.0}], False, priorite)
+    self.routine([self.ai.sprite.piller, {"sprite":sprite, "temps":0.0}], False, priorite)
     
   def suitChemin(self, chemin, priorite):
     self.comportements.append(SuitChemin(chemin, self, priorite))

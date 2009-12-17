@@ -58,7 +58,8 @@ class Sprite:
   inertieSteering = None #Le vecteur inertiel calculé par le steering (IA)
   
   masse = None #La masse de l'objet (utilisé pour les calculs d'accélération)
-  lootingSpeed = None #La vitesse à laquelle un sprite chope des ressources
+  vitesseDePillage = None #La vitesse à laquelle un sprite chope des ressources
+  faciliteDePillage = None #Facteur de facilité à choper des ressources sur ce sprite
 
   echelle = None #Facteur d'échelle de l'objet en ce moment
   echelleOriginelle = None #Facteur d'échelle de l'objet lors de sa création == self.echelle à la sortie de __init__
@@ -92,7 +93,6 @@ class Sprite:
     
     self.contenu={}
     self.taillePoches={}
-    self.lootingSpeed = 1.0
 
     #Charge les propriétés de l'objet depuis le fichier de définition du sprite
     if fichierDefinition!=None:
@@ -115,12 +115,12 @@ class Sprite:
       self.masse = definition["masse"]
       self.echelle = definition["echelle"]
       self.echelleOriginelle = definition["echelle"]
-      self.contenu["nourriture"] = float(definition["nourr"])
-      self.contenu["construction"] = float(definition["constr"])
-      self.contenu["nourriture-max"] = float(definition["nourr"])
-      self.contenu["construction-max"] = float(definition["constr"])
+      self.contenu["nourriture"] = definition["nourr"]
+      self.contenu["construction"] = definition["constr"]
       self.taillePoches["nourriture"] = 50.0
       self.taillePoches["construction"] = 30.0
+      self.vitesseDePillage = definition["vitesseDePillage"]
+      self.faciliteDePillage = definition["faciliteDePillage"]
       #Si un sprite ne bouge pas, alors il n'a pas besoin d'AI (mais un sprite immobile (tour de guet) peut en avoir besoin, dans ce cas faire bouge=True, vitesse = 0.0)
       if definition["ai"] != "none" and self.bouge:
         self.ai = AI(self)
@@ -169,26 +169,19 @@ class Sprite:
       
     return True
     
-  def coupeArbre(self, sprite):
-    """Va couper l'arbre 'sprite'"""
-    #Si y a pas d'ai, on a pas besoin de perdre son temps avec ^^
-    if self.ai==None:
-      return
-    self.ai.comportement.loot(sprite, 0.75)
-    
   def majEchelle(self):
     """Recalcul le facteur d'échelle du sprite suivant son contenu"""
     facteur = 1.0
     
     #On regarde le %age de ressources restantes dans les poches du sprite
     for clef in self.contenu.keys():
-      if not clef.endswith("-max"):
-        if self.contenu[clef+"-max"]!=0.0:
-          facteur = facteur * (self.contenu[clef]/self.contenu[clef+"-max"])
+      if self.taillePoches[clef]!=0.0:
+        facteur = facteur * (self.contenu[clef]/self.taillePoches[clef])
     
     if facteur == 0.0:
       self.tue("Ressources épuisées")
     
+    #Racine vaut none si l'objet a été détruit
     if self.racine==None or self.vie<=0:
       return
       
@@ -196,37 +189,37 @@ class Sprite:
     self.echelle = self.echelleOriginelle*facteur
     self.racine.setScale(self.echelle)
     
-  def loot(self, sprite, temps):
+  def piller(self, sprite, temps):
     """Prends des ressources dans les poches de 'sprite' pour les mettre dans les siennes"""
     #On regarde si on a atteint la cible à pic poquetter
     if (self.position - sprite.position).length()<=self.distanceProche:
       miam = {}
       peutContinuer=False
-      print "Loot :"
+      print "Pillage :"
       for type in sprite.contenu.keys():
-        if not type.endswith("-max"):
-          stop=False
+        stop=False
+        
+        #Le temps passer * la vitesse de récupération * le facteur de facilité de récupérage donne le volume récupéré pour le moment
+        miam[type] = self.vitesseDePillage*sprite.faciliteDePillage*temps
+        if sprite.contenu[type]<miam[type]:
+          miam[type] = sprite.contenu[type]
+          stop=True
           
-          miam[type] = self.lootingSpeed*temps
-          if sprite.contenu[type]<miam[type]:
-            miam[type] = sprite.contenu[type]
-            stop=True
-            
-          if self.taillePoches[type]<miam[type]+self.contenu[type]:
-            miam[type] = self.taillePoches[type]-self.contenu[type]
-            stop=True
-            
-          #Si on a pas saturé le lootage de tous les types, on continue à looter
-          if not stop:
-            peutContinuer=True
-            
-          sprite.contenu[type]-=miam[type]
-          self.contenu[type]+=miam[type]
+        if self.taillePoches[type]<miam[type]+self.contenu[type]:
+          miam[type] = self.taillePoches[type]-self.contenu[type]
+          stop=True
+          
+        #Si on a pas totalement pillé tous les types de ressource, on continue à piller
+        if not stop:
+          peutContinuer=True
+          
+        sprite.contenu[type]-=miam[type]
+        self.contenu[type]+=miam[type]
       sprite.majEchelle()
       
-      print "looted :",miam
+      print "pillé :",miam
       print "poches :",self.contenu
-      print "Restantes :",sprite.contenu
+      print "restantes :",sprite.contenu
       if peutContinuer:
         return 1
       else:
@@ -301,7 +294,7 @@ class Sprite:
     fc = self.planete.trouveFace(self.position).calculNormale()
     angle = sp.angleDeg(fc)
     if angle > self.angleSolMax:
-      self.inertie = self.inertie[0]+fc.getX()*temps, self.inertie[1]+fc.getY()*temps, self.inertie[2]+fc.getZ()*temps
+      self.inertie = Vec3(self.inertie[0]+fc.getX()*temps, self.inertie[1]+fc.getY()*temps, self.inertie[2]+fc.getZ()*temps)
     
   def appliqueGravite(self, temps):
     """Fait tomber les objets sur le sol"""
@@ -313,19 +306,19 @@ class Sprite:
       self.appliqueGravite(temps)
       return
     
-    sp = Vec3(position)
+    sp = Vec3(self.position)
     sp.normalize()
     
     if self.altCarre < altitudeCible:
       #Si on est dans le sol, on se place sur le sol d'un seul coup
       self.miseAJourPosition(sp * math.sqrt(altitudeCible))
-      self.inertie = (0.0,0.0,0.0)
+      self.inertie = Vec3(0.0,0.0,0.0)
     elif self.altCarre > altitudeCible+self.seuilToucheSol:
       #Si on est au dessus, on tombe sur la surface
       #On calcul le vecteur -planete-sprite> et on lui donne comme longueur le déplacement que l'on veut faire
       haut = sp * (-self.constanteGravitationelle)
       #On retire ce vecteur à l'inertie (fait un vecteur -sprite-planete>)
-      self.inertie = self.inertie[0]+haut[0]*temps, self.inertie[1]+haut[1]*temps, self.inertie[2]+haut[2]*temps
+      self.inertie = Vec3(self.inertie[0]+haut[0]*temps, self.inertie[1]+haut[1]*temps, self.inertie[2]+haut[2]*temps)
     else:
       self.testeSol(temps) #On est sur le sol, on teste si on peut se tenir debout dessus
       
@@ -347,6 +340,7 @@ class Sprite:
       self.inertie = Vec3(0.0,0.0,0.0)
       
   def appliqueInertie(self, temps):
+    """Déplace l'objet selon le vecteur inertiel"""
     if self.inertie.lengthSquared()>self.terminalVelocity*self.terminalVelocity:
       self.inertie.normalize()
       self.inertie = self.inertie * self.terminalVelocity
@@ -364,7 +358,6 @@ class Sprite:
       cible = self.planete.sommets[cible[0]]
 
     return cible
-    
       
   def deplace(self, cible, temps):
     """
@@ -390,14 +383,9 @@ class Sprite:
     #self.planete.afficheTexte(self.id+" marche vers "+str(cible))
     self.miseAJourPosition(self.position)
       
-#  prevPos = None
   def miseAJourPosition(self, position):
     """Change la position de l'objet"""
     self.position = position
-    #if general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE", "t")=="t":
-    #  if self.prevPos != None:
-    #    self.planete.racine.attachNewNode(self.dessineLigne((random.random(),random.random(),random.random(),1.0), general.multiplieVecteur(self.prevPos, 1.2), general.multiplieVecteur(self.position, 1.2)))
-    #  self.prevPos = self.position
       
     self.altCarre = self.position.lengthSquared()
     if self.altCarre < self.planete.niveauEau*self.planete.niveauEau:
@@ -524,6 +512,7 @@ class Sprite:
     
     
   def makeDot(self):
+    """Dessine un carré 2D en utilisant directement la puissance de la carte graphique"""
     gvf = GeomVertexFormat.getV3cp()
 
     # Create the vetex data container.
