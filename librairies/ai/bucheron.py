@@ -5,25 +5,16 @@
 #Copyright (C) 2009 Clerc Mathias
 #See the license file in the docs folder for more details
 
-class Bulbe:
+from standard import Bulbe as std
+
+class Bulbe(std):
   _classe_ = "bucheron"
-  sprite = None
-  
-  attaquants = None
   
   def __init__(self, sprite):
-    self.sprite = sprite
-    self.attaquants = {}
+    std.__init__(self, sprite)
     
   def ping(self, temps):
-    finAttaque = []
-    for attaquant in self.attaquants:
-      self.attaquants[attaquant]+=temps
-      if self.attaquants[attaquant]>3.0:
-        finAttaque.append(attaquant)
-        
-    for attaquant in finAttaque:
-      del self.attaquants[attaquant]
+    std.ping(self, temps)
       
   def ennui(self):
     #Quand un bûcheron s'ennuie, il va couper un arbre s'il a pas du ois plein les poches
@@ -39,6 +30,3 @@ class Bulbe:
       print self.sprite.id,"va couper l'arbre",sprite.id
       self.sprite.marcheVers(sprite.position)
       self.sprite.coupeArbre(sprite)
-      
-  def seFaitAttaquerPar(self, sprite):
-    self.attaquants[sprite]=0.0
