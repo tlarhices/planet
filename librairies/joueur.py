@@ -28,7 +28,6 @@ class Joueur:
     couleur : couleur du joueur
     planetePrincipale : l'instance de la planète
     """
-    
     self.nom = nom
     self.couleur = couleur
     

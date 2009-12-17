@@ -14,7 +14,7 @@ from pandac.PandaModules import *
 
 class Sprite:
   """Un objet du monde"""
-  id = None
+  id = None #Un identifiant (si possible unique) qui représente le sprite
   planete = None #La planète sur laquelle l'objet se trouve
   position = None #La position dans l'espace de cet objet
   modele = None #Le modèle 3D de l'objet
@@ -22,39 +22,46 @@ class Sprite:
   fichierSymbole = None #Symbole remplaçant le modèle quand on dézoome
   icone = None #Icone sur la minimap
   altCarre = None #L'altitude de cet objet
-  symbole=None
+  rac = None #Ce qui fait que le sprite garde les pieds en bas
+  racine = None #Ce qui fait que le sprite garde la tête en haut
+  majTempsOrientation = None #La boucle qui s'assure qu'un sprite est bien orienté (les pieds par terre)
+  majTempsOrientationMax = None #Le temps minimal à attendre entre 2 recalculs de l'orientation du sprite
+  distanceSymbole = None #Distance à partir de laquelle on tranforme l'objet en symbole  (ou fait disparaitre l'objet si symbole==None)
+  symbole=None #L'icône qui remplace le modèle quand on dézoome
   
-  vitesse = None
+  vitesse = None #La vitesse maximale du sprite en unité/s
   
   joueur = None #Le joueur qui possède cet objet
   contenu = None #Ce qui se trouve dans l'objet
+  taillePoches = None #Les seuils maximaux de ce que peut promener un sprite
   vie = None #L'état dans lequel se trouve l'objet
-  typeMort = None
+  typeMort = None #La façon dont le sprite est mort
   
   bouge = None #Si True, alors l'objet peut bouger (personnage, véhicule, ...) sinon il est statique (arbre, bâtiment, ...)
   aquatique = None #Si True, alors l'objet peut aller dans l'eau, sinon il est détruit
+  nocturne = None #S'il est nocturne, la nuit ne le tue pas
+
   zoneContact = None #Les coordonnées de la zone de contact
   
-  rac = None #Ce qui fait que le sprite garde les pieds en bas
-  racine = None #Ce qui fait que le sprite garde la tête en haut
-  
-  inertie = None
-  inertieSteering = None
-  terminalVelocity = None
-  distanceProche = None
-  
-  nocturne = None #S'il est nocturne, la nuit ne le tue pas
+  inertie = None #L'inertie physique de l'objet
+  terminalVelocity = None #L'inertie maximale que l'objet peut atteindre
+  distanceProche = None #La distance à partir de laquelle un point (objet, checkpoint, ...) est considéré comme atteint
+  pileTempsAppliqueGraviteObjetsFixes = None #Les objets fixes (arbre) n'ont la physique que moulinettée une fois de temps en temps pour les garder sur le sol sans bouffer trop de puissance
+  seuilRecalculPhysique = None #La durée à attendre avant de recalculer la physique d'un objet physique
+  angleSolMax = None #L'angle maximal que le sol peut faire pour que ce sprite puisse marcher dessus
+  seuilToucheSol = None #Delta dans lequel on considère qu'on est sur le sol et pas au-dessus
+  constanteGravitationelle = None #force de gravitation de la planète sur cet objet (prends en compte la résistance à l'air et tout ça)
   
   blipid = None #L'id du blip sur la carte
   
-  ai = None
-  pileTempsAppliqueGraviteObjetsFixes = None
-  seuilRecalculPhysique = None
+  ai = None #Le point sur le comportement qui contrôle ce sprite (ne pas partager sous risque d'avoir des IA qui font n'importe quoi)
+  inertieSteering = None #Le vecteur inertiel calculé par le steering (IA)
   
-  masse = None
-  nourriture=0
-  construction=0
+  masse = None #La masse de l'objet (utilisé pour les calculs d'accélération)
+  lootingSpeed = None #La vitesse à laquelle un sprite chope des ressources
 
+  echelle = None #Facteur d'échelle de l'objet en ce moment
+  echelleOriginelle = None #Facteur d'échelle de l'objet lors de sa création == self.echelle à la sortie de __init__
   
   def __init__(self, id, position, fichierDefinition, planete, joueur):
     """
@@ -78,8 +85,16 @@ class Sprite:
     #Tourne le modèle pour que sa tête soit en "haut" (Y pointant vers l'extérieur de la planète)
     self.racine.setP(90)
     self.racine.setScale(0.01)
+    #On met en temps débile pour forcer un calcul dès le premier ping
     self.pileTempsAppliqueGraviteObjetsFixes = 1000.0
+    self.majTempsOrientation = 1000000000
+    self.majTempsOrientationMax = 0.1
+    
+    self.contenu={}
+    self.taillePoches={}
+    self.lootingSpeed = 1.0
 
+    #Charge les propriétés de l'objet depuis le fichier de définition du sprite
     if fichierDefinition!=None:
       definition = general.configuration.parseSprite(fichierDefinition)
       self.fichierModele = definition["modele"]
@@ -96,16 +111,21 @@ class Sprite:
       self.distanceSymbole = definition["distancesymbole"]
       self.bouge = definition["bouge"]
       self.aquatique = definition["aquatique"]
-      if definition["ai"] != "none" and self.bouge:
-        self.ai = AI(self)
-        self.ai.choisitComportement(definition["ai"])
-        self.marcheVers(random.choice(self.planete.voisinage[random.choice(self.planete.voisinage[random.choice(self.planete.voisinage[self.planete.trouveSommet(self.position)])])]))
       self.seuilRecalculPhysique = definition["seuilrecalculphysique"]
       self.masse = definition["masse"]
       self.echelle = definition["echelle"]
-      self.nourriture = float(definition["nourr"])
-      self.construction = float(definition["constr"])
-
+      self.echelleOriginelle = definition["echelle"]
+      self.contenu["nourriture"] = float(definition["nourr"])
+      self.contenu["construction"] = float(definition["constr"])
+      self.contenu["nourriture-max"] = float(definition["nourr"])
+      self.contenu["construction-max"] = float(definition["constr"])
+      self.taillePoches["nourriture"] = 50.0
+      self.taillePoches["construction"] = 30.0
+      #Si un sprite ne bouge pas, alors il n'a pas besoin d'AI (mais un sprite immobile (tour de guet) peut en avoir besoin, dans ce cas faire bouge=True, vitesse = 0.0)
+      if definition["ai"] != "none" and self.bouge:
+        self.ai = AI(self)
+        #Charge un comportement tout fait
+        self.ai.choisitComportement(definition["ai"])
     
   def pointeRacineSol(self):
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""
@@ -113,125 +133,161 @@ class Sprite:
     self.rac.setPos(*self.position)
     self.rac.lookAt(self.planete.racine,0,0,0)
     
-  tempBoucle10 = 1000000000
-    
   def ping(self, temps):
     """
     Appelé à chaque image, met à jour l'état de l'objet
     temps : le nombre de secondes depuis la dernière mise à jour
     """
+    #On se casse pas la tête si le sprite est mort
+    if self.vie<=0:
+      return False
+      
+    #On charge le modèle 3D si le sprite n'en a pas
     if self.modele==None:
       self.fabriqueModel()
+      #On détruit le sprite si on a pas réussit à charger un modèle
       if self.modele==None:
         self.tue("Impossible de charger le modele")
     
     #Fait tomber
     self.appliqueGravite(temps)
     
+    #On mouline l'AI
     if self.ai != None:
       self.ai.ping(temps)
       
-      if self.ai.comportement.ennui:
-        if self.construction<50:
-          sprite = self.chercheSpriteProche(-1, -1, 1, None)
-          if sprite != None:
-            print self.id,"va couper l'arbre",sprite.id
-            self.marcheVers(sprite.position)
-            self.coupeArbre(sprite)
-
     #Deplace
     self.appliqueInertie(temps)
-
-    if self.vie<=0:
-      return False
       
-    self.tempBoucle10+=temps
-    if self.tempBoucle10>0.1:
+    #On met à jour l'orientation du sprite
+    self.majTempsOrientation+=temps
+    if self.majTempsOrientation>self.majTempsOrientationMax:
       #Recalcule la verticale du modèle
       self.MAJSymbole()
       self.blip()
-      self.tempBoucle10 = 0
+      self.majTempsOrientation = 0.0
       
     return True
     
   def coupeArbre(self, sprite):
+    """Va couper l'arbre 'sprite'"""
     #Si y a pas d'ai, on a pas besoin de perdre son temps avec ^^
     if self.ai==None:
       return
     self.ai.comportement.loot(sprite, 0.75)
     
+  def majEchelle(self):
+    """Recalcul le facteur d'échelle du sprite suivant son contenu"""
+    facteur = 1.0
+    
+    #On regarde le %age de ressources restantes dans les poches du sprite
+    for clef in self.contenu.keys():
+      if not clef.endswith("-max"):
+        if self.contenu[clef+"-max"]!=0.0:
+          facteur = facteur * (self.contenu[clef]/self.contenu[clef+"-max"])
+    
+    if facteur == 0.0:
+      self.tue("Ressources épuisées")
+    
+    if self.racine==None or self.vie<=0:
+      return
+      
+    #On change l'échelle
+    self.echelle = self.echelleOriginelle*facteur
+    self.racine.setScale(self.echelle)
+    
   def loot(self, sprite, temps):
-    if (self.position - sprite.position).length()<=self.distanceProche*1.1:
-      
-      tout = sprite.nourriture + sprite.construction
-      
+    """Prends des ressources dans les poches de 'sprite' pour les mettre dans les siennes"""
+    #On regarde si on a atteint la cible à pic poquetter
+    if (self.position - sprite.position).length()<=self.distanceProche:
+      miam = {}
+      peutContinuer=False
       print "Loot :"
-      miamNourriture = 5.0*temps
-      if sprite.nourriture<miamNourriture:
-        miamNourriture = sprite.nourriture
-      self.nourriture+=miamNourriture
-      sprite.nourriture-=miamNourriture
+      for type in sprite.contenu.keys():
+        if not type.endswith("-max"):
+          stop=False
+          
+          miam[type] = self.lootingSpeed*temps
+          if sprite.contenu[type]<miam[type]:
+            miam[type] = sprite.contenu[type]
+            stop=True
+            
+          if self.taillePoches[type]<miam[type]+self.contenu[type]:
+            miam[type] = self.taillePoches[type]-self.contenu[type]
+            stop=True
+            
+          #Si on a pas saturé le lootage de tous les types, on continue à looter
+          if not stop:
+            peutContinuer=True
+            
+          sprite.contenu[type]-=miam[type]
+          self.contenu[type]+=miam[type]
+      sprite.majEchelle()
       
-      miamConstruction = 5.0*temps
-      if sprite.construction<miamConstruction:
-        miamConstruction = sprite.construction
-      self.construction+=miamConstruction
-      sprite.construction-=miamConstruction
-      
-      if tout!=0.0:
-        prct = (miamNourriture+miamConstruction)/tout
-        sprite.echelle = sprite.echelle*prct
-        sprite.racine.setScale(sprite.echelle)
-      
-      print "- Ressources :",self.nourriture, self.construction
-      print "- Restantes :",sprite.nourriture, sprite.construction
-      if (miamConstruction>0 and self.construction<50) or (miamNourriture>0 and self.nourriture<50):
+      print "looted :",miam
+      print "poches :",self.contenu
+      print "Restantes :",sprite.contenu
+      if peutContinuer:
         return 1
       else:
-        if miamConstruction+miamNourriture>0:
-          print "TODO:",self.id,"va se vider les pocher"
-          self.nourriture = 0
-          self.construction = 0
-        sprite.tue("ressources épuisées")
-        sprite = self.chercheSpriteProche(-1, -1, 1, None)
-        if sprite != None:
-          print self.id,"va couper l'arbre",sprite.id
-          self.marcheVers(sprite.position)
-          self.coupeArbre(sprite)
         return -1
     else:
       return 0
         
     
-  def chercheSpriteProche(self, depot, nourriture, construction, joueur):
+  def chercheSpriteProche(self, depot, ressources, joueur, strict):
+    """
+    Recherche le sprite le plus proche qui correspond aux critères de recherche
+    depot : si True, alors cherche un endroit où vider ses poches
+    ressources : une liste des ressources que l'on tente de récupérer (ou déposer si depot=True) ex : ["nourriture", "bibine"] ou -1 si on ne cherche pas de ressources
+    joueur : cible les sprite d'un seul joueur:
+      - instance de joueur -> uniquement les sprites de ce joueur
+      - nom d'un joueur -> uniquement les sprites de ce joueur
+      - None -> uniquement les sprites qui n'appartiennent à personne
+      - -1 -> tous les sprites
+    strict : si True, alors le sprite retourné possédera tous les types de ressource demandé, sinon le plus proche qui en a au moins une
+    """
     proche = None
     distance = None
     distanceA = None
     
+    def testeRessources(trouver, contenu, strict=False):
+      for element in trouver:
+        if element in contenu.keys():
+          if not strict:
+            return True #Pas strict et on en a un
+        else:
+          if strict:
+            return False #Strict et il en manque au moin 1
+      return True #Strict et on a tout trouvé
+      
+    
     for sprite in self.planete.sprites:
-      if joueur==-1 or sprite.joueur==joueur:
-        if nourriture==-1 or sprite.nourriture>0:
-          if construction==-1 or sprite.construction>0:
-            dist = (self.position - sprite.position).length()
-            if distance==None or distance>dist:
-              distA = self.planete.aiNavigation.aStar(self.planete.trouveSommet(self.position), self.planete.trouveSommet(sprite.position))
-              if distA!=None:
-                distA=len(distA)
-              if distA!=None and (distanceA==None or distanceA>distA):
-                proche = sprite
-                distanceA = distA
-                distance = dist
+      if joueur==-1 or sprite.joueur==joueur or sprite.joueur.nom==joueur:
+        if ressources==-1 or testeRessources(ressources, sprite.contenu, strict):
+          dist = (self.position - sprite.position).length()
+          if distance==None or distance>dist:
+            distA = self.planete.aiNavigation.aStar(self.planete.trouveSommet(self.position), self.planete.trouveSommet(sprite.position))
+            if distA!=None:
+              distA=len(distA)
+            if distA!=None and (distanceA==None or distanceA>distA):
+              proche = sprite
+              distanceA = distA
+              distance = dist
                 
     return proche
             
   def blip(self):
+    """Met à jour le point sur la carte"""
     if self.blipid!=None:
       try:
+        #On a un point sur la carte, donc on le met à jour
         general.gui.menuCourant.miniMap.majBlip(self.blipid,self.position,self.icone)
       except AttributeError:
         self.blipid=None
     else:
       try:
+        #On a pas de point sur la carte mais on a une icône, on fabrique un nouveau point
         if self.icone != None and self.icone != "none":
           self.blipid = general.gui.menuCourant.miniMap.ajoutePoint3D(self.position,self.icone)
       except AttributeError:
@@ -460,7 +516,7 @@ class Sprite:
     
   def MAJSymbole(self):
     """Change l'échelle du symbole pour le garder toujours à la même taille"""
-    if self.symbole!=None and self.racine!=None:
+    if self.symbole!=None and self.racine!=None and self.echelle!=0:
       #On calcule la distance à la caméra pour avoir le facteur de corection d'échelle
       taille = base.camera.getPos(self.racine).length()
       #On change l'échelle

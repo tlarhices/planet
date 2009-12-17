@@ -12,11 +12,13 @@ import sys
 
 class Configuration:
   """Gère le fichier de configuration"""
-  configuration = None
-  fichierConfig = None
+  configuration = None #Le dictionnaire qui contient la configuration actuelle
+  fichierConfig = None #Le fichier que l'on a chargé
+  dicoDefinitionsSprite = None #Le dictionnaire qui contient toutes les définitions de sprite déjà chargées
   
   def __init__(self):
     self.configuration = {}
+    self.dicoDefinitionsSprite = {}
     
   def charge(self, fichier, erreurSiExistePas=True):
     """Charge un fichier de configuration"""
@@ -84,6 +86,9 @@ class Configuration:
     
   def parseSprite(self, fichier):
     """Charge un fichier de définition de sprite et range les valeurs au bon format dans un dictionnaire"""
+    if fichier in self.dicoDefinitionsSprite.keys():
+      return self.dicoDefinitionsSprite[fichier]
+    
     sprite={}
     self.fichierConfig = fichier
     fichier = open(fichier, "r")
@@ -126,6 +131,7 @@ class Configuration:
     sprite["nourr"] = config(sprite, "nourr", int, 0)
     sprite["constr"] = config(sprite, "constr", int, 0)
       
+    self.dicoDefinitionsSprite[fichier] = sprite
     return sprite
       
   def setConfiguration(self, section, sousection, champ, valeur):

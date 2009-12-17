@@ -433,7 +433,10 @@ class Planete:
             if not clef+".png" in os.listdir(os.path.join(".","data","cache")):
               element.textureMixer(t1, t2, t3)
               del element.textures[clef]
-    self.racine.setScale(0.01)
+    self.racine.detachNode()
+    self.racineModel = NodePath("model")
+    self.racineModel.reparentTo(self.racine)
+    
     cpt=0.0
     totlen = len(self.elements)
     #Dessine les triangles
@@ -444,7 +447,6 @@ class Planete:
       #Ce sont les faces qui vont se charger de faire le modèle pour nous
       element.fabriqueModel()
     
-    self.racine.setScale(1.0)
       
     #On ajoute l'eau
     self.fabriqueEau()
@@ -454,9 +456,11 @@ class Planete:
     self.fabriqueVegetation()
     
     self.calculMiniMap()
-    #self.calculHeightMap()
-    #self.ajouteTextures()
+    self.calculHeightMap()
+    self.ajouteTextures()
 
+    self.racine.reparentTo(render)
+    
     self.racine.analyze()
     general.stopChrono("Planete::fabriqueModel")
 
@@ -471,7 +475,11 @@ class Planete:
     self.vegetation = NodePath("vegetation")
     self.vegetation.reparentTo(self.racine)
         
+    compte=0
     for sommet in self.sommets:
+      if compte%250==0:
+        self.afficheTexte("Ajout de la végétation : %.2f%%" %((compte*1.0)/len(self.sommets)*100))
+      compte+=1
       if sommet.length()>self.niveauEau:
         h1 = self.elements[0].couleurSommet(sommet)[2]
         if h1>0:
@@ -1237,7 +1245,7 @@ class Planete:
     cpt = 0
     for sommet in self.sommets:
       if cpt%250==0:
-        print "Vectrices %i/%i" %(cpt, len(self.sommets))
+        self.afficheTexte("Création des vectrices : %.2f%%" %((cpt*1.0)/len(self.sommets)*100))
       cpt+=1
       self.ajouteVertex(sommet, self.vdata, vWriter, nWriter, tcWriter)
       
@@ -1375,6 +1383,7 @@ class Planete:
                 self.carteARedessiner = True
       
   def calculHeightMap(self, listeElements=None):
+    return
     tailleHeightMap = 256
     if listeElements==None:
       listeElements=self.elements
@@ -1420,7 +1429,7 @@ class Planete:
           
     cpt = 0
     for element in listeElements:
-      print "heightmap",cpt,"/",len(listeElements)
+      self.afficheTexte("Rendu de la heightmap : %.2f%%" %((cpt*1.0)/len(listeElements)*100))
       procedeElement(element, tailleHeightMap)
       cpt+=1
 
@@ -1467,17 +1476,47 @@ class Planete:
         if listeElements == None:
           listeElements = self.elements
           
+        compte=0
         for element in listeElements:
+          if listeElements == self.elements:
+            self.afficheTexte("Rendu de la minimap : %.2f%%" %((compte*1.0)/len(listeElements)*100))
+          compte+=1
           procedeElement(element)
       
   def ajouteTextures(self):
+    return
+    """_lightvec = Vec4(self.soleil - self.racine)
+    
+    render.setShaderInput( 'lightvec', _lightvec )
+    
+    tex0 = loader.loadTexture( 'data/textures/sable.png' )
+    tex0.setMinfilter( Texture.FTLinearMipmapLinear )
+    tex0.setMagfilter( Texture.FTLinearMipmapLinear )
+    tex1 = loader.loadTexture( 'data/textures/herbe.png' )
+    tex1.setMinfilter( Texture.FTLinearMipmapLinear )
+    tex1.setMagfilter( Texture.FTLinearMipmapLinear )
+    tex2 = loader.loadTexture( 'data/textures/neige.png' )
+    tex2.setMinfilter( Texture.FTLinearMipmapLinear )
+    tex2.setMagfilter( Texture.FTLinearMipmapLinear )
+
+    ts0 = TextureStage( 'sable' )
+    ts1 = TextureStage( 'herbe' )
+    ts2 = TextureStage( 'neige' )
+
+    self.racineModel.setTexture( ts0, tex0, 10 )
+    self.racineModel.setTexture( ts1, tex1, 20 )
+    self.racineModel.setTexture( ts2, tex2, 30 )
+    self.racineModel.setTag( 'Normal', 'True' )
+    self.racineModel.setTag( 'Clipped', 'True' )"""
+    
     if False:
       tex = loader.loadTexture("data/textures/herbe.png")
-      self.racine.setTexture(tex, 1)
+      self.racineModel.setTexture(tex, 1)
       return
     
-    root = self.racine
-    
+    root = self.racineModel
+    root.setLightOff()
+    """
     # Stage 1: alpha maps
     ts = TextureStage("stage-alphamaps")
     ts.setSort(00)
@@ -1485,16 +1524,18 @@ class Planete:
     ts.setMode(TextureStage.MReplace)
     ts.setSavedResult(True)
     root.setTexture(ts, loader.loadTexture("data/cache/zoneherbe.png", "data/cache/zoneneige.png"))
-
+"""
+    print "pouet"
     # Stage 2: the first texture
-    ts = TextureStage("stage-first")
-    ts.setSort(10)
-    ts.setPriority(1)
-    ts.setMode(TextureStage.MReplace)
-    root.setTexture(ts, loader.loadTexture("data/textures/sable.png"))
+    #ts = TextureStage("stage-first")
+    #ts.setSort(10)
+    #ts.setPriority(1)
+    #ts.setMode(TextureStage.MReplace)
+    #root.setTexture(ts, loader.loadTexture("data/cache/zoneherbe.png"))
+    root.setTexture(loader.loadTexture("data/cache/zoneherbe.png"), 1)
     #root.setTexScale(ts, 256, 256)
 
-    # Stage 3: the second texture
+    """# Stage 3: the second texture
     ts = TextureStage("stage-second")
     ts.setSort(20)
     ts.setPriority(1)
@@ -1512,5 +1553,5 @@ class Planete:
                                                  TextureStage.CSPrevious, TextureStage.COSrcColor,
                                                  TextureStage.CSLastSavedResult, TextureStage.COSrcAlpha)
     root.setTexture(ts, loader.loadTexture("data/textures/neige.png"))
-    #root.setTexScale(ts, 256, 256)
+    #root.setTexScale(ts, 256, 256)"""
 

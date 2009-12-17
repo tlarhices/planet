@@ -10,11 +10,13 @@ import shutil
 import getopt
 import os
 sys.path.append(os.path.join(".", "librairies"))
+sys.path.append(os.path.join(".", "librairies","ai"))
 
 import general
 
 from planete import *
 from configuration import *
+from ai import *
 from joueur import *
 from gui import *
 
@@ -43,6 +45,13 @@ class Start:
   def __init__(self):
     
     #render.setShaderAuto()
+    #sa = ShaderAttrib.make( )
+    #sa = sa.setShader( loader.loadShader( 'data/shaders/terrainNormal.sha' ) )
+    #cam0 = base.cam.node( )
+    #cam0.getLens( ).setNear(0.001)
+    #cam0.getLens( ).setFar( 5.0 )
+    #cam0.setTagStateKey( 'Normal' )
+    #cam0.setTagState( 'True' , RenderState.make( sa ) )
     
     #Configuration de DEBUG
     general.DEBUG_GENERE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_genere_planete","f")=="t"
@@ -53,6 +62,9 @@ class Start:
     general.DEBUG_AI_VA_VERS = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_VA_VERS","f")=="t"
     general.DEBUG_AI_SUIT_CHEMIN = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_SUIT_CHEMIN","f")=="t"
     general.DEBUG_AI_PING_PILE_COMPORTEMENT = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_PING_PILE_COMPORTEMENT","f")=="t"
+    
+    general.aiPlugin = AIPlugin()
+    general.aiPlugin.scan()
     
     if base.camLens != None:
       general.gui = Interface(self)
@@ -116,6 +128,7 @@ class Start:
 
     #On construit le modèle 3D de la planète
     self.planete.fabriqueModel()
+    self.planete.afficheTexte("Supression de la planète du menu")
     self.tmp.detruit()
     self.tmp = None
     general.gui.io.positionneCamera()
@@ -126,7 +139,7 @@ class Start:
 
   def ping(self, task):
     """Fonction exécutée à chaque image"""
-    
+    #render.setShaderInput( 'time', task.time )
     #Calculs du temps écoulé depuis l'image précédente
     if self.preImage != None:
       deltaT = task.time - self.preImage

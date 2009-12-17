@@ -9,9 +9,38 @@ import general
 
 import math
 import random
-import sys
+import os, sys
 
 from pandac.PandaModules import *
+
+class AIPlugin:
+  plugins=None
+  
+  def __init__(self):
+    self.plugins={}
+    
+  def scan(self):
+    for fichier in os.listdir(os.path.join(".","librairies","ai")):
+      if fichier.endswith(".py"):
+        try:
+          _temp = __import__(fichier[:-3], globals(), locals(), ['Bulbe'], -1)
+          bulbe = _temp.Bulbe(None)
+          print "AIPlugin :: trouvé plugin `",bulbe._classe_,"` dans le fichier",os.path.join(".","librairies","ai",fichier)
+          self.plugins[bulbe._classe_]=_temp.Bulbe
+        except AttributeError:
+          print "Avertissement :: ",os.path.join(".","librairies","ai",fichier),"n'est pas un plugin d'IA valide"
+          
+  def getIA(self, type):
+    if not type in self.plugins.keys():
+      print "Erreur AIPlugin :: Plugin d'IA '"+str(type)+"' inexistant ou invalide"
+      if len(self.plugins)>0:
+        print "Plugins chargés :"
+        for element in self.plugins.keys():
+          print "-",element
+      else:
+        print "Aucun plugin valide trouvé"
+      return None
+    return self.plugins[type]
 
 class AINavigation:
   #Classe qui gère la navigation sur la surface de la planète
@@ -224,13 +253,18 @@ class AINavigation:
 class AI:
   sprite = None
   comportement = None
+  bulbe = None
   
   def __init__(self, sprite):
     self.sprite = sprite
     self.comportement = AIComportement(self)
     
   def choisitComportement(self, type):
-    print "TODO AI::Charge comportement type", type
+    self.bulbe = general.aiPlugin.getIA(type)
+    if self.bulbe == None:
+      print "AI :: Impossible de charger comportement"
+    else:
+      self.bulbe=self.bulbe(self.sprite)
     
   def ping(self, temps):
     self.comportement.ping(temps)
@@ -238,6 +272,9 @@ class AI:
     self.sprite.inertieSteering = acceleration
     self.sprite.direction = Vec3(self.comportement.steeringForce)
     self.sprite.direction.normalize()
+    
+    if self.bulbe != None:
+      self.bulbe.ping(temps)
     
   def clear(self):
     self.sprite = None
@@ -502,6 +539,8 @@ class AIComportement:
     if len(self.comportements)<=0:
       self.ennui = True
       print self.ai.sprite.id,"s'ennuie"
+      if self.ai.bulbe != None:
+        self.ai.bulbe.ennui()
     else:
       self.ennui = False
         

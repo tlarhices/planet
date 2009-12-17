@@ -68,7 +68,7 @@ class Element:
     if general.DEBUG_CONSTRUCTION_SPHERE:
       delta = (random.random()-0.5)/10 +1.0
       self.modele = NodePath(self.id)
-      self.modele.reparentTo(self.planete.racine)
+      self.modele.reparentTo(self.planete.racineModel)
       p1 = self.planete.sommets[p1] * delta
       p2 = self.planete.sommets[p2] * delta
       p3 = self.planete.sommets[p3] * delta
@@ -80,9 +80,6 @@ class Element:
       nd = self.dessineLigne((0.0,0.0,1.0,1.0), p3, p1)
       self.modele.attachNewNode(nd)
       
-    self.vegetation = NodePath("vegetation")
-    self.vegetation.reparentTo(self.planete.racine)
-    
   def detruit(self):
     """Détruit la géométrie"""
     if self.enfants != None:
@@ -228,7 +225,7 @@ class Element:
         mdl = enfant.fabriqueModel()
         mdl.reparentTo(self.modele)
         
-    self.modele.reparentTo(self.planete.racine)
+    self.modele.reparentTo(self.planete.racineModel)
     self.modele.setPythonTag("type","sol")
     return self.modele
         
