@@ -33,7 +33,7 @@ void vshader( in float4 vtx_position : POSITION,
 
 void fshader( in float4 l_position : POSITION,
               in float2 l_texcoord0 : TEXCOORD0,
-              in float3 l_blend,
+              in float4 l_blend,
               in float l_brightness,
 
               in uniform sampler2D tex_0 : TEXUNIT0,
@@ -48,8 +48,8 @@ void fshader( in float4 l_position : POSITION,
 
     // texture blending
     o_color = sable;
-    o_color = o_color * l_blend.x + ( 1.0 - l_blend.x ) * herbe;
-    o_color = o_color * l_blend.y + ( 1.0 - l_blend.y ) * neige;
+    o_color = o_color * ( 1.0 - l_blend.x ) + l_blend.x * herbe;
+    o_color = o_color * ( 1.0 - l_blend.y ) + l_blend.y * neige;
 
     // lighting
     o_color = o_color * l_brightness;

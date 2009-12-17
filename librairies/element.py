@@ -33,6 +33,13 @@ class Element:
   terre = (209.0/255, 140.0/255, 37.0/255, 1.0)
   neige = (215.0/255, 223.0/255, 241.0/255, 1.0)
   
+  subSubAquatique = (0.0, 0.0, 0.0, 0.0)
+  subAquatique = (0.0, 0.0, 0.0, 0.0)
+  sable = (0.0, 0.0, 0.0, 0.0)
+  herbe = (1.0, 0.0, 0.0, 0.0)
+  terre = (1.0, 1.0, 0.0, 0.0)
+  neige = (0.0, 1.0, 0.0, 0.0)
+    
   def __init__(self, id, p1, p2, p3, planete, profondeur, parent):
     """
     Prépare une nouvelle facette
@@ -206,12 +213,12 @@ class Element:
       self.modele.removeNode()
     
     if self.profondeur == lvlOpt:
-      vdata, vWriter, nWriter, tcWriter = self.fabriqueGeomVertex()
+      vdata, vWriter, nWriter, tWriter, cWriter = self.fabriqueGeomVertex()
       if self.planete.vdata == None:
-        self.planete.ajouteVerteces(vdata, vWriter, nWriter, tcWriter)
+        self.planete.ajouteVerteces(vdata, vWriter, nWriter, tWriter, cWriter)
       primitives = []
       for enfant in self.enfants:
-        primitives += enfant.assemblePrimitives(vdata, vWriter, nWriter, tcWriter)
+        primitives += enfant.assemblePrimitives()
       geom = Geom(vdata)
       for prim in primitives:
         geom.addPrimitive(prim)
@@ -274,10 +281,7 @@ class Element:
   def fabriqueGeomVertex(self):
     #Prepare la création du triangle
     if self.planete.vdata == None:
-      if general.TEXTURES:
-        format = GeomVertexFormat.getV3n3t2() #On donne les vectrices, les normales et les textures
-      else:
-        format = GeomVertexFormat.getV3n3c4() #On donne les vectrices, les normales et les couleurs
+      format = GeomVertexFormat.getV3n3c4t2() #On donne les vectrices, les normales et les textures
         
       vdata = GeomVertexData('TriangleVertices',format,Geom.UHStatic)
     else:
@@ -285,24 +289,22 @@ class Element:
 
     vWriter = GeomVertexWriter(vdata, 'vertex')
     nWriter = GeomVertexWriter(vdata, 'normal')
-    if general.TEXTURES:
-      tcWriter = GeomVertexWriter(vdata, 'texcoord')
-    else:
-      tcWriter = GeomVertexWriter(vdata, 'color')
+    tWriter = GeomVertexWriter(vdata, 'texcoord')
+    cWriter = GeomVertexWriter(vdata, 'color')
     
-    return vdata, vWriter, nWriter, tcWriter
+    return vdata, vWriter, nWriter, tWriter, cWriter
     
-  def assemblePrimitives(self, vdata, vWriter, nWriter, tcWriter):
+  def assemblePrimitives(self):
     primitives = []
     if self.enfants != None:
       for enfant in self.enfants:
-        primitives+=enfant.assemblePrimitives(vdata, vWriter, nWriter, tcWriter)
+        primitives+=enfant.assemblePrimitives()
     else:
       p1, p2, p3 = self.sommets
-      primitives.append(self.ajouteFace(p1, p2, p3, vdata, vWriter, nWriter, tcWriter))
+      primitives.append(self.ajouteFace(p1, p2, p3))
     return primitives
     
-  def ajouteFace(self, o1, o2, o3, vdata, vWriter, nWriter, tcWriter):
+  def ajouteFace(self, o1, o2, o3):
     #On fabrique la géométrie
     prim = GeomTriangles(Geom.UHStatic)
     prim.addVertex(o1)

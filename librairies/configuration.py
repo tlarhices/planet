@@ -91,8 +91,8 @@ class Configuration:
     
     sprite={}
     self.fichierConfig = fichier
-    fichier = open(fichier, "r")
-    for ligne in fichier:
+    fich = open(fichier, "r")
+    for ligne in fich:
       ligne = ligne.strip().lower() #On passe tout en minuscule
       if ligne[0]!="#":
         a,b = ligne.split("=")

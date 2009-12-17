@@ -486,8 +486,8 @@ class Planete:
       if sommet.length()>self.niveauEau:
         h1 = self.elements[0].couleurSommet(sommet)[2]
         if h1>0:
-          for i in range(0, int(random.random()*5.0)):
-            if random.random()>0.8:
+          for i in range(0, int(random.random()*2.0)):
+            if random.random()>0.6:
               alt=-1
               cpt=0
               while alt<=self.niveauEau and cpt<10:
@@ -572,8 +572,8 @@ class Planete:
     self.azure.reparentTo(self.modeleCiel)
     self.azure.setTexture("data/textures/EarthClearSky2.png", 1)
     self.azure.setBin('background', 2)
-    self.azure.setDepthTest(False)
-    self.azure.setDepthWrite(False)
+    #self.azure.setDepthTest(False)
+    #self.azure.setDepthWrite(False)
 
     #Fabrique une lumière ambiante pour que la nuit soit moins noire
     if general.configuration.getConfiguration("affichage", "Effets", "typeEclairage","shader")=="flat":
@@ -954,7 +954,14 @@ class Planete:
             flare = self.flare.attachNewNode(cardMaker.generate())
             flare.setTexture("./data/textures/flare/lens-flare1.png")
             flare.setPos(*p)
-          self.flare.reparentTo(render2d)"""        
+          self.flare.reparentTo(render2d)"""      
+          
+    if self.soleil != None:
+      _lightvec = Vec3(self.soleil.getPos() - self.racine.getPos())
+      _lightvec = Vec4(_lightvec[0], _lightvec[1], _lightvec[2], 0.0)
+    else:
+      _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
+    render.setShaderInput( 'lightvec', _lightvec )  
       
     if self.azure != None:
       self.azure.lookAt(self.soleil)
@@ -1243,33 +1250,37 @@ class Planete:
   # Fin Fonctions diverses ---------------------------------------------
   
   vdata = None
-  def ajouteVerteces(self, vdata, vWriter, nWriter, tcWriter):
+  def ajouteVerteces(self, vdata, vWriter, nWriter, tWriter, cWriter):
     self.vdata = vdata
     cpt = 0
     for sommet in self.sommets:
       if cpt%250==0:
         self.afficheTexte("Création des vectrices : %.2f%%" %((cpt*1.0)/len(self.sommets)*100))
       cpt+=1
-      self.ajouteVertex(sommet, self.vdata, vWriter, nWriter, tcWriter)
+      self.ajouteVertex(sommet, self.vdata, vWriter, nWriter, tWriter, cWriter)
       
-  def ajouteVertex(self, p, vdata, vWriter, nWriter, tcWriter):
+  def ajouteVertex(self, p, vdata, vWriter, nWriter, tWriter, cWriter):
     #On attrape les couleurs pour chaque sommet
     c1,t1,h1=self.elements[0].couleurSommet(p)
 
     #On calcule les normales à chaque sommet
     n1=self.sommetDansFace[self.sommets.index(p)][0].calculNormale(p)
     
-    ci1 = self.elements[0].point3DVersCarte(p, 1.0)
+    ci1 = self.elements[0].point3DVersCarte(p, 17.0)
+    
+    minAlt = (1.0-self.delta)
+    maxAlt = (1.0+self.delta)
+    altitude = p.length()
+    prct = (altitude-minAlt)/(maxAlt-minAlt)
+    
     #On écrit le modèle dans cet ordre :
     #-vectrice
     #-normale
     #-texture | couleur
     vWriter.addData3f(p)
     nWriter.addData3f(n1)
-    if general.TEXTURES:
-      tcWriter.addData2f(ci1)
-    else:
-      tcWriter.addData4f(*c1)
+    tWriter.addData2f(ci1)
+    cWriter.addData4f(*c1)
       
   def modifieVertex(self, indice):
     if self.vdata == None:
@@ -1286,10 +1297,9 @@ class Planete:
     nWriter.setData3f(self.sommetDansFace[indice][0].calculNormale(self.sommets[indice]))
     
     #On change sa couleur
-    if not general.TEXTURES:
-      tcWriter = GeomVertexWriter(self.vdata, 'color')
-      tcWriter.setRow(indice)
-      tcWriter.setData4f(self.elements[0].couleurSommet(self.sommets[indice])[0])
+    cWriter = GeomVertexWriter(self.vdata, 'color')
+    cWriter.setRow(indice)
+    cWriter.setData4f(self.elements[0].couleurSommet(self.sommets[indice])[0])
       
     #On met à jour la minimap
     self.calculMiniMap(self.sommetDansFace[indice])
@@ -1467,32 +1477,37 @@ class Planete:
     #image.show()
       
   def ajouteTextures(self):
-    return
-    """_lightvec = Vec4(self.soleil - self.racine)
-    
-    render.setShaderInput( 'lightvec', _lightvec )
-    
-    tex0 = loader.loadTexture( 'data/textures/sable.png' )
-    tex0.setMinfilter( Texture.FTLinearMipmapLinear )
-    tex0.setMagfilter( Texture.FTLinearMipmapLinear )
-    tex1 = loader.loadTexture( 'data/textures/herbe.png' )
-    tex1.setMinfilter( Texture.FTLinearMipmapLinear )
-    tex1.setMagfilter( Texture.FTLinearMipmapLinear )
-    tex2 = loader.loadTexture( 'data/textures/neige.png' )
-    tex2.setMinfilter( Texture.FTLinearMipmapLinear )
-    tex2.setMagfilter( Texture.FTLinearMipmapLinear )
+    if True:
+      if self.soleil != None:
+        _lightvec = Vec4(self.soleil - self.racine)
+      else:
+        _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
+      render.setShaderInput( 'lightvec', _lightvec )
+      
+      tex0 = loader.loadTexture( 'data/textures/sable.png' )
+      tex0.setMinfilter( Texture.FTLinearMipmapLinear )
+      tex0.setMagfilter( Texture.FTLinearMipmapLinear )
+      tex1 = loader.loadTexture( 'data/textures/herbe.png' )
+      tex1.setMinfilter( Texture.FTLinearMipmapLinear )
+      tex1.setMagfilter( Texture.FTLinearMipmapLinear )
+      tex2 = loader.loadTexture( 'data/textures/neige.png' )
+      tex2.setMinfilter( Texture.FTLinearMipmapLinear )
+      tex2.setMagfilter( Texture.FTLinearMipmapLinear )
 
-    ts0 = TextureStage( 'sable' )
-    ts1 = TextureStage( 'herbe' )
-    ts2 = TextureStage( 'neige' )
+      ts0 = TextureStage( 'sable' )
+      ts1 = TextureStage( 'herbe' )
+      ts2 = TextureStage( 'neige' )
 
-    self.racineModel.setTexture( ts0, tex0, 10 )
-    self.racineModel.setTexture( ts1, tex1, 20 )
-    self.racineModel.setTexture( ts2, tex2, 30 )
-    self.racineModel.setTag( 'Normal', 'True' )
-    self.racineModel.setTag( 'Clipped', 'True' )"""
+      self.racineModel.setTexture( ts0, tex0, 10 )
+      self.racineModel.setTexture( ts1, tex1, 20 )
+      self.racineModel.setTexture( ts2, tex2, 30 )
+      self.racineModel.setTag( 'Normal', 'True' )
+      self.racineModel.setTag( 'Clipped', 'True' )
+      self.racineModel.setTexScale(ts0, 256, 256)
+      
+      return
     
-    if False:
+    if True:
       tex = loader.loadTexture("data/textures/herbe.png")
       self.racineModel.setTexture(tex, 1)
       return
