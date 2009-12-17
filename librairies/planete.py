@@ -1386,80 +1386,46 @@ class Planete:
                 self.carteARedessiner = True
       
   def calculHeightMap(self, listeElements=None):
-    return
-    tailleHeightMap = 256
+    tailleHeightMap = 512
+    image = Image.new(mode="RGB",size=(tailleHeightMap, tailleHeightMap),color=(0,0,0))
+    draw  =  ImageDraw.Draw(image)
+    
     if listeElements==None:
       listeElements=self.elements
       
-    self.heightMap = PNMImage(tailleHeightMap,tailleHeightMap)
-    self.heightMap.fillVal(0, 0, 0)
-    self.heightMapFlou = PNMImage(tailleHeightMap,tailleHeightMap)
-    self.heightMapFlou.fillVal(0, 0, 0)
-    self.neige = PNMImage(tailleHeightMap,tailleHeightMap)
-    self.neige.fillVal(0, 0, 0)
-    self.neigeFlou = PNMImage(tailleHeightMap,tailleHeightMap)
-    self.neigeFlou.fillVal(0, 0, 0)
-    
-    def procedeElement(element, taille):
+    def procedeElement(element, taille, draw):
       s1,s2,s3 = element.sommets
       s1=self.sommets[s1]
       s2=self.sommets[s2]
       s3=self.sommets[s3]
-      p1 = element.point3DVersCarte(s1, taille)
-      p2 = element.point3DVersCarte(s2, taille)
-      p3 = element.point3DVersCarte(s3, taille)
       c1 = (max(self.niveauEau, min(1.0+self.delta, s1.length()))-1.0)/(self.delta+self.niveauEau-1.0)
       c2 = (max(self.niveauEau, min(1.0+self.delta, s1.length()))-1.0)/(self.delta+self.niveauEau-1.0)
       c3 = (max(self.niveauEau, min(1.0+self.delta, s1.length()))-1.0)/(self.delta+self.niveauEau-1.0)
-      self.dessineCarte(p1, p2, p3, (c1,c1,c1), (c2,c2,c2), (c3,c3,c3), taille, self.heightMap, self.heightMapFlou)
-      if s1.length() < 1.0+self.delta*2.0/3.0:
-        c1 = 0.0
-      else:
-        c1 = (max(1.0+self.delta*2.0/3.0, min(1.0+self.delta, s1.length()))-1.0)/(self.delta+self.delta*2.0/3.0)
-      if s2.length() < 1.0+self.delta*2.0/3.0:
-        c2 = 0.0
-      else:
-        c2 = (max(1.0+self.delta*2.0/3.0, min(1.0+self.delta, s1.length()))-1.0)/(self.delta+self.delta*2.0/3.0)
-      if s3.length() < 1.0+self.delta*2.0/3.0:
-        c3 = 0.0
-      else:
-        c3 = (max(1.0+self.delta*2.0/3.0, min(1.0+self.delta, s1.length()))-1.0)/(self.delta+self.delta*2.0/3.0)
-      self.dessineCarte(p1, p2, p3, (c1,c1,c1), (c2,c2,c2), (c3,c3,c3), taille, self.neige, self.neigeFlou)
+      a1,a2,a3 = self.elements[0].triangleVersCarte(s1, s2, s3, tailleHeightMap)
+      a1 = a1[0], a1[1]
+      a2 = a2[0], a2[1]
+      a3 = a3[0], a3[1]
+      c = int((c1+c2+c3)/3*255)
+      draw.polygon((a1,a2,a3), fill=(c,c,c), outline=None)
       
       if element.enfants!=None:
         for element2 in element.enfants:
-          procedeElement(element2, taille)
+          procedeElement(element2, taille, draw)
           
     cpt = 0
     for element in listeElements:
       self.afficheTexte("Rendu de la heightmap : %.2f%%" %((cpt*1.0)/len(listeElements)*100))
-      procedeElement(element, tailleHeightMap)
+      procedeElement(element, tailleHeightMap, draw)
       cpt+=1
 
-    self.heightMapRendu = PNMImage(tailleHeightMap,tailleHeightMap)
-    self.neigeRendu = PNMImage(tailleHeightMap,tailleHeightMap)
-    for x in range(0, tailleHeightMap):
-      for y in range(0, tailleHeightMap):
-        c=self.heightMap.getXel(x,y)
-        if c[0]==0.0 and c[2]==0.0 and c[2]==0.0:
-          self.heightMapRendu.setXel(x,y,self.heightMapFlou.getXel(x,y))
-        else:
-          self.heightMapRendu.setXel(x,y,c)
-          
-        c=self.neige.getXel(x,y)
-        if c[0]==0.0 and c[2]==0.0 and c[2]==0.0:
-          self.neigeRendu.setXel(x,y,self.neigeFlou.getXel(x,y))
-        else:
-          self.neigeRendu.setXel(x,y,c)
-          
-    self.heightMapRendu.gaussianFilter(5.0)
-    self.neigeRendu.gaussianFilter(5.0)
-    
-    self.heightMapRendu.write(Filename("data/cache/zoneherbe.png"))
-    self.neigeRendu.write(Filename("data/cache/zoneneige.png"))
-      
+    import ImageFilter
+    del draw
+    for i in range(0, 5):
+      image = image.filter(ImageFilter.BLUR)
+    image.show()
+  
   def calculMiniMap(self, listeElements=None):
-    image = Image.new(mode="RGB",size=(256, 256),color=(0,255,0))
+    image = Image.new(mode="RGB",size=(256, 256),color=(0,0,0))
     draw  =  ImageDraw.Draw(image)
     def procedeElement(element, draw):
       if element.enfants!=None:
