@@ -526,10 +526,52 @@ class Planete:
     #Crée le modèle de l'eau
     self.modeleEau = loader.loadModel("data/modeles/sphere.egg")
     self.modeleEau.reparentTo(self.racine)
-    self.modeleEau.setTransparency(TransparencyAttrib.MAlpha )
-    self.modeleEau.setColor(0.0,0.0,0.0,0.5)
-    tex = loader.loadTexture('data/textures/eau.jpg')
-    self.modeleEau.setTexture(tex, 1)
+    self.modeleEau.setTransparency(TransparencyAttrib.MDual )
+    
+    if general.configuration.getConfiguration("affichage", "general", "type-eau", "texture")=="shader":
+      self.modeleEau.setShader( loader.loadShader( 'data/shaders/water.sha' ) )
+      # Shader input: Water
+      _water    = Vec4( 0.04, -0.02, 24.0, 0 )       # vx, vy, scale, skip
+      self.modeleEau.setShaderInput( 'water', _water )
+
+      # Reflection plane
+      pos = Vec3(general.gui.io.camera.getPos()-self.racine.getPos())
+      pos.normalize()
+      pos=Point3(*pos)
+      self.waterPlane = Plane(general.gui.io.camera.getPos()-self.racine.getPos(), pos)
+
+      planeNode = PlaneNode( 'waterPlane' )
+      planeNode.setPlane( self.waterPlane )
+
+      # Buffer and reflection camera
+      buffer = base.win.makeTextureBuffer( 'waterBuffer', 512, 512 )
+      buffer.setClearColor( Vec4( 0, 0, 0, 1 ) )
+
+      cfa = CullFaceAttrib.makeReverse( )
+      cpa = ClipPlaneAttrib.make( ClipPlaneAttrib.OAdd, planeNode )
+      rs = RenderState.make( cfa, cpa )
+
+      self.watercamNP = base.makeCamera( buffer )
+      self.watercamNP.reparentTo( render )
+      self.watercamNP.node( ).getLens( ).setFov( base.camLens.getFov( ) )
+      self.watercamNP.node( ).setInitialState( rs )
+
+      # Textures
+      tex0 = buffer.getTexture( )
+      ts0 = TextureStage( 'reflection' )
+      self.modeleEau.setTexture( ts0, tex0 )
+
+      tex1 = loader.loadTexture( 'data/textures/water.png' )
+      ts1 = TextureStage( 'distortion' )
+      self.modeleEau.setTexture( ts1, tex1 )
+
+      tex2 = loader.loadTexture( 'data/textures/watermap.png' )
+      ts2 = TextureStage( 'watermap' )
+      self.modeleEau.setTexture( ts2, tex2 )
+    else:
+      self.modeleEau.setColor(0.0,0.0,0.0,0.5)
+      tex = loader.loadTexture('data/textures/eau.jpg')
+      self.modeleEau.setTexture(tex, 1)
         
     self.niveauEau = 1.0
     
@@ -959,14 +1001,26 @@ class Planete:
             flare.setPos(*p)
           self.flare.reparentTo(render2d)"""      
           
-    if self.soleil != None:
-      _lightvec = Vec3(self.soleil.getPos() - self.racine.getPos())
-      _lightvec = Vec4(_lightvec[0], _lightvec[1], _lightvec[2], 0.0)
-    else:
-      _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
-    
     if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
-      render.setShaderInput( 'lightvec', _lightvec )  
+      if self.soleil != None:
+        _lightvec = Vec3(self.soleil.getPos() - self.racine.getPos())
+        _lightvec = Vec4(_lightvec[0], _lightvec[1], _lightvec[2], 0.0)
+      else:
+        _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
+    
+      render.setShaderInput( 'lightvec', _lightvec )
+      
+    if general.configuration.getConfiguration("affichage", "general", "type-eau", "texture")=="shader":
+      # Reflection plane
+      pos = Vec3(general.gui.io.camera.getPos()-self.racine.getPos())
+      pos.normalize()
+      pos=Point3(*pos)
+      self.waterPlane = Plane(general.gui.io.camera.getPos()-self.racine.getPos(), pos)
+      # Water reflections
+      mc = base.camera.getMat( )
+      mf = self.waterPlane.getReflectionMat( )
+      self.watercamNP.setMat( mc * mf )
+
       
     if self.azure != None:
       self.azure.lookAt(self.soleil)
