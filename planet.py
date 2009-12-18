@@ -43,15 +43,13 @@ class Start:
   
   ### Initialisation ---------------------------------------------------
   def __init__(self):
-    
-    render.setShaderAuto()
-    sa = ShaderAttrib.make( )
-    sa = sa.setShader( loader.loadShader( 'data/shaders/terrainNormal.sha' ) )
-    cam0 = base.cam.node( )
-    #cam0.getLens( ).setNear(0.001)
-    #cam0.getLens( ).setFar( 5.0 )
-    cam0.setTagStateKey( 'Normal' )
-    cam0.setTagState( 'True' , RenderState.make( sa ) )
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
+      render.setShaderAuto()
+      sa = ShaderAttrib.make( )
+      sa = sa.setShader( loader.loadShader( 'data/shaders/terrainNormal.sha' ) )
+      cam0 = base.cam.node( )
+      cam0.setTagStateKey( 'Normal' )
+      cam0.setTagState( 'True' , RenderState.make( sa ) )
     
     #Configuration de DEBUG
     general.DEBUG_GENERE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_genere_planete","f")=="t"
@@ -139,7 +137,8 @@ class Start:
 
   def ping(self, task):
     """Fonction exécutée à chaque image"""
-    render.setShaderInput( 'time', task.time )
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
+      render.setShaderInput( 'time', task.time )
     #Calculs du temps écoulé depuis l'image précédente
     if self.preImage != None:
       deltaT = task.time - self.preImage

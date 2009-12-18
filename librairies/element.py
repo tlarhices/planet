@@ -32,13 +32,6 @@ class Element:
   herbe = (116.0/255, 212.0/255, 64.0/255, 1.0)
   terre = (209.0/255, 140.0/255, 37.0/255, 1.0)
   neige = (215.0/255, 223.0/255, 241.0/255, 1.0)
-  
-  subSubAquatique = (0.0, 0.0, 0.0, 0.0)
-  subAquatique = (0.0, 0.0, 0.0, 0.0)
-  sable = (0.0, 0.0, 0.0, 0.0)
-  herbe = (1.0, 0.0, 0.0, 0.0)
-  terre = (1.0, 1.0, 0.0, 0.0)
-  neige = (0.0, 1.0, 0.0, 0.0)
     
   def __init__(self, id, p1, p2, p3, planete, profondeur, parent):
     """

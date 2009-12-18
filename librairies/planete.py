@@ -19,6 +19,7 @@ from sprite import *
 from joueur import *
 
 import ImageDraw
+import ImageFilter
 import Image
 
 #from pandac.PandaModules import *
@@ -459,8 +460,10 @@ class Planete:
     self.fabriqueVegetation()
     
     self.calculMiniMap()
-    self.calculHeightMap()
-    self.ajouteTextures()
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="heightmap":
+      self.calculHeightMap()
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")!="flat":
+      self.ajouteTextures()
 
     self.racine.reparentTo(render)
     
@@ -486,8 +489,8 @@ class Planete:
       if sommet.length()>self.niveauEau:
         h1 = self.elements[0].couleurSommet(sommet)[2]
         if h1>0:
-          for i in range(0, int(random.random()*2.0)):
-            if random.random()>0.6:
+          for i in range(0, int(random.random()*int(general.configuration.getConfiguration("planete","Generation", "nombre-bosquet","2")))):
+            if random.random()>float(general.configuration.getConfiguration("planete","Generation", "densite-bosquet","0.8")):
               alt=-1
               cpt=0
               while alt<=self.niveauEau and cpt<10:
@@ -961,7 +964,9 @@ class Planete:
       _lightvec = Vec4(_lightvec[0], _lightvec[1], _lightvec[2], 0.0)
     else:
       _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
-    render.setShaderInput( 'lightvec', _lightvec )  
+    
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
+      render.setShaderInput( 'lightvec', _lightvec )  
       
     if self.azure != None:
       self.azure.lookAt(self.soleil)
@@ -1266,12 +1271,19 @@ class Planete:
     #On calcule les normales à chaque sommet
     n1=self.sommetDansFace[self.sommets.index(p)][0].calculNormale(p)
     
-    ci1 = self.elements[0].point3DVersCarte(p, 17.0)
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="heightmap":
+      ci1 = self.elements[0].point3DVersCarte(p, 1.0)
+    else:
+      ci1 = self.elements[0].point3DVersCarte(p, float(general.configuration.getConfiguration("affichage","general", "repetition-texture","17.0")))
     
-    minAlt = (1.0-self.delta)
-    maxAlt = (1.0+self.delta)
-    altitude = p.length()
-    prct = (altitude-minAlt)/(maxAlt-minAlt)
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
+      minAlt = (1.0-self.delta)
+      maxAlt = (1.0+self.delta)
+      altitude = p.length()
+      c1 = ((altitude-minAlt)/(maxAlt-minAlt), 0.0, 0.0, 0.0)
+      
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="heightmap":
+      c1 = (1.0, 1.0, 1.0, 1.0)
     
     #On écrit le modèle dans cet ordre :
     #-vectrice
@@ -1396,7 +1408,7 @@ class Planete:
                 self.carteARedessiner = True
       
   def calculHeightMap(self, listeElements=None):
-    tailleHeightMap = 512
+    tailleHeightMap = 800
     image = Image.new(mode="RGB",size=(tailleHeightMap, tailleHeightMap),color=(0,0,0))
     draw  =  ImageDraw.Draw(image)
     
@@ -1428,11 +1440,15 @@ class Planete:
       procedeElement(element, tailleHeightMap, draw)
       cpt+=1
 
-    import ImageFilter
     del draw
     for i in range(0, 5):
       image = image.filter(ImageFilter.BLUR)
-    image.show()
+    image.save(os.path.join(".","data","cache","zoneherbe.png"), "PNG")
+    import ImageEnhance
+    enhancer = ImageEnhance.Contrast(image)
+    for i in range(0, 5):
+      image = enhancer.enhance(2.0)
+    image.save(os.path.join(".","data","cache","zoneneige.png"), "PNG")
   
   def calculMiniMap(self, listeElements=None):
     image = Image.new(mode="RGB",size=(256, 256),color=(0,0,0))
@@ -1474,82 +1490,100 @@ class Planete:
           compte+=1
           procedeElement(element, draw)
     del draw
+    for i in range(0, 5):
+      image = image.filter(ImageFilter.BLUR)
     #image.show()
       
   def ajouteTextures(self):
-    if True:
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
       if self.soleil != None:
         _lightvec = Vec4(self.soleil - self.racine)
       else:
         _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
       render.setShaderInput( 'lightvec', _lightvec )
       
-      tex0 = loader.loadTexture( 'data/textures/sable.png' )
+      tex0 = loader.loadTexture( 'data/textures/subsubaquatique.png' )
       tex0.setMinfilter( Texture.FTLinearMipmapLinear )
       tex0.setMagfilter( Texture.FTLinearMipmapLinear )
-      tex1 = loader.loadTexture( 'data/textures/herbe.png' )
+      tex1 = loader.loadTexture( 'data/textures/subaquatique.png' )
       tex1.setMinfilter( Texture.FTLinearMipmapLinear )
       tex1.setMagfilter( Texture.FTLinearMipmapLinear )
-      tex2 = loader.loadTexture( 'data/textures/neige.png' )
+      tex2 = loader.loadTexture( 'data/textures/sable.png' )
       tex2.setMinfilter( Texture.FTLinearMipmapLinear )
       tex2.setMagfilter( Texture.FTLinearMipmapLinear )
+      tex3 = loader.loadTexture( 'data/textures/herbe.png' )
+      tex3.setMinfilter( Texture.FTLinearMipmapLinear )
+      tex3.setMagfilter( Texture.FTLinearMipmapLinear )
+      tex4 = loader.loadTexture( 'data/textures/feuillesc.png' )
+      tex4.setMinfilter( Texture.FTLinearMipmapLinear )
+      tex4.setMagfilter( Texture.FTLinearMipmapLinear )
+      tex5 = loader.loadTexture( 'data/textures/cailloux.png' )
+      tex5.setMinfilter( Texture.FTLinearMipmapLinear )
+      tex5.setMagfilter( Texture.FTLinearMipmapLinear )
+      tex6 = loader.loadTexture( 'data/textures/neige.png' )
+      tex6.setMinfilter( Texture.FTLinearMipmapLinear )
+      tex6.setMagfilter( Texture.FTLinearMipmapLinear )
+      
+      ts0 = TextureStage( 'subsubaquatique' )
+      ts1 = TextureStage( 'subaquatique' )
+      ts2 = TextureStage( 'sable' )
+      ts3 = TextureStage( 'herbe' )
+      ts4 = TextureStage( 'feuillesc' )
+      ts5 = TextureStage( 'cailloux' )
+      ts6 = TextureStage( 'neige' )
 
-      ts0 = TextureStage( 'sable' )
-      ts1 = TextureStage( 'herbe' )
-      ts2 = TextureStage( 'neige' )
-
-      self.racineModel.setTexture( ts0, tex0, 10 )
-      self.racineModel.setTexture( ts1, tex1, 20 )
-      self.racineModel.setTexture( ts2, tex2, 30 )
+      self.racineModel.setTexture( ts0, tex0, 5 )
+      self.racineModel.setTexture( ts1, tex1, 10 )
+      self.racineModel.setTexture( ts2, tex2, 15 )
+      self.racineModel.setTexture( ts3, tex3, 20 )
+      self.racineModel.setTexture( ts4, tex4, 25 )
+      self.racineModel.setTexture( ts5, tex5, 30 )
+      self.racineModel.setTexture( ts6, tex6, 35 )
       self.racineModel.setTag( 'Normal', 'True' )
       self.racineModel.setTag( 'Clipped', 'True' )
       self.racineModel.setTexScale(ts0, 256, 256)
       
-      return
-    
-    if True:
+    elif general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="flat":
       tex = loader.loadTexture("data/textures/herbe.png")
       self.racineModel.setTexture(tex, 1)
-      return
     
-    root = self.racineModel
-    root.setLightOff()
-    """
-    # Stage 1: alpha maps
-    ts = TextureStage("stage-alphamaps")
-    ts.setSort(00)
-    ts.setPriority(1)
-    ts.setMode(TextureStage.MReplace)
-    ts.setSavedResult(True)
-    root.setTexture(ts, loader.loadTexture("data/cache/zoneherbe.png", "data/cache/zoneneige.png"))
-"""
-    print "pouet"
-    # Stage 2: the first texture
-    #ts = TextureStage("stage-first")
-    #ts.setSort(10)
-    #ts.setPriority(1)
-    #ts.setMode(TextureStage.MReplace)
-    #root.setTexture(ts, loader.loadTexture("data/cache/zoneherbe.png"))
-    root.setTexture(loader.loadTexture("data/cache/zoneherbe.png"), 1)
-    #root.setTexScale(ts, 256, 256)
+    elif general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="heightmap":
+      root = self.racineModel
+      root.setLightOff()
 
-    """# Stage 3: the second texture
-    ts = TextureStage("stage-second")
-    ts.setSort(20)
-    ts.setPriority(1)
-    ts.setCombineRgb(TextureStage.CMInterpolate, TextureStage.CSTexture, TextureStage.COSrcColor,
-                                                 TextureStage.CSPrevious, TextureStage.COSrcColor,
-                                                 TextureStage.CSLastSavedResult, TextureStage.COSrcColor)
-    root.setTexture(ts, loader.loadTexture("data/textures/herbe.png"))
-    #root.setTexScale(ts, 256, 256)
+      # Stage 1: alpha maps
+      ts = TextureStage("stage-alphamaps")
+      ts.setSort(00)
+      ts.setPriority(1)
+      ts.setMode(TextureStage.MReplace)
+      ts.setSavedResult(True)
+      root.setTexture(ts, loader.loadTexture("data/cache/zoneherbe.png", "data/cache/zoneneige.png"))
 
-    # Stage 4: the third texture
-    ts = TextureStage("stage-third")
-    ts.setSort(30)
-    ts.setPriority(0)
-    ts.setCombineRgb(TextureStage.CMInterpolate, TextureStage.CSTexture, TextureStage.COSrcColor,
-                                                 TextureStage.CSPrevious, TextureStage.COSrcColor,
-                                                 TextureStage.CSLastSavedResult, TextureStage.COSrcAlpha)
-    root.setTexture(ts, loader.loadTexture("data/textures/neige.png"))
-    #root.setTexScale(ts, 256, 256)"""
+      # Stage 2: the first texture
+      ts = TextureStage("stage-first")
+      ts.setSort(10)
+      ts.setPriority(1)
+      ts.setMode(TextureStage.MReplace)
+      root.setTexture(ts, loader.loadTexture("data/textures/sable.png"))
+      root.setTexScale(ts, 17, 17)
+
+      # Stage 3: the second texture
+      ts = TextureStage("stage-second")
+      ts.setSort(20)
+      ts.setPriority(1)
+      ts.setCombineRgb(TextureStage.CMInterpolate, TextureStage.CSTexture, TextureStage.COSrcColor,
+                                                   TextureStage.CSPrevious, TextureStage.COSrcColor,
+                                                   TextureStage.CSLastSavedResult, TextureStage.COSrcColor)
+      root.setTexture(ts, loader.loadTexture("data/textures/herbe.png"))
+      root.setTexScale(ts, 17, 17)
+
+      # Stage 4: the third texture
+      ts = TextureStage("stage-third")
+      ts.setSort(30)
+      ts.setPriority(0)
+      ts.setCombineRgb(TextureStage.CMInterpolate, TextureStage.CSTexture, TextureStage.COSrcColor,
+                                                   TextureStage.CSPrevious, TextureStage.COSrcColor,
+                                                   TextureStage.CSLastSavedResult, TextureStage.COSrcAlpha)
+      root.setTexture(ts, loader.loadTexture("data/textures/neige.png"))
+      root.setTexScale(ts, 17, 17)
 

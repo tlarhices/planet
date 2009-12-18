@@ -9,7 +9,7 @@ void vshader( in float4 vtx_position : POSITION,
               in uniform float4x4 mat_modelview,
               in uniform float4 k_lightvec,
 
-              out float4 l_blend,
+              out float l_altitude,
               out float l_brightness,
               out float2 l_texcoord0 : TEXCOORD0,
               out float4 l_position : POSITION )
@@ -20,10 +20,7 @@ void vshader( in float4 vtx_position : POSITION,
     l_texcoord0 = vtx_texcoord0;
 
     // texture blending
-    l_blend.x = vtx_color.r;
-    l_blend.y = vtx_color.g;
-    l_blend.z = vtx_color.b;
-    l_blend.w = vtx_color.a;
+    l_altitude = vtx_color.r;
     
     // lighting
     float3 N = normalize( vtx_normal );
@@ -33,23 +30,43 @@ void vshader( in float4 vtx_position : POSITION,
 
 void fshader( in float4 l_position : POSITION,
               in float2 l_texcoord0 : TEXCOORD0,
-              in float4 l_blend,
+              in float l_altitude,
               in float l_brightness,
 
               in uniform sampler2D tex_0 : TEXUNIT0,
               in uniform sampler2D tex_1 : TEXUNIT1,
               in uniform sampler2D tex_2 : TEXUNIT2,
+              in uniform sampler2D tex_3 : TEXUNIT3,
+              in uniform sampler2D tex_4 : TEXUNIT4,
+              in uniform sampler2D tex_5 : TEXUNIT5,
+              in uniform sampler2D tex_6 : TEXUNIT6,
 
               out float4 o_color : COLOR )
 {
-    float4 sable = tex2D( tex_0, l_texcoord0 );
-    float4 herbe = tex2D( tex_1, l_texcoord0 );
-    float4 neige = tex2D( tex_2, l_texcoord0 );
-
+    float4 subsubaquatique = tex2D( tex_0, l_texcoord0 );
+    float4 subaquatique = tex2D( tex_1, l_texcoord0 );
+    float4 sable = tex2D( tex_2, l_texcoord0 );
+    float4 herbe = tex2D( tex_3, l_texcoord0 );
+    float4 feuillesc = tex2D( tex_4, l_texcoord0 );
+    float4 cailloux = tex2D( tex_5, l_texcoord0 );
+    float4 neige = tex2D( tex_6, l_texcoord0 );
+    
+    float sw;
+    
     // texture blending
-    o_color = sable;
-    o_color = o_color * ( 1.0 - l_blend.x ) + l_blend.x * herbe;
-    o_color = o_color * ( 1.0 - l_blend.y ) + l_blend.y * neige;
+    o_color = subsubaquatique;
+    sw=clamp( l_altitude+0.1f, 0.0f, 1.0f );
+    o_color = o_color * ( 1.0 - sw ) + sw * subaquatique;
+    sw=clamp( l_altitude+0.3f, 0.0f, 1.0f );
+    o_color = o_color * ( 1.0 - sw ) + sw * sable;
+    sw=clamp( l_altitude+0.4f, 0.0f, 1.0f );
+    o_color = o_color * ( 1.0 - sw ) + sw * herbe;
+    sw=clamp( l_altitude+0.6f, 0.0f, 1.0f );
+    o_color = o_color * ( 1.0 - sw ) + sw * feuillesc;
+    sw=clamp( l_altitude+0.7f, 0.0f, 1.0f );
+    o_color = o_color * ( 1.0 - sw ) + sw * cailloux;
+    sw=clamp( l_altitude+0.8f, 0.0f, 1.0f );
+    o_color = o_color * ( 1.0 - sw ) + sw * neige;
 
     // lighting
     o_color = o_color * l_brightness;
