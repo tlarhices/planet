@@ -300,7 +300,7 @@ class Sprite:
     """Fait tomber les objets sur le sol"""
     altitudeCible = self.planete.altitudeCarre(self.position)
     if abs(self.altCarre-altitudeCible)>0.001:
-      if self.altCarre<altitudeCible or not self.bouge:
+      if self.altCarre<altitudeCible or not self.bouge or True:
         print self.id, self.altCarre, altitudeCible,"(",abs(self.altCarre-altitudeCible),")","->",
         sp = Vec3(self.position)
         sp.normalize()

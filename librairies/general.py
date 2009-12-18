@@ -192,3 +192,13 @@ def projetePointSurPlan(normale, pointPlan, pointProj):
   yp=y-k*a
   zp=z-k*a
   return xp, yp, zp
+  
+def lerp(pt1, v1, pt2, v2, pt3, v3, pt):
+  d1=(pt1-pt).length()
+  d2=(pt2-pt).length()
+  d3=(pt3-pt).length()
+  s = d1+d2+d3
+  d1 = d1/s
+  d2 = d2/s
+  d3 = d3/s
+  return v1*d1+v2*d2+v3*d3

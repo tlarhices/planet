@@ -1234,33 +1234,11 @@ class Planete:
       print "Bug :: testIntersectionTriangleDroite déconne"
       return point.length()
     pt1, pt2, pt3 = self.sommets[face[0]], self.sommets[face[1]], self.sommets[face[2]]
-    #Calcul des distances pour pondérer la position du point
-    #On utilise le carré pour gagner des sqrt
-    d1 = Vec3(pt1)
-    d1 = d1/d1.lengthSquared()
-    d2 = Vec3(pt2)
-    d2 = d2/d2.lengthSquared()
-    d3 = Vec3(pt3)
-    d3 = d2/d2.lengthSquared()
-    pt = Vec3(point)
-    pt = pt/pt.lengthSquared()
-    
-    d1 = (d1 - pt).lengthSquared()
-    d2 = (d2 - pt).lengthSquared()
-    d3 = (d3 - pt).lengthSquared()
-    d=d1+d2+d3
-    if d!=0:
-      d1=d1/d
-      d2=d2/d
-      d3=d3/d
-    #Attrape les altitude de chaque sommet
-    r1=pt1.lengthSquared()
-    r2=pt2.lengthSquared()
-    r3=pt3.lengthSquared()
-    
+    d1 = pt1.lengthSquared()
+    d2 = pt2.lengthSquared()
+    d3 = pt3.lengthSquared()
     general.stopChrono("Planete::altitude")
-    #Calcule l'altitude moyenne pondérée
-    return r1*d1+r2*d2+r3*d3
+    return general.lerp(pt1, d1, pt2, d2, pt3, d3, point)
     
   def altitude(self, point):
     return math.sqrt(self.altitudeCarre(point))
