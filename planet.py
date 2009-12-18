@@ -105,24 +105,18 @@ class Start:
     j2 = JoueurIA("Joueur 2", (1.0, 0.0, 0.0, 1.0), self.planete)
     self.planete.ajouteJoueur(j1)
     self.planete.ajouteJoueur(j2)
-    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j1.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
-    j2.ajouteSprite("test", random.choice(self.planete.sommets), "test")
+    for i in range(0, 10):
+      OK=False
+      while not OK:
+        sommet = random.choice(self.planete.sommets)
+        OK = sommet.length()>self.planete.niveauEau
+      j1.ajouteSprite("test", sommet, "test")
+    for i in range(0, 5):
+      OK=False
+      while not OK:
+        sommet = random.choice(self.planete.sommets)
+        OK = sommet.length()>self.planete.niveauEau
+      j2.ajouteSprite("test", sommet, "test")
 
     #On construit le modèle 3D de la planète
     self.planete.fabriqueModel()

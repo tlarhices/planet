@@ -298,29 +298,29 @@ class Sprite:
     
   def appliqueGravite(self, temps):
     """Fait tomber les objets sur le sol"""
-    return
     altitudeCible = self.planete.altitudeCarre(self.position)
-    
-    if not self.bouge:
-      self.appliqueGravite = self.appliqueGraviteObjetsFixes
-      self.appliqueGravite(temps)
-      return
-    
-    sp = Vec3(self.position)
-    sp.normalize()
-    
-    if self.altCarre < altitudeCible:
-      #Si on est dans le sol, on se place sur le sol d'un seul coup
-      self.miseAJourPosition(sp * math.sqrt(altitudeCible))
-      self.inertie = Vec3(0.0,0.0,0.0)
-    elif self.altCarre > altitudeCible+self.seuilToucheSol:
-      #Si on est au dessus, on tombe sur la surface
-      #On calcul le vecteur -planete-sprite> et on lui donne comme longueur le déplacement que l'on veut faire
-      haut = sp * (-self.constanteGravitationelle)
-      #On retire ce vecteur à l'inertie (fait un vecteur -sprite-planete>)
-      self.inertie = Vec3(self.inertie[0]+haut[0]*temps, self.inertie[1]+haut[1]*temps, self.inertie[2]+haut[2]*temps)
-    else:
-      self.testeSol(temps) #On est sur le sol, on teste si on peut se tenir debout dessus
+    if abs(self.altCarre-altitudeCible)>0.001:
+      if self.altCarre<altitudeCible or not self.bouge:
+        print self.id, self.altCarre, altitudeCible,"(",abs(self.altCarre-altitudeCible),")","->",
+        sp = Vec3(self.position)
+        sp.normalize()
+        self.miseAJourPosition(sp * math.sqrt(altitudeCible))
+        print self.altCarre, altitudeCible
+      else:
+        print self.id, self.altCarre, altitudeCible,"(",abs(self.altCarre-altitudeCible),")","-> VV",
+        sp = Vec3(self.position)
+        sp.normalize()
+        haut = sp * (-self.constanteGravitationelle)
+        alt = math.sqrt(self.altCarre)
+        altci = math.sqrt(altitudeCible)
+        if haut.length()>alt-altci:
+          haut = Vec3(0.0,0.0,0.0)
+          
+        self.inertie+=haut
+        print self.position, haut
+        
+    return
+    self.testeSol(temps) #On est sur le sol, on teste si on peut se tenir debout dessus
       
   def appliqueGraviteObjetsFixes(self, temps):
     """Place les objets qui ne bougent pas sur le sol"""
@@ -346,6 +346,7 @@ class Sprite:
       self.inertie = self.inertie * self.terminalVelocity
     self.miseAJourPosition(self.position+self.inertie*temps+self.inertieSteering)
     self.inertieSteering = Vec3(0.0,0.0,0.0)
+    self.inertie=self.inertie*0.7
     
   def versCoord(self, cible):
     """Si cible est une coordonnée, retourne cette dernière, sinon extrait les coordonnées"""
