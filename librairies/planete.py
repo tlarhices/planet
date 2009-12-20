@@ -1574,6 +1574,12 @@ class Planete:
       self.racineModel.setTag( 'Normal', 'True' )
       self.racineModel.setTag( 'Clipped', 'True' )
       self.racineModel.setTexScale(ts0, 256, 256)
+      self.racineModel.setTexScale(ts1, 256, 256)
+      self.racineModel.setTexScale(ts2, 256, 256)
+      self.racineModel.setTexScale(ts3, 256, 256)
+      self.racineModel.setTexScale(ts4, 256, 256)
+      self.racineModel.setTexScale(ts5, 256, 256)
+      self.racineModel.setTexScale(ts6, 256, 256)
       
     elif general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="flat":
       tex = loader.loadTexture("data/textures/herbe.png")

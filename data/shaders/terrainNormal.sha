@@ -55,17 +55,17 @@ void fshader( in float4 l_position : POSITION,
     
     // texture blending
     o_color = subsubaquatique;
-    sw=clamp( l_altitude+0.1f, 0.0f, 1.0f );
+    sw=clamp( l_altitude-0.1f, 0.0f, 1.0f )*1.1;
     o_color = o_color * ( 1.0 - sw ) + sw * subaquatique;
-    sw=clamp( l_altitude+0.3f, 0.0f, 1.0f );
+    sw=clamp( l_altitude-0.3f, 0.0f, 1.0f )*1.42;
     o_color = o_color * ( 1.0 - sw ) + sw * sable;
-    sw=clamp( l_altitude+0.4f, 0.0f, 1.0f );
+    sw=clamp( l_altitude-0.4f, 0.0f, 1.0f )*1.666;
     o_color = o_color * ( 1.0 - sw ) + sw * herbe;
-    sw=clamp( l_altitude+0.6f, 0.0f, 1.0f );
+    sw=clamp( l_altitude-0.6f, 0.0f, 1.0f )*2.5;
     o_color = o_color * ( 1.0 - sw ) + sw * feuillesc;
-    sw=clamp( l_altitude+0.7f, 0.0f, 1.0f );
+    sw=clamp( l_altitude-0.7f, 0.0f, 1.0f )*3.333;
     o_color = o_color * ( 1.0 - sw ) + sw * cailloux;
-    sw=clamp( l_altitude+0.8f, 0.0f, 1.0f );
+    sw=clamp( l_altitude-0.8f, 0.0f, 1.0f )*5;
     o_color = o_color * ( 1.0 - sw ) + sw * neige;
 
     // lighting
