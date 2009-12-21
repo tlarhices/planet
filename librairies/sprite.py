@@ -176,7 +176,7 @@ class Sprite:
     #On regarde le %age de ressources restantes dans les poches du sprite
     for clef in self.contenu.keys():
       if self.taillePoches[clef]!=0.0:
-        facteur = facteur * (self.contenu[clef]/self.taillePoches[clef])
+        facteur = facteur + (self.contenu[clef]/self.taillePoches[clef])
     
     if facteur == 0.0:
       self.tue("Ressources épuisées")
@@ -255,6 +255,7 @@ class Sprite:
     
   def appliqueGravite(self, temps):
     """Fait tomber les objets sur le sol"""
+    return
     altitudeCible = self.planete.altitudeCarre(self.position)
     if abs(self.altCarre-altitudeCible)>0.001:
       if self.altCarre<altitudeCible or not self.bouge or True:
@@ -464,7 +465,7 @@ class Sprite:
     """Change l'échelle du symbole pour le garder toujours à la même taille"""
     if self.symbole!=None and self.racine!=None and self.echelle!=0:
       #On calcule la distance à la caméra pour avoir le facteur de corection d'échelle
-      taille = base.camera.getPos(self.racine).length()
+      taille = general.gui.io.camera.getPos(self.racine).length()
       #On change l'échelle
       self.symbole.setScale(taille*0.005, taille*0.005, taille*0.005)
     

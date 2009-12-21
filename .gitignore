@@ -4,3 +4,4 @@ RTheme.atlas.*
 data/cache/*
 tmp
 configuration/utilisateur.cfg
+profiler.log

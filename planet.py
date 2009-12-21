@@ -67,14 +67,33 @@ class Start:
     if base.camLens != None:
       general.gui = Interface(self)
     else:
+      class DUMMYCAMERA:
+        def getPos(self, dummy=None):
+          return Vec3(0.0,0.0,0.0)
+      class DUMMYIO:
+        camera = None
+        def __init__(self):
+          self.camera=DUMMYCAMERA()
+          
+        def positionneCamera(self, dummy=None):
+          pass
       class DUMMY:
+        menuCourant = None
+        io = None
+        start = None
+        joueur = None
+        def __init__(self, start):
+          self.io = DUMMYIO()
+          self.start = start
         def afficheTexte(self, texte, type="normal", forceRefresh=False):
           print "[",type,"]",texte
         def ajouteJoueur(self, joueur):
-          pass
+          self.joueur = joueur
         def lanceInterface(self):
-          pass
-      general.gui = DUMMY()
+          self.start.fabriquePlanete()
+          self.start.start()
+          
+      general.gui = DUMMY(self)
     
     if general.configuration.getConfiguration("debug", "panda", "DEBUG_PANDA_VIA_PSTATS","f")=="t":
       #Profile du code via PStat
@@ -254,6 +273,9 @@ def deb():
 
   #On lance la boucle magique de panda
   run()
+  """while True:
+    taskMgr.step()
+    time.sleep(1.0 / 60.0)"""
 
 if __name__=="__main__":
 
@@ -301,9 +323,11 @@ if __name__=="__main__":
   import direct.directbase.DirectStart
   from direct.task import Task
 
-  base.camLens.setNear(0.001)
+  if base.camLens != None:
+    base.camLens.setNear(0.001)
 
   if not profile:
     deb()
   else:
+    print "Profiling..."
     cProfile.run('deb()', 'profiler.log')

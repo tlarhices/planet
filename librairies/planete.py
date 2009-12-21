@@ -79,6 +79,7 @@ class Planete:
     
     general.WIREFRAME = general.configuration.getConfiguration("affichage", "general", "fildefer","f")=="t"
     general.TEXTURES = general.configuration.getConfiguration("affichage", "general", "utilise-textures","t")=="t"
+    taskMgr.add(self.ping, "BouclePlanete")
     
   def fabriqueVoisinage(self):
     """

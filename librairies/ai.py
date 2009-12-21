@@ -562,8 +562,8 @@ class AIComportement:
       
     if len(self.comportements)<=0:
       self.ennui = True
-      print self.ai.sprite.id,"s'ennuie"
       if self.ai.bulbe != None:
+        print self.ai.sprite.id,"s'ennuie"
         self.ai.bulbe.ennui()
     else:
       self.ennui = False
