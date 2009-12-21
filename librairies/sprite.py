@@ -226,49 +226,6 @@ class Sprite:
         return -1
     else:
       return 0
-        
-    
-  def chercheSpriteProche(self, depot, ressources, joueur, strict):
-    """
-    Recherche le sprite le plus proche qui correspond aux critères de recherche
-    depot : si True, alors cherche un endroit où vider ses poches
-    ressources : une liste des ressources que l'on tente de récupérer (ou déposer si depot=True) ex : ["nourriture", "bibine"] ou -1 si on ne cherche pas de ressources
-    joueur : cible les sprite d'un seul joueur:
-      - instance de joueur -> uniquement les sprites de ce joueur
-      - nom d'un joueur -> uniquement les sprites de ce joueur
-      - None -> uniquement les sprites qui n'appartiennent à personne
-      - -1 -> tous les sprites
-    strict : si True, alors le sprite retourné possédera tous les types de ressource demandé, sinon le plus proche qui en a au moins une
-    """
-    proche = None
-    distance = None
-    distanceA = None
-    
-    def testeRessources(trouver, contenu, strict=False):
-      for element in trouver:
-        if element in contenu.keys():
-          if not strict:
-            return True #Pas strict et on en a un
-        else:
-          if strict:
-            return False #Strict et il en manque au moin 1
-      return True #Strict et on a tout trouvé
-      
-    
-    for sprite in self.planete.sprites:
-      if joueur==-1 or sprite.joueur==joueur or sprite.joueur.nom==joueur:
-        if ressources==-1 or testeRessources(ressources, sprite.contenu, strict):
-          dist = (self.position - sprite.position).length()
-          if distance==None or distance>dist:
-            distA = self.planete.aiNavigation.aStar(self.planete.trouveSommet(self.position), self.planete.trouveSommet(sprite.position))
-            if distA!=None:
-              distA=len(distA)
-            if distA!=None and (distanceA==None or distanceA>distA):
-              proche = sprite
-              distanceA = distA
-              distance = dist
-                
-    return proche
             
   def blip(self):
     """Met à jour le point sur la carte"""

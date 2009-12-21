@@ -10,8 +10,10 @@ import general
 import math
 import random
 import os, sys
+import time
 
 from pandac.PandaModules import *
+from multiprocessing import Process, Pipe
 
 class AIPlugin:
   plugins=None
@@ -300,6 +302,8 @@ class AIComportementUnitaire:
     self.comportement = None
     self.fini = True
     
+    
+
 class SuitChemin(AIComportementUnitaire):
   chemin = None
   courant = None
@@ -307,16 +311,26 @@ class SuitChemin(AIComportementUnitaire):
   def __init__(self, chemin, comportement, priorite):
     AIComportementUnitaire.__init__(self, comportement, priorite)
     self.chemin = chemin
+    if isinstance(self.chemin, list):
+      self.nettoieChemin()
     
-    if len(chemin)>2:
-      if (self.getCoord(chemin[0])-self.getCoord(chemin[1])).lengthSquared() > (self.getCoord(chemin[0])-self.getCoord(chemin[2])).lengthSquared():
-        chemin.remove(chemin[1])
-        print "Troncage du chemin pour",chemin
-    if len(chemin)>2:
-      if (self.getCoord(chemin[-1])-self.getCoord(chemin[-2])).lengthSquared() > (self.getCoord(chemin[-1])-self.getCoord(chemin[-3])).lengthSquared():
-        chemin.remove(chemin[-2])
-        print "Troncage du chemin pour",chemin
-    
+  def nettoieChemin(self):
+    if self.chemin==None:
+      return
+      
+    if len(self.chemin)>2:
+      if (self.getCoord(self.chemin[0])-self.getCoord(self.chemin[1])).lengthSquared() > (self.getCoord(self.chemin[0])-self.getCoord(self.chemin[2])).lengthSquared():
+        self.chemin.remove(self.chemin[1])
+        print "Troncage du chemin pour",self.chemin
+    if len(self.chemin)>2:
+      if (self.getCoord(chemin[-1])-self.getCoord(self.chemin[-2])).lengthSquared() > (self.getCoord(self.chemin[-1])-self.getCoord(self.chemin[-3])).lengthSquared():
+        self.chemin.remove(self.chemin[-2])
+        print "Troncage du chemin pour",self.chemin
+  
+  def afficheChemin(self):
+    if self.chemin==None:
+      return
+      
     if general.DEBUG_AI_SUIT_CHEMIN:
       prev=None
       for element in self.chemin:
@@ -335,6 +349,16 @@ class SuitChemin(AIComportementUnitaire):
     if self.chemin == None:
       #On a pas de chemin à suivre
       self.supprime()
+      return
+      
+    if not isinstance(self.chemin, list):
+      if self.chemin.poll():
+        recep = self.chemin.recv()
+        recep=recep[1:-1].split(",")
+        self.chemin=[]
+        for elem in recep:
+          self.chemin.append(int(elem))
+        #self.nettoieChemin()
       return
       
     if len(self.chemin) < 1:
@@ -547,7 +571,61 @@ class AIComportement:
   def clear(self):
     self.ai = None
     
+  def chercheSpriteProche(self, depot, ressources, joueur, strict):
+    """
+    Recherche le sprite le plus proche qui correspond aux critères de recherche
+    depot : si True, alors cherche un endroit où vider ses poches
+    ressources : une liste des ressources que l'on tente de récupérer (ou déposer si depot=True) ex : ["nourriture", "bibine"] ou -1 si on ne cherche pas de ressources
+    joueur : cible les sprite d'un seul joueur:
+      - instance de joueur -> uniquement les sprites de ce joueur
+      - nom d'un joueur -> uniquement les sprites de ce joueur
+      - None -> uniquement les sprites qui n'appartiennent à personne
+      - -1 -> tous les sprites
+    strict : si True, alors le sprite retourné possédera tous les types de ressource demandé, sinon le plus proche qui en a au moins une
+    """
+    parent_conn, child_conn = Pipe()
+    p = Process(target=self._chercheSpriteProche_thread, args=(child_conn, depot, ressources, joueur, strict))
+    p.start()
+    return parent_conn
+
+  def _chercheSpriteProche_thread(self, conn, depot, ressources, joueur, strict):
+    proche = None
+    distance = None
+    distanceA = None
+    
+    def testeRessources(trouver, contenu, strict=False):
+      for element in trouver:
+        if element in contenu.keys():
+          if not strict:
+            return True #Pas strict et on en a un
+        else:
+          if strict:
+            return False #Strict et il en manque au moin 1
+      return True #Strict et on a tout trouvé
+      
+    
+    for sprite in self.ai.sprite.planete.sprites:
+      if joueur==-1 or sprite.joueur==joueur or sprite.joueur.nom==joueur:
+        if ressources==-1 or testeRessources(ressources, sprite.contenu, strict):
+          dist = (self.ai.sprite.position - sprite.position).length()
+          if distance==None or distance>dist:
+            distA = self.ai.sprite.planete.aiNavigation.aStar(self.ai.sprite.planete.trouveSommet(self.ai.sprite.position), self.ai.sprite.planete.trouveSommet(sprite.position))
+            if distA!=None:
+              distA=len(distA)
+            if distA!=None and (distanceA==None or distanceA>distA):
+              proche = sprite
+              distanceA = distA
+              distance = dist
+                
+    conn.send(proche.id)
+    
   def calculChemin(self, debut, fin, priorite):
+    parent_conn, child_conn = Pipe()
+    p = Process(target=self._calculChemin_thread, args=(child_conn, debut, fin, priorite))
+    p.start()
+    self.suitChemin(parent_conn, priorite)
+    
+  def _calculChemin_thread(self, conn, debut, fin, priorite):
     if isinstance(debut, int):
       idP=debut
     else:
@@ -557,14 +635,13 @@ class AIComportement:
     else:
       idC = self.ai.sprite.planete.trouveSommet(fin, tiensCompteDeLAngle=True)
     chemin = self.ai.sprite.planete.aiNavigation.aStar(idP, idC)
-    chemin.insert(0, debut)
-    chemin.append(fin)
+    
     print "De",idP,"à",idC,":",
     if chemin!=None:
       print chemin
-      self.suitChemin(chemin, priorite)
     else:
       print "impossible"
+    conn.send(str(chemin))
     
   def piller(self, sprite, priorite):
     print self.ai.sprite.id, "va chopper des ressources à",sprite.id
