@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import sys
 
 camera1 = None
 camera2 = None
@@ -41,21 +42,26 @@ def map3dToRender2d(node, point, camera):
 def resnap():
   text1, text2, text3 = snap()
   
-  if card1!=None:
+  if card1!=None and text1!=None:
     card1.setTexture(text1, 1)
-  if card2!=None:
+  if card2!=None and text2!=None:
     card2.setTexture(text2, 1)
-  if card3!=None:
+  if card3!=None and text3!=None:
     card3.setTexture(text3, 1)
   
 def snap():
-  tex1 = Snap("1")
-  root1_model.setH(root1_model.getH()+90)
-  tex2 = Snap("2")
-  root1_model.setH(root1_model.getH()-90)
+  d = (camera1.getPos()-root1_model.getPos()).length()
   h,p,r = camera1.getH(), camera1.getP(), camera1.getR()
   pos = camera1.getPos()
-  d = (camera1.getPos()-root1_model.getPos()).length()
+
+  camera1.setPos(d,0,0)
+  camera1.lookAt(root1)
+  tex1 = Snap("1")
+  root1_model.setH(root1_model.getH()+90)
+  camera1.setPos(0,d,0)
+  camera1.lookAt(root1)
+  tex2 = Snap("2")
+  root1_model.setH(root1_model.getH()-90)
   camera1.setPos(0,0,d)
   camera1.lookAt(root1)
   tex3 = Snap("3")
@@ -70,6 +76,7 @@ def Snap(fich=None):
   pt1, pt2 = map3dToRender2d(root1, bounds[0], camera1), map3dToRender2d(root1, bounds[1], camera1)
   if pt1==None or pt2==None:
     print "Err, bndbox hors ecran"
+    return
   minx = min(pt1[0], pt2[0])
   miny = min(pt1[1], pt2[1])
   maxx = max(pt1[0], pt2[0])
@@ -124,27 +131,34 @@ def createCrossTopBillboard(root, bounds, texture1, texture2, textureTop):
   global card1
   global card2
   p1, p2 = bounds
+  taille = (p2-p1)
+  print taille
   cardMaker = CardMaker('lod')
-  cardMaker.setFrame(p1[0], p2[0], p1[2], p2[2])
+  cardMaker.setFrame(-taille[0]/2, taille[0]/2, 0.0, taille[2])
   cardMaker.setHasNormals(True)
   card1 = root.attachNewNode(cardMaker.generate())
   card1.setTwoSided(True)
   card1.setTransparency(TransparencyAttrib.MDual)
-  card1.setTexture(texture1)
+  if texture1!=None:
+    card1.setTexture(texture1)
+
+  cardMaker.setFrame(-taille[1]/2, taille[1]/2, 0.0, taille[2])
   card2 = root.attachNewNode(cardMaker.generate())
   card2.setTwoSided(True)
   card2.setTransparency(TransparencyAttrib.MDual)
   card2.setH(90)
-  card2.setTexture(texture2)
-  print p1, p2
-  cardMaker.setFrame(p1[0], p2[0], p1[1], p2[1])
+  if texture2!=None:
+    card2.setTexture(texture2)
+
+  cardMaker.setFrame(-taille[0]/2, taille[0]/2, -taille[1]/2, taille[1]/2)
   cardMaker.setHasNormals(True)
   card3 = root.attachNewNode(cardMaker.generate())
   card3.setTwoSided(True)
   card3.setTransparency(TransparencyAttrib.MDual)
   card3.setP(90)
-  card3.setPos((p1[2]+p2[2])/2)
-  card3.setTexture(textureTop)
+  card3.setPos((0.0,0.0,taille[2]/2))
+  if textureTop!=None:
+    card3.setTexture(textureTop)
 
 def zoomIn():
   global camera1
@@ -158,8 +172,8 @@ def zoomOut():
   global camera1
   global camera2
   global root1
-  camera1.setPos(camera1, (0,-0.1,0))
-  camera2.setPos(camera2, (0,-0.1,0))
+  camera1.setPos(camera1, (0,-0.5,0))
+  camera2.setPos(camera2, (0,-0.5,0))
   print (root1.getPos()-camera1.getPos()).length()
 
 def camUp():
@@ -208,7 +222,7 @@ if __name__ == "__main__":
   root2_model.reparentTo(root2)
   
   setCamera()
-  loadModel("cherry.egg", root1_model)
+  loadModel(sys.argv[1], root1_model)
   tex1, tex2, tex3=snap()
   createCrossTopBillboard(root2_model, root1_model.getTightBounds(), tex1, tex2, tex3)
 
@@ -218,5 +232,6 @@ if __name__ == "__main__":
   base.accept("arrow_right-repeat", turnRight)
   base.accept("w-repeat", camUp)
   base.accept("s-repeat", camDown)
+  base.accept("space", resnap)
 
   run()

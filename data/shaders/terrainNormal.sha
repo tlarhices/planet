@@ -51,21 +51,33 @@ void fshader( in float4 l_position : POSITION,
     float4 cailloux = tex2D( tex_5, l_texcoord0 );
     float4 neige = tex2D( tex_6, l_texcoord0 );
     
-    float sw;
+    float a,b,sw;
     
     // texture blending
     o_color = subsubaquatique;
-    sw=clamp( l_altitude-0.1f, 0.0f, 1.0f )*1.1;
+    a=0.1f;
+    b=0.2f;
+    sw=clamp((l_altitude-a)/(b-a), 0.0f, 1.0f);
     o_color = o_color * ( 1.0 - sw ) + sw * subaquatique;
-    sw=clamp( l_altitude-0.3f, 0.0f, 1.0f )*1.42;
+    a=0.2f;
+    b=0.4f;
+    sw=clamp((l_altitude-a)/(b-a), 0.0f, 1.0f);
     o_color = o_color * ( 1.0 - sw ) + sw * sable;
-    sw=clamp( l_altitude-0.4f, 0.0f, 1.0f )*1.666;
+    a=0.4f;
+    b=0.6f;
+    sw=clamp((l_altitude-a)/(b-a), 0.0f, 1.0f);
     o_color = o_color * ( 1.0 - sw ) + sw * herbe;
-    sw=clamp( l_altitude-0.6f, 0.0f, 1.0f )*2.5;
+    a=0.4f;
+    b=0.6f;
+    sw=clamp((l_altitude-a)/(b-a), 0.0f, 1.0f);
     o_color = o_color * ( 1.0 - sw ) + sw * feuillesc;
-    sw=clamp( l_altitude-0.7f, 0.0f, 1.0f )*3.333;
+    a=0.6f;
+    b=0.7f;
+    sw=clamp((l_altitude-a)/(b-a), 0.0f, 1.0f);
     o_color = o_color * ( 1.0 - sw ) + sw * cailloux;
-    sw=clamp( l_altitude-0.8f, 0.0f, 1.0f )*5;
+    a=0.7f;
+    b=0.8f;
+    sw=clamp((l_altitude-a)/(b-a), 0.0f, 1.0f);
     o_color = o_color * ( 1.0 - sw ) + sw * neige;
 
     // lighting

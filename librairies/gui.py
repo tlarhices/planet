@@ -694,6 +694,7 @@ class MiniMap(Pane):
       if id not in self.blips.keys():
         #Ce point n'a pas de représentation sur la carte, on en fabrique un nouveau
         self.blips[id] = self.add(Icon(self.points[id][1],x=self.points[id][0][0], y=self.points[id][0][1]))
+        self.blips[id].color=(1.0,0.0,0.0,1.0)
         self.blips[id].onClick = self.onClick
     return task.cont
             
