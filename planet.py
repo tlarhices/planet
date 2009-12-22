@@ -319,6 +319,8 @@ if __name__=="__main__":
     loadPrcFileData("",u"win-size "+resolution)
   #Kicke la synchro avec VSynch pour pouvoir dépasser les 60 FPS
   loadPrcFileData("",u"sync-video #f")
+  #On bloque les touches cholaxes de windows (shift pressé plus de 5s, plus de 5 fois rapidement, ...)
+  loadPrcFileData("",u"disable-sticky-keys 1")
 
   import direct.directbase.DirectStart
   from direct.task import Task

@@ -52,19 +52,22 @@ def resnap():
 def snap():
   d = (camera1.getPos()-root1_model.getPos()).length()
   h,p,r = camera1.getH(), camera1.getP(), camera1.getR()
+  hr,pr,rr = root1.getH(), root1.getP(), root1.getR()
   pos = camera1.getPos()
 
-  camera1.setPos(d,0,0)
+  camera1.setPos(0,-d,0)
   camera1.lookAt(root1)
+  root1.setH(0)
   tex1 = Snap("1")
   root1_model.setH(root1_model.getH()+90)
-  camera1.setPos(0,d,0)
   camera1.lookAt(root1)
+  root1.setH(-90)
   tex2 = Snap("2")
   root1_model.setH(root1_model.getH()-90)
   camera1.setPos(0,0,d)
   camera1.lookAt(root1)
   tex3 = Snap("3")
+  root1.setH(hr)
   camera1.setH(h), camera1.setP(p), camera1.setR(r)
   camera1.setPos(pos)
   return tex1, tex2, tex3
@@ -83,8 +86,8 @@ def Snap(fich=None):
   maxy = max(pt1[1], pt2[1])
   X = int(minx*base.win.getXSize()/2.0), int(maxx*base.win.getXSize()/2.0+0.5)
   Y = int(miny*base.win.getYSize()), int(maxy*base.win.getYSize()+0.5)
-  TX = X[1]-X[0]
-  TY = (Y[1]-Y[0])*1.1
+  TX = int(X[1]-X[0]+0.5)
+  TY = int((Y[1]-Y[0])*1.1+0.5)
   capture = PNMImage()
   camera1.node().getDisplayRegion(0).getScreenshot(capture)
   image = PNMImage(TX, TY)
@@ -132,7 +135,14 @@ def createCrossTopBillboard(root, bounds, texture1, texture2, textureTop):
   global card2
   p1, p2 = bounds
   taille = (p2-p1)
-  print taille
+  
+  config = open("card.txt", "w")
+  config.write(str("CrossTopBillboard\r\n"))
+  config.write(str((-taille[0]/2, taille[0]/2, 0.0, taille[2]))+"\r\n")
+  config.write(str((taille[1]/2, -taille[1]/2, 0.0, taille[2]))+"\r\n")
+  config.write(str((-taille[0]/2, taille[0]/2, -taille[1]/2, taille[1]/2))+"\r\n")
+  config.close()
+  
   cardMaker = CardMaker('lod')
   cardMaker.setFrame(-taille[0]/2, taille[0]/2, 0.0, taille[2])
   cardMaker.setHasNormals(True)
@@ -142,7 +152,7 @@ def createCrossTopBillboard(root, bounds, texture1, texture2, textureTop):
   if texture1!=None:
     card1.setTexture(texture1)
 
-  cardMaker.setFrame(-taille[1]/2, taille[1]/2, 0.0, taille[2])
+  cardMaker.setFrame(taille[1]/2, -taille[1]/2, 0.0, taille[2])
   card2 = root.attachNewNode(cardMaker.generate())
   card2.setTwoSided(True)
   card2.setTransparency(TransparencyAttrib.MDual)

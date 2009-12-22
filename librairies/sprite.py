@@ -8,6 +8,8 @@
 import general
 import math
 import random
+import os
+
 from ai import AI
 
 from pandac.PandaModules import *
@@ -415,6 +417,12 @@ class Sprite:
     if self.fichierModele == None or self.fichierModele=="none":
       self.modele = None
       return
+    
+    fichierCarte = self.fichierModele[:-4]+"-card.txt"
+    print fichierCarte,
+    if os.path.exists(fichierCarte):
+      print "TODO : Charger les images "+self.fichierModele[:-4]+"-1.png... pour faire un lod"
+      
     if self.fichierModele.endswith(".png"):
       tmp = self.fabriqueSprite(self.fichierModele)
     else:
