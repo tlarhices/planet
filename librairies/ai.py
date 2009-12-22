@@ -308,10 +308,12 @@ class AIComportementUnitaire:
 class SuitChemin(AIComportementUnitaire):
   chemin = None
   courant = None
+  cible = None
   
-  def __init__(self, chemin, comportement, priorite):
+  def __init__(self, chemin, cible, comportement, priorite):
     AIComportementUnitaire.__init__(self, comportement, priorite)
     self.chemin = chemin
+    self.cible = cible
     if isinstance(self.chemin, list):
       self.nettoieChemin()
     
@@ -356,9 +358,10 @@ class SuitChemin(AIComportementUnitaire):
       if self.chemin.poll():
         recep = self.chemin.recv()
         recep=recep[1:-1].split(",")
-        self.chemin=[]
+        self.chemin=[self.comportement.ai.sprite.position]
         for elem in recep:
           self.chemin.append(int(elem))
+        self.chemin.append(self.cible)
         #self.nettoieChemin()
       return
       
@@ -627,7 +630,7 @@ class AIComportement:
     parent_conn, child_conn = Pipe()
     p = Process(target=self._calculChemin_thread, args=(child_conn, debut, fin, priorite))
     p.start()
-    self.suitChemin(parent_conn, priorite)
+    self.suitChemin(parent_conn, fin, priorite)
     
   def _calculChemin_thread(self, conn, debut, fin, priorite):
     try:
@@ -700,8 +703,8 @@ class AIComportement:
     print self.ai.sprite.id, "va chopper des ressources à",sprite.id
     self.routine([self.ai.sprite.piller, {"sprite":sprite, "temps":0.0}], False, priorite)
     
-  def suitChemin(self, chemin, priorite):
-    self.comportements.append(SuitChemin(chemin, self, priorite))
+  def suitChemin(self, chemin, fin, priorite):
+    self.comportements.append(SuitChemin(chemin, fin, self, priorite))
     
   def vaVers(self, cible, priorite):
     self.comportements.append(VaVers(cible, self, priorite))

@@ -171,7 +171,7 @@ class Sprite:
     
   def majEchelle(self):
     """Recalcul le facteur d'échelle du sprite suivant son contenu"""
-    facteur = 1.0
+    facteur = 0.0
     
     #On regarde le %age de ressources restantes dans les poches du sprite
     for clef in self.contenu.keys():
