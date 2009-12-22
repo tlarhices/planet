@@ -6,6 +6,8 @@
 #See the license file in the docs folder for more details
 
 import random
+import general
+
 
 class Bulbe:
   _classe_ = "standard"
@@ -29,10 +31,10 @@ class Bulbe:
       
   def ennui(self):
     #On fait se promener le gugusse en rond sans but (bouffe quelques watts de pathfinding)
-    point = self.sprite.planete.trouveSommet(self.sprite.position)
+    point = general.planete.geoide.trouveSommet(self.sprite.position)
     cible = point
     for i in range(2, int(random.random()*6)):
-      cible = random.choice(self.sprite.planete.voisinage[cible])
+      cible = random.choice(general.planete.geoide.voisinage[cible])
     self.sprite.marcheVers(cible)
       
   def seFaitAttaquerPar(self, sprite):

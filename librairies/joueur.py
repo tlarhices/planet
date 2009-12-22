@@ -12,8 +12,6 @@ from sprite import *
 
 class Joueur:
   """Contient tout les éléments associés à un joueur"""
-  
-  planetePrincipale = None #L'instance de la planète mère
   nom = None #Le nom unique du joueur
   couleur = None #La couleur du joueur
   sprites = None #La liste des sprites que ce joueur possède
@@ -21,22 +19,14 @@ class Joueur:
   gui = None
   type = None
   
-  def __init__(self, nom, couleur, besoinGUI, planetePrincipale):
+  def __init__(self, nom, couleur, besoinGUI):
     """
     Gère un nouveau joueur
     nom : nom unique du joueur
     couleur : couleur du joueur
-    planetePrincipale : l'instance de la planète
     """
     self.nom = nom
     self.couleur = couleur
-    
-    #On garde un pointeur sur la vraie planète
-    self.planetePrincipale = planetePrincipale
-    
-    #On fabrique une planète vide
-    #self.planete = Planete()
-    #self.planete.fabriqueNouvellePlanete(tesselation = self.planetePrincipale.tesselation, delta=0.0)
     
     #Le joueur n'a pas de sprites
     self.sprites = []
@@ -44,7 +34,7 @@ class Joueur:
     self.ressources = {"bouffe":10}
     
     if besoinGUI:
-      general.gui.ajouteJoueur(self)
+      general.interface.ajouteJoueur(self)
 
   def ping(self, temps):
     #Calcul la zone en vue du joueur
@@ -63,15 +53,15 @@ class Joueur:
     if not os.path.exists(fichier):
       print "Sprite inconnu",type, "->", fichier
     id = "["+self.nom+"]"+id+"-"+str(len(self.sprites)+1)
-    sprite = Sprite(id=id, position=position, fichierDefinition=fichier, planete=self.planetePrincipale, joueur=self)
-    self.planetePrincipale.sprites.append(sprite)
+    sprite = Sprite(id=id, position=position, fichierDefinition=fichier, joueur=self)
+    general.planete.sprites.append(sprite)
     self.sprites.append(sprite)
     
   def spriteMort(self, sprite):
-    #general.gui.afficheTexte("Joueur "+self.nom+" dit : :'( :'( pauvre "+sprite.id, "chat")
-    general.gui.menuCourant.alerte("mort", sprite.id+" est mort par "+sprite.typeMort, sprite.position)
+    #general.interface.afficheTexte("Joueur "+self.nom+" dit : :'( :'( pauvre "+sprite.id, "chat")
+    general.interface.menuCourant.alerte("mort", sprite.id+" est mort par "+sprite.typeMort, sprite.position)
     if sprite.typeMort=="obscurite":
-      general.gui.menuCourant.alerte("obscurite", sprite.id+" est mort par "+sprite.typeMort, sprite.position)
+      general.interface.menuCourant.alerte("obscurite", sprite.id+" est mort par "+sprite.typeMort, sprite.position)
     self.sprites.remove(sprite)
     
   def detruit(self):
@@ -80,25 +70,25 @@ class Joueur:
       sprite.tue("destruction du joueur")
       
   def sauvegarde(self):
-    out = "j:"+str(self.type)+":"+self.nom+":"+str(self.couleur)+":"+str(general.gui.joueur==self)+":\r\n"
+    out = "j:"+str(self.type)+":"+self.nom+":"+str(self.couleur)+":"+str(general.interface.joueur==self)+":\r\n"
     for ressource in self.ressources.keys():
       out += "jr:"+self.nom+":"+ressource+":"+str(self.ressources[ressource])+":\r\n"
     return out
       
 class JoueurLocal(Joueur):
   """Le joueur devant le clavier"""
-  def __init__(self, nom, couleur, planetePrincipale):
-    Joueur.__init__(self, nom, couleur, True, planetePrincipale)
+  def __init__(self, nom, couleur):
+    Joueur.__init__(self, nom, couleur, True)
     self.type="local"
 
 class JoueurDistant(Joueur):
   """Un joueur qui provient du réseau, peut-être humain ou une IA qui est sur une autre machine"""
-  def __init__(self, nom, couleur, planetePrincipale):
-    Joueur.__init__(self, nom, couleur, False, planetePrincipale)
+  def __init__(self, nom, couleur):
+    Joueur.__init__(self, nom, couleur, False)
     self.type="distant"
 
 class JoueurIA(Joueur):
   """Une IA contrôlée sur cette machine"""
-  def __init__(self, nom, couleur, planetePrincipale):
-    Joueur.__init__(self, nom, couleur, False, planetePrincipale)
+  def __init__(self, nom, couleur):
+    Joueur.__init__(self, nom, couleur, False)
     self.type="ia"

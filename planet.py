@@ -32,8 +32,6 @@ except ImportError:
 class Start:
   
   #Paramètres de génération de la planète
-  planete=None #L'instance de la classe planète
-  tmp=None
   delta=None #Le taux de perturbation de la surface de la planète
   
   #Autres
@@ -43,6 +41,8 @@ class Start:
   
   ### Initialisation ---------------------------------------------------
   def __init__(self):
+    general.start = self
+    
     if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
       render.setShaderAuto()
       sa = ShaderAttrib.make( )
@@ -65,7 +65,7 @@ class Start:
     general.aiPlugin.scan()
     
     if base.camLens != None:
-      general.gui = Interface(self)
+      general.interface = Interface()
     else:
       class DUMMYCAMERA:
         def getPos(self, dummy=None):
@@ -79,12 +79,9 @@ class Start:
           pass
       class DUMMY:
         menuCourant = None
-        io = None
-        start = None
         joueur = None
-        def __init__(self, start):
-          self.io = DUMMYIO()
-          self.start = start
+        def __init__(self):
+          general.io = DUMMYIO()
         def afficheTexte(self, texte, type="normal", forceRefresh=False):
           print "[",type,"]",texte
         def ajouteJoueur(self, joueur):
@@ -93,7 +90,7 @@ class Start:
           self.start.fabriquePlanete()
           self.start.start()
           
-      general.gui = DUMMY(self)
+      general.interface = DUMMY(self)
     
     if general.configuration.getConfiguration("debug", "panda", "DEBUG_PANDA_VIA_PSTATS","f")=="t":
       #Profile du code via PStat
@@ -102,47 +99,47 @@ class Start:
     if general.configuration.getConfiguration("affichage", "general", "afficheFPS","f")=="t":
       base.setFrameRateMeter(True)
     #Place une sphère à la place de la planète pendant la construction
-    self.tmp = Planete()
-    self.tmp.seuilSauvegardeAuto = -1
-    self.tmp.fabriqueNouvellePlanete(tesselation=3, delta=0.2)
-    self.tmp.fabriqueModel()
+    general.planete = Planete()
+    general.planete.seuilSauvegardeAuto = -1
+    general.planete.fabriqueNouvellePlanete(tesselation=3, delta=0.2)
+    general.planete.fabriqueModel()
     
-    general.gui.io.positionneCamera(render)
+    general.io.positionneCamera(render)
     #On affiche le menu principal
-    general.gui.lanceInterface()
+    general.interface.lanceInterface()
     
   def start(self):
     """Lance le rendu et la boucle de jeu"""
 
-    if self.planete == None:
+    if general.planete == None:
       print "Vous devez créer une planète avant !"
       return
       
     #On ajoute les joueurs
-    j1 = JoueurLocal("Joueur 1", (1.0, 0.0, 0.0, 1.0), self.planete)
+    j1 = JoueurLocal("Joueur 1", (1.0, 0.0, 0.0, 1.0))
     self.joueur = j1
-    j2 = JoueurIA("Joueur 2", (1.0, 0.0, 0.0, 1.0), self.planete)
-    self.planete.ajouteJoueur(j1)
-    self.planete.ajouteJoueur(j2)
+    j2 = JoueurIA("Joueur 2", (1.0, 0.0, 0.0, 1.0))
+    general.planete.ajouteJoueur(j1)
+    general.planete.ajouteJoueur(j2)
     for i in range(0, 10):
       OK=False
       while not OK:
-        sommet = random.choice(self.planete.sommets)
-        OK = sommet.length()>self.planete.niveauEau
+        sommet = random.choice(general.planete.geoide.sommets)
+        OK = sommet.length()>general.planete.geoide.niveauEau
       j1.ajouteSprite("test", sommet, "test")
     for i in range(0, 5):
       OK=False
       while not OK:
-        sommet = random.choice(self.planete.sommets)
-        OK = sommet.length()>self.planete.niveauEau
+        sommet = random.choice(general.planete.geoide.sommets)
+        OK = sommet.length()>general.planete.geoide.niveauEau
       j2.ajouteSprite("test", sommet, "test")
 
     #On construit le modèle 3D de la planète
-    self.planete.fabriqueModel()
-    self.planete.afficheTexte("Supression de la planète du menu")
-    self.tmp.detruit()
-    self.tmp = None
-    general.gui.io.positionneCamera()
+    general.planete.fabriqueModel()
+    general.planete.afficheTexte("Supression de la planète du menu")
+    general.tmp.detruit()
+    general.tmp = None
+    general.io.positionneCamera()
     
 
   def afficheStat(self):
@@ -159,12 +156,6 @@ class Start:
       deltaT = task.time
     self.preImage = task.time
     
-    #On ping la planète
-    if self.planete != None:
-      self.planete.ping(deltaT)
-    if self.tmp != None:
-      self.tmp.ping(deltaT)
-    
     #On indique que l'on veut toujours cette fonction pour la prochaine image
     return Task.cont
   ### Fin initialisation -----------------------------------------------
@@ -172,42 +163,39 @@ class Start:
   ### Gestion de la planète --------------------------------------------
   def fabriquePlanete(self):
     """Construit une nouvelle planète via les gentils algos"""
+    general.tmp=general.planete
+    general.planete=None
     self.detruit()
-    self.planete = Planete()
+    general.planete = Planete()
     tesselation = int(general.configuration.getConfiguration("planete", "generation", "tesselation", "4"))
     delta = float(general.configuration.getConfiguration("planete", "generation", "delta", "0.2"))
-    self.planete.fabriqueNouvellePlanete(tesselation=tesselation, delta=delta)
+    general.planete.fabriqueNouvellePlanete(tesselation=tesselation, delta=delta)
     
   def chargePlanete(self, fichierPlanete):
     """Charge une planète depuis un fichier"""
+    general.tmp=general.planete
+    general.planete=None
     self.detruit()
-    self.planete = Planete()
-    self.planete.charge(fichier=fichierPlanete)
+    general.planete = Planete()
+    general.planete.charge(fichier=fichierPlanete)
     
   def detruit(self):
     """Supprime le modèle et retire les structures de données"""
-    if self.planete != None:
-      self.planete.detruit()
-      self.planete = None
+    if general.planete != None:
+      general.planete.detruit()
+      general.planete = None
   ### Fin gestion de la planète ----------------------------------------
       
   ### Autres -----------------------------------------------------------
   def modifieAltitude(self, direction):
     """Change l'altitude d'un point, si direction>0 alors l'altitude sera accrue sinon diminuée"""
-    general.gui.io.testeSouris()
+    general.io.testeSouris()
     
-    if self.planete!=None:
-      planete = self.planete
-    elif self.tmp!=None:
-      planete = self.tmp
-    else:
+    if general.planete.geoide.survol == None:
       return
     
-    if planete.survol == None:
-      return
-    
-    ndelta = planete.delta * direction * 0.01
-    planete.elevePoint(planete.survol, ndelta)
+    ndelta = general.planete.geoide.delta * direction * 0.01
+    general.planete.geoide.elevePoint(general.planete.geoide.survol, ndelta)
     
   def screenShot(self):
     base.screenshot("test")
@@ -321,7 +309,8 @@ if __name__=="__main__":
   loadPrcFileData("",u"sync-video #f")
   #On bloque les touches cholaxes de windows (shift pressé plus de 5s, plus de 5 fois rapidement, ...)
   loadPrcFileData("",u"disable-sticky-keys 1")
-
+  #On dit à Panda d'utiliser le coeur le moins utilisé pour le moment
+  loadPrcFileData("",u"client-cpu-affinity -1")
   import direct.directbase.DirectStart
   from direct.task import Task
 

@@ -17,7 +17,6 @@ from pandac.PandaModules import *
 class Sprite:
   """Un objet du monde"""
   id = None #Un identifiant (si possible unique) qui représente le sprite
-  planete = None #La planète sur laquelle l'objet se trouve
   position = None #La position dans l'espace de cet objet
   modele = None #Le modèle 3D de l'objet
   fichierModele = None #Le nom du fichier du modèle 3D (utilisé pour la sauvegarde)
@@ -66,14 +65,13 @@ class Sprite:
   echelle = None #Facteur d'échelle de l'objet en ce moment
   echelleOriginelle = None #Facteur d'échelle de l'objet lors de sa création == self.echelle à la sortie de __init__
   
-  def __init__(self, id, position, fichierDefinition, planete, joueur):
+  def __init__(self, id, position, fichierDefinition, joueur):
     """
     Fabrique un nouvel objet
     position : là où l'objet se trouve
     modele : le nom du fichier 3D à charger
     planete : la planète de laquelle cet objet dépend
     """
-    self.planete = planete
     self.joueur = joueur
     self.id = id
     self.miseAJourPosition(position)
@@ -82,7 +80,7 @@ class Sprite:
     self.inertie = Vec3(0.0,0.0,0.0)
     self.inertieSteering = Vec3(0.0,0.0,0.0)
     self.rac = NodePath("racine-sprite")
-    self.rac.reparentTo(self.planete.racine)
+    self.rac.reparentTo(general.planete.geoide.racine)
     self.racine = NodePath("racine-sprite")
     self.racine.reparentTo(self.rac)
     #Tourne le modèle pour que sa tête soit en "haut" (Y pointant vers l'extérieur de la planète)
@@ -133,7 +131,7 @@ class Sprite:
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""
     #Positionne le modèle et le fait pointer vers le centre de la planète (Z pointant sur la planète)
     self.rac.setPos(*self.position)
-    self.rac.lookAt(self.planete.racine,0,0,0)
+    self.rac.lookAt(general.planete.geoide.racine,0,0,0)
     
   def ping(self, temps):
     """
@@ -234,14 +232,14 @@ class Sprite:
     if self.blipid!=None:
       try:
         #On a un point sur la carte, donc on le met à jour
-        general.gui.menuCourant.miniMap.majBlip(self.blipid,self.position,self.icone)
+        general.interface.menuCourant.miniMap.majBlip(self.blipid,self.position,self.icone)
       except AttributeError:
         self.blipid=None
     else:
       try:
         #On a pas de point sur la carte mais on a une icône, on fabrique un nouveau point
         if self.icone != None and self.icone != "none":
-          self.blipid = general.gui.menuCourant.miniMap.ajoutePoint3D(self.position,self.icone)
+          self.blipid = general.interface.menuCourant.miniMap.ajoutePoint3D(self.position,self.icone)
       except AttributeError:
         pass
   
@@ -250,7 +248,7 @@ class Sprite:
     return
     sp = Vec3(position)
     sp.normalize()
-    fc = self.planete.trouveFace(self.position).calculNormale()
+    fc = general.planete.geoide.trouveFace(self.position).calculNormale()
     angle = sp.angleDeg(fc)
     if angle > self.angleSolMax:
       self.inertie = Vec3(self.inertie[0]+fc.getX()*temps, self.inertie[1]+fc.getY()*temps, self.inertie[2]+fc.getZ()*temps)
@@ -258,7 +256,7 @@ class Sprite:
   def appliqueGravite(self, temps):
     """Fait tomber les objets sur le sol"""
     return
-    altitudeCible = self.planete.altitudeCarre(self.position)
+    altitudeCible = general.planete.geoide.altitudeCarre(self.position)
     if abs(self.altCarre-altitudeCible)>0.001:
       if self.altCarre<altitudeCible or not self.bouge or True:
         print self.id, self.altCarre, altitudeCible,"(",abs(self.altCarre-altitudeCible),")","->",
@@ -291,7 +289,7 @@ class Sprite:
       
     self.pileTempsAppliqueGraviteObjetsFixes = 0.0
     
-    altitudeCible = self.planete.altitudeCarre(self.position)
+    altitudeCible = general.planete.geoide.altitudeCarre(self.position)
     if self.altCarre < altitudeCible or self.altCarre > altitudeCible + self.seuilToucheSol:
       #On place l'objet sur le sol d'un seul coup
       sp = Vec3(self.position)
@@ -316,7 +314,7 @@ class Sprite:
       cible=[cible, ]
       
     if len(cible)==1:
-      cible = self.planete.sommets[cible[0]]
+      cible = general.planete.geoide.sommets[cible[0]]
 
     return cible
       
@@ -334,14 +332,14 @@ class Sprite:
     vecteurDeplacement = sp * self.vitesse*temps
     
     #Affiche le déplacement un personnage sur l'écran
-    #top = self.planete.racine.attachNewNode(self.dessineLigne((random.random(),random.random(),random.random()), self.position, (self.position[0] + vecteurDeplacement[0], self.position[1] + vecteurDeplacement[1], self.position[2] + vecteurDeplacement[2])))
+    #top = general.planete.geoide.racine.attachNewNode(self.dessineLigne((random.random(),random.random(),random.random()), self.position, (self.position[0] + vecteurDeplacement[0], self.position[1] + vecteurDeplacement[1], self.position[2] + vecteurDeplacement[2])))
     #top.setBin('fixed', -1)
     #top.setDepthTest(False)
     #top.setDepthWrite(False)
     #top.setLightOff()
     
     self.position = (self.position[0] + vecteurDeplacement[0], self.position[1] + vecteurDeplacement[1], self.position[2] + vecteurDeplacement[2])
-    #self.planete.afficheTexte(self.id+" marche vers "+str(cible))
+    #general.planete.afficheTexte(self.id+" marche vers "+str(cible))
     self.miseAJourPosition(self.position)
       
   def miseAJourPosition(self, position):
@@ -349,7 +347,7 @@ class Sprite:
     self.position = position
       
     self.altCarre = self.position.lengthSquared()
-    if self.altCarre < self.planete.niveauEau*self.planete.niveauEau:
+    if self.altCarre < general.planete.geoide.niveauEau*general.planete.geoide.niveauEau:
       if self.aquatique:
         #Nage
         pass
@@ -362,7 +360,7 @@ class Sprite:
       
   def tue(self, type):
     """Gère la mort du sprite"""
-    general.gui.afficheTexte(self.id+" est mort par "+type, "mort")
+    general.interface.afficheTexte(self.id+" est mort par "+type, "mort")
     self.vie = 0
     self.typeMort = type
     if self.rac!=None:
@@ -379,12 +377,12 @@ class Sprite:
       self.modele = None
     self.symbole = None
     if self.blipid!=None:
-      general.gui.menuCourant.miniMap.enlevePoint(self.blipid)
+      general.interface.menuCourant.miniMap.enlevePoint(self.blipid)
     if self.ai != None:
       self.ai.clear()
       self.ai = None
-    while self.planete.sprites.count(self)>0:
-      self.planete.sprites.remove(self)
+    while general.planete.sprites.count(self)>0:
+      general.planete.sprites.remove(self)
     
   def sauvegarde(self):
     """Retoune une chaine qui représente l'objet"""
@@ -419,7 +417,6 @@ class Sprite:
       return
     
     fichierCarte = self.fichierModele[:-4]+"-card.txt"
-    print fichierCarte,
     if os.path.exists(fichierCarte):
       print "TODO : Charger les images "+self.fichierModele[:-4]+"-1.png... pour faire un lod"
       
@@ -473,7 +470,7 @@ class Sprite:
     """Change l'échelle du symbole pour le garder toujours à la même taille"""
     if self.symbole!=None and self.racine!=None and self.echelle!=0:
       #On calcule la distance à la caméra pour avoir le facteur de corection d'échelle
-      taille = general.gui.io.camera.getPos(self.racine).length()
+      taille = general.io.camera.getPos(self.racine).length()
       #On change l'échelle
       self.symbole.setScale(taille*0.005, taille*0.005, taille*0.005)
     
@@ -586,7 +583,6 @@ class Nuage(Sprite):
     Sprite.__init__(self, id="nuage", position=Vec3(0.01,0.01,0.01), fichierDefinition=None, planete=planete, joueur=None)
     self.densite = densite
     self.taille = taille
-    self.planete = planete
     self.vie=100
     
   def tue(self, type):
@@ -623,25 +619,25 @@ class Nuage(Sprite):
     self.racine.setH(self.racine.getH()+random.random()*temps*f)
     self.racine.setP(self.racine.getP()+random.random()*temps*f)
     self.racine.setR(self.racine.getR()+random.random()*temps*f)
-    self.position = self.n1.getPos(self.planete.racine)
+    self.position = self.n1.getPos(general.planete.geoide.racine)
     
   def fabriqueModel(self):
     """Construit le nuage"""
     #Choisit une position du nuage selon un sommet aléatoire
-    centre = random.choice(self.planete.sommets)
+    centre = random.choice(general.planete.geoide.sommets)
     
     #Facteur d'étalement du nuage selon les 3 axes en espace monde
     dx, dy, dz = 1.2,1.2,1.2
     fact = Vec3(dx, dy, dz).length()
         
-    distanceSoleil = self.planete.distanceSoleil
+    distanceSoleil = general.planete.distanceSoleil
         
     #Place le "centre" du nuage
     self.modele = NodePath("nuage")#NodePath(FadeLODNode('nuage'))
     ct = Vec3(centre)
     ct.normalize()
     
-    self.modele.setPos(ct * (self.planete.niveauCiel-0.01))
+    self.modele.setPos(ct * (general.planete.geoide.niveauCiel-0.01))
     self.racine = NodePath("nuage-elem")
     self.racine.reparentTo(self.rac)
     
@@ -672,7 +668,7 @@ class Nuage(Sprite):
       #On coince le nuage dans le ciel
       rn = Vec3(r)
       rn.normalize()
-      v=rn * (self.planete.niveauCiel-0.01+(self.planete.niveauCiel-self.planete.delta-1.0)*random.random())
+      v=rn * (general.planete.geoide.niveauCiel-0.01+(general.planete.geoide.niveauCiel-general.planete.geoide.delta-1.0)*random.random())
       r = v-centre
       nuage.setPos(*r)
       
@@ -686,7 +682,7 @@ class Nuage(Sprite):
     self.modele.setScale(self.taille)
     #On optimise les envois à la carte graphique
     self.racine.flattenStrong()
-    self.modele.reparentTo(self.planete.racine)
+    self.modele.reparentTo(general.planete.geoide.racine)
     #self.modele.setBin('fixed', -1)
     #self.modele.setDepthTest(False)
     #self.modele.setDepthWrite(False)

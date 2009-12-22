@@ -6,6 +6,7 @@
 #See the license file in the docs folder for more details
 
 from standard import Bulbe as std
+import general
 
 class Bulbe(std):
   _classe_ = "bucheron"
@@ -22,7 +23,7 @@ class Bulbe(std):
         
         if spriteid != None:
           sprite=None
-          for spr in self.sprite.planete.sprites:
+          for spr in general.planete.sprites:
             if spr.id==spriteid:
               sprite=spr
           if sprite!=None:

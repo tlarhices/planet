@@ -282,7 +282,7 @@ class Historique(MenuCirculaire):
     """
     self.messages.append((self.dureeMessage, type, message, self.ajouteDroite(self.fabriqueMessage(type, message))))
     if position!=None:
-      self.messages[-1][3].callback = self.gui.io.placeCameraAuDessusDe
+      self.messages[-1][3].callback = general.io.placeCameraAuDessusDe
       self.messages[-1][3].callbackParams = {"point":position}
     self.fabrique()
     
@@ -436,7 +436,7 @@ class MiniMap(Pane):
     taskMgr.add(self.ping, "Boucle minimap")
     
   def onClick(self):
-    self.gui.io.placeCameraAuDessusDe(self.carteVersPoint3D(self.souris))
+    general.io.placeCameraAuDessusDe(self.carteVersPoint3D(self.souris))
     
   souris = [-1,-1]
   def mouseEvent(self,event,x,y):
@@ -463,11 +463,11 @@ class MiniMap(Pane):
     return len(self.points)
     
   def dessineCarte(self, p1, p2, p3, c1, c2, c3, estSoleil=False):
-    if p1.length()<=self.gui.start.planete.niveauEau:
+    if p1.length()<=general.planete.geoide.niveauEau:
       c1=(0.0,0.0,1.0)
-    if p2.length()<=self.gui.start.planete.niveauEau:
+    if p2.length()<=general.planete.geoide.niveauEau:
       c2=(0.0,0.0,1.0)
-    if p3.length()<=self.gui.start.planete.niveauEau:
+    if p3.length()<=general.planete.geoide.niveauEau:
       c3=(0.0,0.0,1.0)
     if len(p1)==3:
       p1 = self.point3DVersCarte(p1)
@@ -689,7 +689,7 @@ class MiniMap(Pane):
       self.derniereMAJ=task.time
       
     self.enlevePoint(self.camBlip)
-    self.camBlip = self.ajoutePoint3D(self.gui.io.camera.getPos(),"theme/icones/camera.png")
+    self.camBlip = self.ajoutePoint3D(general.io.camera.getPos(),"theme/icones/camera.png")
     for id in self.points.keys():
       if id not in self.blips.keys():
         #Ce point n'a pas de représentation sur la carte, on en fabrique un nouveau
@@ -1134,14 +1134,11 @@ class Interface:
   joueur = None
   menuCourant = None
   informations = None
-  io = None
-  start = None
   
-  def __init__(self, start):
+  def __init__(self):
     #Fabrique le GUI de base
-    self.start = start
     self.gui = Gui(theme = theme.Theme())
-    self.io = IO(self)
+    general.io = IO()
     ##On place un bouton quitter en haut à droite de l'écran
     #self.quit = self.gui.add(Icon("theme/icones/x.png", x="right", y="top"))
     #self.quit.onClick = sys.exit
@@ -1186,8 +1183,8 @@ class Interface:
   def nouvellePlanete(self):
     """Construit une nouvelle planète aléatoirement"""
     self.makeMain()
-    self.start.fabriquePlanete()
-    self.start.start()
+    general.start.fabriquePlanete()
+    general.start.start()
     
   def removeMain(self):
     """Supprime les éléments de l'interface utilisés lors du chargement"""
@@ -1216,8 +1213,8 @@ class Interface:
   def planeteVierge2(self, fichier):
     """Charge un prototype de planète pré-construit"""
     self.makeMain()
-    self.start.chargePlanete(os.path.join(".", "data", "planetes", fichier))
-    self.start.start()
+    general.start.chargePlanete(os.path.join(".", "data", "planetes", fichier))
+    general.start.start()
     
   def sauvegarderPartie(self):
     self.changeMenuVers(MenuPrincipal)
@@ -1232,8 +1229,8 @@ class Interface:
   def chargerPartie2(self, fichier):
     """Charge une partie en cours"""
     self.makeMain()
-    self.start.chargePlanete(os.path.join(".", "sauvegardes", fichier))
-    self.start.start()
+    general.start.chargePlanete(os.path.join(".", "sauvegardes", fichier))
+    general.start.start()
     
   def retourJeu(self):
     """Ferme le menu en jeu et retourne à la partie"""
@@ -1244,9 +1241,6 @@ class Interface:
     jeu = self.menuCourant
     self.menuCourant = None
     
-    #On indique que la planète à l'écran n'est pas en jeu, mais est un fond de menu
-    self.start.tmp = self.start.planete
-    self.start.planete = None
     jeu.efface(MenuPrincipal)
     
   def ajouteJoueur(self, joueur):

@@ -47,20 +47,21 @@ class AIPlugin:
 class AINavigation:
   #Classe qui gère la navigation sur la surface de la planète
   graph = None #Le graph de navigation
-  planete = None #L'instance de la planète
   maxcout = 100000000 #Ce coût veut dire que c'est impossible
   angleSolMax = None
 
-  def __init__(self, planete):
-    self.planete = planete
+  def __init__(self):
     self.angleSolMax = float(general.configuration.getConfiguration("ai","navigation", "angleSolMax","70.0"))
+    
+  def detruit(self):
+    self.graph = None
     
   # Création d'infos ---------------------------------------------------    
   def coutPassage(self, idxSommet1, idxSommet2, estSommets):
     """Retourne le cout necessaire pour passer du sommet idxSommet1 au sommet idxSommet2"""
-    #cout = (self.planete.sommets[idxSommet2].length() - self.planete.sommets[idxSommet1].length())*100
+    #cout = (general.planete.geoide.sommets[idxSommet2].length() - general.planete.geoide.sommets[idxSommet1].length())*100
     if estSommets:
-      ptxSommet1, ptxSommet2 = Vec3(self.planete.sommets[idxSommet1]), Vec3(self.planete.sommets[idxSommet2])
+      ptxSommet1, ptxSommet2 = Vec3(general.planete.geoide.sommets[idxSommet1]), Vec3(general.planete.geoide.sommets[idxSommet2])
     else:
       ptxSommet1, ptxSommet2 = Vec3(idxSommet1), Vec3(idxSommet1)
       
@@ -74,15 +75,15 @@ class AINavigation:
       angle = self.maxcout
       
     #navigation = NodePath("nav")
-    #navigation.reparentTo(self.planete.racine)
+    #navigation.reparentTo(general.planete.geoide.racine)
     #On ne peut pas passer sous l'eau
-    if ptxSommet2.length() <= self.planete.niveauEau or ptxSommet1.length() <= self.planete.niveauEau:
+    if ptxSommet2.length() <= general.planete.geoide.niveauEau or ptxSommet1.length() <= general.planete.geoide.niveauEau:
       cout = self.maxcout
-    #  navigation.attachNewNode(self.dessineLigne((0.0, 0.0, 1.0), self.planete.sommets[idxSommet1] * 1.25, self.planete.sommets[idxSommet2] * 1.25))
+    #  navigation.attachNewNode(self.dessineLigne((0.0, 0.0, 1.0), general.planete.geoide.sommets[idxSommet1] * 1.25, general.planete.geoide.sommets[idxSommet2] * 1.25))
     #elif angle==self.maxcout:
-    #  navigation.attachNewNode(self.dessineLigne((1.0, 0.0, 0.0), self.planete.sommets[idxSommet1] * 1.25, self.planete.sommets[idxSommet2] * 1.25))
+    #  navigation.attachNewNode(self.dessineLigne((1.0, 0.0, 0.0), general.planete.geoide.sommets[idxSommet1] * 1.25, general.planete.geoide.sommets[idxSommet2] * 1.25))
     #else:
-    #  navigation.attachNewNode(self.dessineLigne((0.0, 1.0, 0.0), self.planete.sommets[idxSommet1] * 1.25, self.planete.sommets[idxSommet2] * 1.25))
+    #  navigation.attachNewNode(self.dessineLigne((0.0, 1.0, 0.0), general.planete.geoide.sommets[idxSommet1] * 1.25, general.planete.geoide.sommets[idxSommet2] * 1.25))
     return angle
     
   def dessineLigne(self, couleur, depart, arrivee):
@@ -103,13 +104,13 @@ class AINavigation:
     cpt=0.0
     self.graph = {}
     
-    totclef = len(self.planete.voisinage.keys())
+    totclef = len(general.planete.geoide.voisinage.keys())
     
-    for source in self.planete.voisinage.keys():
+    for source in general.planete.geoide.voisinage.keys():
       if general.DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION:
         if cpt%250==0:
-          self.planete.afficheTexte("Création du graphe de déplacement... %i/%i" %(cpt,totclef))
-      for voisin in self.planete.voisinage[source]:
+          general.planete.afficheTexte("Création du graphe de déplacement... %i/%i" %(cpt,totclef))
+      for voisin in general.planete.geoide.voisinage[source]:
         self.ajouteNoeud(source, voisin)
       cpt+=1.0
     general.stopChrono("AINavigation::grapheDeplacement")
@@ -161,7 +162,7 @@ class AINavigation:
     
     #Valeurs du point de départ
     g[deb] = 0 #On a pas bougé, donc ce cout vaut 0
-    h[deb] = (self.planete.sommets[deb] - self.planete.sommets[fin]).lengthSquared() #L'estimation se fait selon la distance euclidienne (on utilise le carré car sqrt est trop lent et c'est juste pour une comparaison)
+    h[deb] = (general.planete.geoide.sommets[deb] - general.planete.geoide.sommets[fin]).lengthSquared() #L'estimation se fait selon la distance euclidienne (on utilise le carré car sqrt est trop lent et c'est juste pour une comparaison)
     f[deb] = g[deb]+h[deb] # == h[deb] ;)
     
     #On boucle tant que l'on a des sommets à parcourir
@@ -205,7 +206,7 @@ class AINavigation:
             #On met a jour les infos de parcours pour ce point
             promenade[y] = x
             g[y] = tmpG
-            h[y] = (self.planete.sommets[y] - self.planete.sommets[fin]).lengthSquared()
+            h[y] = (general.planete.geoide.sommets[y] - general.planete.geoide.sommets[fin]).lengthSquared()
             f[y] = g[y] + h[y]
             
     general.gui.afficheTexte("Impossible de trouver une trajectoire pour aller de "+str(deb)+" à "+str(fin), "avertissement")
@@ -229,7 +230,7 @@ class AINavigation:
   def noeudsVoisins(self, id):
     """Retourne les indices des sommets voisins au sommet id"""
     general.startChrono("AINavigation::noeudsVoisins")
-    #On ne peut pas utiliser self.planete.voisinage[id] car il ne prend pas en compte les couts
+    #On ne peut pas utiliser general.planete.geoide.voisinage[id] car il ne prend pas en compte les couts
     voisins = []
     
     for elem in self.graph[id]:
@@ -335,14 +336,14 @@ class SuitChemin(AIComportementUnitaire):
       prev=None
       for element in self.chemin:
         if isinstance(element, int):
-          element = self.comportement.ai.sprite.planete.sommets[element]
+          element = general.planete.geoide.sommets[element]
         if prev!=None:
-          self.comportement.ai.sprite.planete.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((0.0,1.0,0.0), prev * 1.2, element * 1.2))
+          general.planete.geoide.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((0.0,1.0,0.0), prev * 1.2, element * 1.2))
         prev = element
         
   def getCoord(self, point):
     if isinstance(point, int):
-      return self.comportement.ai.sprite.planete.sommets[point]
+      return general.planete.geoide.sommets[point]
     return point
     
   def ping(self, temps):
@@ -374,12 +375,12 @@ class SuitChemin(AIComportementUnitaire):
       cible = self.getCoord(self.chemin.pop(0))
       
       if general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE", "t")=="t":
-        self.comportement.ai.sprite.planete.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((1.0,0.0,0.0), self.comportement.ai.sprite.position * 1.2, cible * 1.2))
+        general.planete.geoide.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((1.0,0.0,0.0), self.comportement.ai.sprite.position * 1.2, cible * 1.2))
         mdl = loader.loadModel("./data/modeles/sphere.egg")
         mdl.setScale(0.1)
         mdl.setPos(cible * 1.2)
         mdl.setColor(1.0,0.0,0.0)
-        mdl.reparentTo(self.comportement.ai.sprite.planete.racine)
+        mdl.reparentTo(general.planete.geoide.racine)
       #On fait un nouveau comportement pour y aller
       self.courant = VaVers(cible, self.comportement, self.priorite)
       #On ajoute le comportement à l'IA
@@ -589,35 +590,38 @@ class AIComportement:
     return parent_conn
 
   def _chercheSpriteProche_thread(self, conn, depot, ressources, joueur, strict):
-    proche = None
-    distance = None
-    distanceA = None
-    
-    def testeRessources(trouver, contenu, strict=False):
-      for element in trouver:
-        if element in contenu.keys():
-          if not strict:
-            return True #Pas strict et on en a un
-        else:
-          if strict:
-            return False #Strict et il en manque au moin 1
-      return True #Strict et on a tout trouvé
+    try:
+      proche = None
+      distance = None
+      distanceA = None
       
-    
-    for sprite in self.ai.sprite.planete.sprites:
-      if joueur==-1 or sprite.joueur==joueur or sprite.joueur.nom==joueur:
-        if ressources==-1 or testeRessources(ressources, sprite.contenu, strict):
-          dist = (self.ai.sprite.position - sprite.position).length()
-          if distance==None or distance>dist:
-            distA = self.ai.sprite.planete.aiNavigation.aStar(self.ai.sprite.planete.trouveSommet(self.ai.sprite.position), self.ai.sprite.planete.trouveSommet(sprite.position))
-            if distA!=None:
-              distA=len(distA)
-            if distA!=None and (distanceA==None or distanceA>distA):
-              proche = sprite
-              distanceA = distA
-              distance = dist
-                
-    conn.send(proche.id)
+      def testeRessources(trouver, contenu, strict=False):
+        for element in trouver:
+          if element in contenu.keys():
+            if not strict:
+              return True #Pas strict et on en a un
+          else:
+            if strict:
+              return False #Strict et il en manque au moin 1
+        return True #Strict et on a tout trouvé
+        
+      
+      for sprite in general.planete.sprites:
+        if joueur==-1 or sprite.joueur==joueur or sprite.joueur.nom==joueur:
+          if ressources==-1 or testeRessources(ressources, sprite.contenu, strict):
+            dist = (self.ai.sprite.position - sprite.position).length()
+            if distance==None or distance>dist:
+              distA = general.planete.aiNavigation.aStar(general.planete.geoide.trouveSommet(self.ai.sprite.position), general.planete.geoide.trouveSommet(sprite.position))
+              if distA!=None:
+                distA=len(distA)
+              if distA!=None and (distanceA==None or distanceA>distA):
+                proche = sprite
+                distanceA = distA
+                distance = dist
+                  
+      conn.send(proche.id)
+    except Exception as inst:
+      self.afficheErreur(str(inst))
     
   def calculChemin(self, debut, fin, priorite):
     parent_conn, child_conn = Pipe()
@@ -626,23 +630,72 @@ class AIComportement:
     self.suitChemin(parent_conn, priorite)
     
   def _calculChemin_thread(self, conn, debut, fin, priorite):
-    if isinstance(debut, int):
-      idP=debut
-    else:
-      idP = self.ai.sprite.planete.trouveSommet(debut, tiensCompteDeLAngle=True)
-    if isinstance(fin, int):
-      idC=fin
-    else:
-      idC = self.ai.sprite.planete.trouveSommet(fin, tiensCompteDeLAngle=True)
-    chemin = self.ai.sprite.planete.aiNavigation.aStar(idP, idC)
-    
-    print "De",idP,"à",idC,":",
-    if chemin!=None:
-      print chemin
-    else:
-      print "impossible"
-    conn.send(str(chemin))
-    
+    try:
+      if isinstance(debut, int):
+        idP=debut
+      else:
+        idP = general.planete.geoide.trouveSommet(debut, tiensCompteDeLAngle=True)
+      if isinstance(fin, int):
+        idC=fin
+      else:
+        idC = general.planete.geoide.trouveSommet(fin, tiensCompteDeLAngle=True)
+      chemin = general.planete.aiNavigation.aStar(idP, idC)
+      
+      print "De",idP,"à",idC,":",
+      if chemin!=None:
+        print chemin
+      else:
+        print "impossible"
+      conn.send(str(chemin))
+    except Exception as inst:
+      self.afficheErreur(str(inst))
+
+
+  def afficheErreur(self, texteErreur):
+    """
+    Affiche une erreur de façon formatée toute belle avec toute la pile d'exécution et des cookies !
+   
+    Paramètre :
+    - texteErreur : Le message d'erreur qui sera affiché
+    """
+    import sys
+
+    print
+    print "ERREUR ---"
+    pile = []
+    deb = 1 #On commence à 1 car le point 0 c'est afficheErreur et on saît très bien qu'on y est
+
+    #Bouclage sur le contenu de la pile
+    cont = True
+    while cont:
+      try:
+        #On attrape la position dans le code où qu'on était il y a deb appels de fonctions
+        frame = sys._getframe(deb)
+        #On fait une joulie mise en forme des infos
+        pile.append(str(frame.f_code.co_filename)+"::"+str(frame.f_code.co_name)+" @"+str(frame.f_lineno))
+        #On passe à l'appel suivant
+        deb+=1
+      except ValueError:
+        #ValueError est levé quand _getframe a atteint le bout du bout, donc on a fini de boucler
+        cont=False
+
+    #Les appels de fonctions sont pas dans le bon ordre, donc on inverse tout le tableau
+    pile.reverse()
+
+    #Un peu de mise en page
+    indentation = 0
+
+    #On affiche avec une joulie indentation d'un espace par appel chaque fonction
+    for element in pile:
+      print str(" "*indentation)+str(element)
+      indentation += 1
+
+    #On affiche le message qu'on a eut en cadal
+    print sys.exc_info()[2].print_exc()
+    print ">>> "+str(texteErreur)
+    print "--- ERREUR"
+    print
+      
   def piller(self, sprite, priorite):
     print self.ai.sprite.id, "va chopper des ressources à",sprite.id
     self.routine([self.ai.sprite.piller, {"sprite":sprite, "temps":0.0}], False, priorite)

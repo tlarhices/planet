@@ -7,7 +7,6 @@ import sys
 import math
 
 class IO:
-  gui = None
   preImage = None #L'heure à laquelle la précédente image a été rendue
   select = None #Le sprite sélectionné
   
@@ -32,9 +31,7 @@ class IO:
                  #X peut être une liste [a, g]...
                  #X peut être un dictionnaire {"nom parametre":valeur, ...}
                  
-  def __init__(self, gui):
-    self.gui = gui
-    
+  def __init__(self):
     #On donne des alias à certaines fonctions
     self.lierActionsFonctions()
     
@@ -109,21 +106,19 @@ class IO:
   ### Gestion de la caméra ---------------------------------------------
   def positionneCamera(self, racine=None):
     """Place la caméra dans l'univers"""
-    if self.gui.start.planete != None:
-      planete = self.gui.start.planete
-    elif self.gui.start.tmp != None:
-      planete = self.gui.start.tmp
-    else:
+    try:
+      planete = general.planete
+    except AttributeError:
       planete = None
       
     if planete == None:
       racine = render
       delta = 0.1
     else:
-      delta = planete.delta
+      delta = planete.geoide.delta
       
     if racine == None:
-      racine = planete.racine
+      racine = planete.geoide.racine
       
     self.camera.reparentTo(racine)
     
@@ -143,27 +138,15 @@ class IO:
 
   def zoomPlus(self):
     """Approche la caméra de la planète"""
-    if self.gui.start.planete != None:
-      planete = self.gui.start.planete
-    elif self.gui.start.tmp != None:
-      planete = self.gui.start.tmp
-    else:
-      print "pas de planète à tester"
-      return
+    planete = general.planete
       
     self.cameraRayon -= self.cameraRayon*self.cameraPasZoom
-    self.cameraRayon = max(self.cameraRayon, 1.0 + planete.delta + 0.001)
+    self.cameraRayon = max(self.cameraRayon, 1.0 + planete.geoide.delta + 0.001)
     self.positionneCamera()
 
   def zoomMoins(self):
     """Éloigne la caméra de la planète"""
-    if self.gui.start.planete != None:
-      planete = self.gui.start.planete
-    elif self.gui.start.tmp != None:
-      planete = self.gui.start.tmp
-    else:
-      print "pas de planète à tester"
-      return
+    planete = general.planete
       
     self.cameraRayon += self.cameraRayon*self.cameraPasZoom
     #On empèche la caméra de passer derrière le soleil
@@ -193,7 +176,7 @@ class IO:
   ### Gestion du clavier/souris ----------------------------------------
   def presseTouche(self, touche):
     """Une touche a été pressée, on l'ajoute a la liste des touches"""
-    if self.gui.gui.hoveringOver and touche.startswith("mouse"):
+    if general.interface.gui.hoveringOver and touche.startswith("mouse"):
       return
     self.touches.append(touche)
     self.gereTouche()
@@ -207,7 +190,7 @@ class IO:
     """Gère les touches clavier"""
     for touche in self.touches:
       #On regarde si clique pas sur l'interface
-      if not (self.gui.gui.hoveringOver and touche.startswith("mouse")):
+      if not (general.interface.gui.hoveringOver and touche.startswith("mouse")):
         #La touche est configurée
         if touche in self.configClavier.keys():
           action = self.configClavier[touche]
@@ -228,10 +211,10 @@ class IO:
     self.actions["tournecameraverslebas"] = (self.tourneCamera,(0.0,self.cameraPasRotation))
     self.actions["zoomplus"] = (self.zoomPlus,None)
     self.actions["zoommoins"] = (self.zoomMoins,None)
-    self.actions["modifiealtitude+"] = (self.gui.start.modifieAltitude,(1.0,))
-    self.actions["modifiealtitude-"] = (self.gui.start.modifieAltitude,(-1.0,))
-    self.actions["affichestat"] = (self.gui.start.afficheStat,None)
-    self.actions["screenshot"] = (self.gui.start.screenShot,None)
+    self.actions["modifiealtitude+"] = (general.start.modifieAltitude,(1.0,))
+    self.actions["modifiealtitude-"] = (general.start.modifieAltitude,(-1.0,))
+    self.actions["affichestat"] = (general.start.afficheStat,None)
+    self.actions["screenshot"] = (general.start.screenShot,None)
     
   def appelFonction(self, fonction, parametres):
     """Appel la fonction fonction en lui passant les paramètres décris"""
@@ -253,14 +236,8 @@ class IO:
   def testeSouris(self):
     """Teste ce qui se trouve sous le curseur de la souris"""
     
-    if self.gui.start.planete != None:
-      planete = self.gui.start.planete
-    elif self.gui.start.tmp != None:
-      planete = self.gui.start.tmp
-    else:
-      print "pas de planète à tester"
-      return
-      
+    planete = general.planete
+    
     if base.mouseWatcherNode.hasMouse():
       mpos=base.mouseWatcherNode.getMouse()
       x=mpos.getX()
@@ -273,19 +250,19 @@ class IO:
         self.myHandler.sortEntries()
         objet = self.myHandler.getEntry(0).getIntoNodePath().findNetPythonTag('type')
         if objet.getPythonTag('type') == "sol":
-          coord = self.myHandler.getEntry(0).getSurfacePoint(planete.racine)
+          coord = self.myHandler.getEntry(0).getSurfacePoint(planete.geoide.racine)
           if self.select != None:
             self.select.marcheVers(coord)
             self.select = None
           else:
-            idsommet = planete.trouveSommet(coord)
-            planete.survol = idsommet
+            idsommet = general.planete.geoide.trouveSommet(coord)
+            planete.geoide.survol = idsommet
         elif objet.getPythonTag('type') == "sprite":
-            self.gui.afficheTexte("Clic sur le sprite : "+str(objet.getPythonTag('id'))+" cliquez sur le sol où vous voulez qu'il aille", "info")
+            general.interface.afficheTexte("Clic sur le sprite : "+str(objet.getPythonTag('id'))+" cliquez sur le sol où vous voulez qu'il aille", "info")
             self.select = objet.getPythonTag('instance')
         elif objet.getPythonTag('type') == "eau":
-            self.gui.afficheTexte("clic dans l'eau", "info")
+            general.interface.afficheTexte("clic dans l'eau", "info")
         else:
-          self.gui.afficheTexte("Clic sur un objet au tag inconnu : "+str(objet.getPythonTag('type')), "info")
+          general.interface.afficheTexte("Clic sur un objet au tag inconnu : "+str(objet.getPythonTag('type')), "info")
       else:
-        planete.survol = None
+        planete.geoide.survol = None
