@@ -543,9 +543,9 @@ class Geoide:
       taille = float(general.configuration.getConfiguration("planete", "nuages", "taille", "0.15"))
       quantite = int(general.configuration.getConfiguration("planete", "nuages", "quantite", "80"))
       for i in range(0, quantite):
-        a = Nuage(densite, taille, self)
+        a = Nuage(densite, taille)
         a.fabriqueModel().reparentTo(nuages)
-        self.sprites.append(a)
+        general.planete.sprites.append(a)
       nuages.reparentTo(self.modeleCiel)
       
     #Ciel bleu

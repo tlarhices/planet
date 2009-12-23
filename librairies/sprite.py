@@ -579,8 +579,8 @@ class Nuage(Sprite):
   """Génère un nuage aléatoirement"""
   densite = None
   
-  def __init__(self, densite, taille, planete):
-    Sprite.__init__(self, id="nuage", position=Vec3(0.01,0.01,0.01), fichierDefinition=None, planete=planete, joueur=None)
+  def __init__(self, densite, taille):
+    Sprite.__init__(self, id="nuage", position=Vec3(0.01,0.01,0.01), fichierDefinition=None, joueur=None)
     self.densite = densite
     self.taille = taille
     self.vie=100
