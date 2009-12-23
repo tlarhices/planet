@@ -686,7 +686,7 @@ class Nuage(Sprite):
     #self.modele.setBin('fixed', -1)
     #self.modele.setDepthTest(False)
     #self.modele.setDepthWrite(False)
-    #self.modele.setLightOff()
+    self.modele.setLightOff()
     
     return self.modele
     
