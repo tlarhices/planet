@@ -328,18 +328,6 @@ class Planete:
     
       render.setShaderInput( 'lightvec', _lightvec )
       
-    if general.configuration.getConfiguration("affichage", "general", "type-eau", "texture")=="shader":
-      # Reflection plane
-      pos = Vec3(general.io.camera.getPos()-self.geoide.racine.getPos())
-      pos.normalize()
-      pos=Point3(*pos)
-      self.waterPlane = Plane(general.io.camera.getPos()-self.geoide.racine.getPos(), pos)
-      # Water reflections
-      mc = base.camera.getMat( )
-      mf = self.waterPlane.getReflectionMat( )
-      self.watercamNP.setMat( mc * mf )
-
-      
     #Met à jour l'état des joueurs
     for joueur in self.joueurs:
       joueur.ping(temps)

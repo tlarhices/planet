@@ -471,44 +471,9 @@ class Geoide:
     
     if general.configuration.getConfiguration("affichage", "general", "type-eau", "texture")=="shader":
       self.modeleEau.setShader( loader.loadShader( 'data/shaders/water.sha' ) )
-      # Shader input: Water
-      _water    = Vec4( 0.04, -0.02, 24.0, 0 )       # vx, vy, scale, skip
-      self.modeleEau.setShaderInput( 'water', _water )
-
-      # Reflection plane
-      pos = Vec3(general.io.camera.getPos()-self.racine.getPos())
-      pos.normalize()
-      pos=Point3(*pos)
-      self.waterPlane = Plane(general.io.camera.getPos()-self.racine.getPos(), pos)
-
-      planeNode = PlaneNode( 'waterPlane' )
-      planeNode.setPlane( self.waterPlane )
-
-      # Buffer and reflection camera
-      buffer = base.win.makeTextureBuffer( 'waterBuffer', 512, 512 )
-      buffer.setClearColor( Vec4( 0, 0, 0, 1 ) )
-
-      cfa = CullFaceAttrib.makeReverse( )
-      cpa = ClipPlaneAttrib.make( ClipPlaneAttrib.OAdd, planeNode )
-      rs = RenderState.make( cfa, cpa )
-
-      self.watercamNP = base.makeCamera( buffer )
-      self.watercamNP.reparentTo( render )
-      self.watercamNP.node( ).getLens( ).setFov( base.camLens.getFov( ) )
-      self.watercamNP.node( ).setInitialState( rs )
-
-      # Textures
-      tex0 = buffer.getTexture( )
-      ts0 = TextureStage( 'reflection' )
-      self.modeleEau.setTexture( ts0, tex0 )
-
-      tex1 = loader.loadTexture( 'data/textures/water.png' )
-      ts1 = TextureStage( 'distortion' )
-      self.modeleEau.setTexture( ts1, tex1 )
-
-      tex2 = loader.loadTexture( 'data/textures/watermap.png' )
-      ts2 = TextureStage( 'watermap' )
-      self.modeleEau.setTexture( ts2, tex2 )
+      
+      tex = loader.loadTexture( 'data/textures/eau.jpg' )
+      self.modeleEau.setTexture( tex, 1 )
     else:
       self.modeleEau.setColor(0.0,0.0,0.0,0.5)
       tex = loader.loadTexture('data/textures/eau.jpg')
