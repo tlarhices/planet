@@ -517,14 +517,18 @@ class Geoide:
     self.azure = loader.loadModel("data/modeles/sphere.egg")
     self.azure.setTransparency(TransparencyAttrib.MDual )
     self.azure.setColor(0.6, 0.6, 1.0, 1.0)
-    self.azure.setTwoSided(False)
+    self.azure.setTwoSided(True)
     self.azure.setScale((self.niveauCiel+0.001+0.0001))
-    self.azure.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullCounterClockwise))
+    #self.azure.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullCounterClockwise))
     self.azure.reparentTo(self.modeleCiel)
-    self.azure.setTexture("data/textures/EarthClearSky2.png", 1)
+    #self.azure.setTexture("data/textures/EarthClearSky2.png", 1)
     self.azure.setBin('background', 2)
     self.azure.setDepthTest(False)
     self.azure.setDepthWrite(False)
+    
+    self.azure.setShader( loader.loadShader( 'data/shaders/atmosphere.sha' ) )
+    tex = loader.loadTexture( 'data/textures/EarthClearSky2.png' )
+    self.azure.setTexture( tex, 1 )
 
     #Fabrique une lumière ambiante pour que la nuit soit moins noire
     if general.configuration.getConfiguration("affichage", "Effets", "typeEclairage","shader")=="flat":
@@ -684,9 +688,9 @@ class Geoide:
       self.lastPing = task.time-1.0/60
     self.lastPing = task.time
     
-    if self.azure != None:
-      if general.planete.soleil!=None:
-        self.azure.lookAt(general.planete.soleil)
+    #if self.azure != None:
+    #  if general.planete.soleil!=None:
+    #    self.azure.lookAt(general.planete.soleil)
     
     if not self.fini:
       return task.cont

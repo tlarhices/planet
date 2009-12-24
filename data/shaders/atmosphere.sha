@@ -1,0 +1,53 @@
+//Cg
+//Cg profile arbvp1 arbfp1
+
+void vshader( in float4 vtx_position : POSITION,
+              in float3 vtx_normal : NORMAL,
+              in float4 vtx_color : COLOR,
+              in float2 vtx_texcoord0 : TEXCOORD0,
+              in uniform float4x4 mat_modelproj,
+              in uniform float4x4 mat_modelview,
+              in uniform float4 k_lightvec,
+              in uniform float4 k_time,
+              
+              out float l_brightness,
+              out float2 l_texcoord0 : TEXCOORD0,
+              out float4 l_position : POSITION,
+              out float4 l_color
+            )
+{
+    l_position = mul( mat_modelproj, vtx_position );
+    
+    // texcoords
+    l_texcoord0 = vtx_texcoord0;
+    l_color = vtx_color;
+    
+    // lighting
+    float3 N = normalize( vtx_normal );
+    float3 L = normalize( -k_lightvec.xyz );
+    l_brightness = max( dot( N, L ), 0.25 );
+}
+
+void fshader( in float2 l_texcoord0 : TEXCOORD0,
+              in float l_brightness,
+              in float4 l_color,
+              in uniform sampler2D tex_0 : TEXUNIT0,
+              out float4 o_color : COLOR )
+{
+    float4 atmosphere = tex2D( tex_0, l_texcoord0 );
+    o_color = atmosphere * l_brightness;
+    /*
+    // lighting
+    o_color.b = l_brightness;
+    o_color.g = lerp(0.0, 0.7, l_brightness);
+    //o_color.a = 1-l_brightness;
+    
+    float seuilCouchant = 0.8;
+    
+    if(l_brigthness<seuilCouchant)
+    {
+      l_brigthness = seuilCouchant;
+    }
+    o_color.r = lerp(0.0, 0.7, l_brightness);*/
+}
+
