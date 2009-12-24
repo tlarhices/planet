@@ -715,8 +715,9 @@ class Geoide:
       self.lastPing = task.time-1.0/60
     self.lastPing = task.time
     
-    if self.modeleEau!=None:
-      self.animEau(task.time)
+    if general.configuration.getConfiguration("affichage","general", "animation-eau","t")=="t":
+      if self.modeleEau!=None:
+        self.animEau(task.time)
     
     #if self.azure != None:
     #  if general.planete.soleil!=None:
