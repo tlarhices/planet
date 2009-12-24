@@ -43,9 +43,9 @@ class Widget(object):
     
     editsText = False
     
+    color = (1,1,1,1)
     # makes the widget esear to click by expanding it in all direction by set ammount
-    clickExpand = 1
-    anitClips = False
+    clickExpand = 0
     
     def __init__(self,**placement):
         self.doPlacement(placement)    
@@ -293,15 +293,6 @@ class TextArea(Label):
     
 class Entry(TextArea):
     multiLine = False
-    defaultText = None
-    
-    def onEnter(self):
-        """ overide to catch the on enter key strokes """
-        
-    def onFocus(self):
-        if self.text == self.defaultText:
-          self.text=""
-        TextArea.onFocus(self)
     
 class PasswordEntry(Entry):
     """ single line entry that types as stars "*" """
@@ -431,3 +422,16 @@ class PictureRadio(Check):
             
     def callback(self, text, value):
       pass
+
+class ValueButton(Button):
+    """ 
+        this button has a value that gets passed to 
+        onSelect button
+    """
+    def __init__(self, text, value, onSelect, **placement):
+        Button.__init__(self, text, self.onClick, **placement)
+        self.value = value
+        self.onSelect = onSelect
+ 
+    def onClick(self):
+       self.onSelect(self.value)

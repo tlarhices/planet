@@ -144,6 +144,55 @@ class ScrollPane(Pane):
         slideRange = max(0,self.bounds[1]-self._height+100)
         self.inner.y = -slideRange*v/range
         
+class ScrollDownPane(ScrollPane):
+    """ scroll pane with one Y scroll shown """
+        
+    def _createInner(self,xextend=3,yextend=3):
+        self.inner = self.add(Pane())
+        self.inner.width=100000
+        self.inner.height=100000
+        self.inner.style = None
+        
+        self.sy = self.add(ScrollBarY(y=yextend,x="right  -3",
+            width=10, height="100% -20"))
+        
+        self.sy._compute = self.yScroll
+        self.add = self.inner.add
+        self.clear = self.inner.clear
+    
+class SingleSelectList(ScrollDownPane):
+    value = None
+    buttons = []
+    def __init__(self,options,*args,**kargs):
+        ScrollDownPane.__init__(self, *args,**kargs)
+       
+        for i,option in enumerate(options):
+            button = ValueButton(
+                option, 
+                i,
+                onSelect=self.setSelectedOption, 
+                pos=Vec2(10,10+int(i)*25), 
+                size=Vec2(75,15))
+            self.add(button)
+            self.buttons.append(button)
+     
+        self.selected = None
+       
+    def getSelectedOption(self):
+        return self.value
+   
+    def setSelectedOption(self, value):
+        """ selects a button with the option """
+        for i,button in enumerate(self.buttons):
+            if button.value == value:
+                self.selected = i
+                self.option = button.text
+                self.value = value
+                self.onSelect()
+                return True   
+            
+    def onSelect(self):  
+        """ overide this if you need too """
     
 class ProgressBar(Pane):
     """ display a string of text in the ui """

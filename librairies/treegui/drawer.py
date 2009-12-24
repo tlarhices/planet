@@ -56,7 +56,7 @@ class Drawer:
             make generic 2d drawer 
         """
         drawer = MeshDrawer()
-        drawer.setBudget(10000)
+        drawer.setBudget(3000)
         drawer.setPlateSize(32)
         drawerNode = drawer.getRoot()
         drawerNode.reparentTo(node)
@@ -96,13 +96,14 @@ class Drawer:
         if not thing.visable:
             return 
         
+        self.color = Vec4(*thing.color)
+        
         realX = x+float(thing._x)
         realY = y+float(thing._y)
         
         if thing.style:
             style = gui.theme.define(thing.style)
             if style:
-                thing.border = style.border
                 style.draw(
                     self,
                     (realX,realY),
@@ -115,13 +116,13 @@ class Drawer:
         if thing.icon:
             rect = self.atlas.getRect(thing.icon)
             if rect: 
+                self.color = thing.color
                 u,v,us,vs = rect
                 self.rectStreatch((realX,realY,us,vs),(u,v,us,vs), thing.alpha)
             
         if thing.text:
             # draw text stuff
-            self.color = Vec4(0,0,0,1)
-            if thing.editsText and gui.keys.focus == thing:
+            if thing.editsText:
                 thing.size = self.drawEditText(
                     gui.theme.defineFont(thing.font),
                     thing.text,
@@ -135,14 +136,11 @@ class Drawer:
                     thing.text,
                     realX,
                     realY, thing.alpha)
-            self.color = Vec4(1,1,1,1)
             
         if thing.children:
             for child in thing.children:
                 z += 1
-                if child.anitClips: c = self.clip.pop()
                 self.drawChild(realX,realY,z,child)
-                if child.anitClips: self.clip.append(c)
                 
         if thing.clips:
             self.clip.pop()
@@ -347,7 +345,8 @@ class Drawer:
         
         w = self.w
         h = self.h
-        color[3]=alpha
+        color = Vec4(color)
+        color[3]=color[3]*alpha
         u,v,us,vs = u/w,1-v/h,(u+us)/w,1-(v+vs)/h,
         self.drawer.tri( 
             v1, color, Vec2(u,v),
