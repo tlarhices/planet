@@ -42,12 +42,12 @@ void fshader( in float2 l_texcoord0 : TEXCOORD0,
     o_color.g = lerp(0.0, 0.7, l_brightness);
     //o_color.a = 1-l_brightness;
     
-    float seuilCouchant = 0.8;
+    float seuilCouchant = 0.5;
     
     if(l_brigthness<seuilCouchant)
     {
       l_brigthness = seuilCouchant;
     }
-    o_color.r = lerp(0.0, 0.7, l_brightness);*/
+    o_color.r = lerp(0.0, 0.9, l_brightness);//*/
 }
 
