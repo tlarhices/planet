@@ -24,7 +24,7 @@ void vshader( in float4 vtx_position : POSITION,
     
     // lighting
     float3 N = normalize( vtx_normal );
-    float3 L = normalize( -k_lightvec.xyz );
+    float3 L = normalize( k_lightvec.xyz );
     l_brightness = max( dot( N, L ), 0.25 );
 }
 
