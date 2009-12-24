@@ -171,6 +171,16 @@ class Element:
     return p1, p2, p3
     
   def point3DVersCarte(self, point, taille):
+    x, y, z = point
+   
+    r = math.sqrt((x*x) + (y*y))
+    radiansLatitude = math.atan2(r,z)
+    v = 1 - (radiansLatitude / (math.pi))
+   
+    radiansLongitude = math.atan2(y,x)
+    u = 1 + (radiansLongitude / (2 * math.pi))
+    return Vec2(u*taille,v*taille)
+    
     point = Vec3(point)
     point.normalize()
     x,y,z = point
