@@ -124,6 +124,7 @@ class Geoide:
     if os.path.isfile(os.path.join(".","data","pre-tesselate",str(tesselation))):
       #On charge la sphere pre-tesselée
       self.charge(os.path.join(".","data","pre-tesselate",str(tesselation)), simple=True)
+      self.fini=False
     else:
       #On a pas de sphère pré-tesselée, on cherche la plus grande tesselation que l'on ai qui soit inférieure à celle souhaitée
       last = -1
@@ -137,6 +138,7 @@ class Geoide:
       else:
         #On recommence à la meilleure que l'on ai
         self.charge(os.path.join(".","data","pre-tesselate",str(last)), simple=True)
+        self.fini=False
         
       #On remet le niveau de tesselation qu'il faut, le chargement aura tout pété
       self.tesselation = int(tesselation)
@@ -456,6 +458,31 @@ class Geoide:
                 sprite.echelle = sprite.echelle*(1.0-random.random()/8)
                 sprite.racine.setScale(sprite.echelle)
 
+  def animEau(self, time):
+    #change z component of vertices in water plane
+    geomNodeCollection = self.modeleEau.findAllMatches('**/+GeomNode')
+    for nodePath in geomNodeCollection:
+      geomNode = nodePath.node()
+      for i in range(geomNode.getNumGeoms()):
+        geom = geomNode.modifyGeom(i)
+        vdata = geom.modifyVertexData()
+
+        vertex = GeomVertexRewriter(vdata, 'vertex')
+        while not vertex.isAtEnd():
+          v = vertex.getData3f()
+          v = Vec3(*v)
+          v.normalize()
+          v=v*self.waveFunction(v[0],v[1],v[2],time)
+          vertex.setData3f(v[0],v[1],v[2])
+
+
+  #waveFunction
+  def waveFunction(self,x,y,z,time):
+    WAVE_LENGTH = 0.005
+    WAVE_HEIGHT = 0.0001
+    z=(math.sin(time+x/WAVE_LENGTH)+math.sin(y+x)/WAVE_LENGTH)*math.cos(time+z/WAVE_LENGTH)*WAVE_HEIGHT/2
+    return self.niveauEau+z 
+
   def fabriqueEau(self):
     """Ajoute une sphère qui représente l'eau"""
     
@@ -687,6 +714,9 @@ class Geoide:
     if self.lastPing==None:
       self.lastPing = task.time-1.0/60
     self.lastPing = task.time
+    
+    if self.modeleEau!=None:
+      self.animEau(task.time)
     
     #if self.azure != None:
     #  if general.planete.soleil!=None:
