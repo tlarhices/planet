@@ -187,7 +187,7 @@ class Sprite:
       
     #On change l'échelle
     self.echelle = self.echelleOriginelle*facteur
-    self.racine.setScale(self.echelle)
+    self.modele.setScale(self.echelle)
     
   def piller(self, sprite, temps):
     """Prends des ressources dans les poches de 'sprite' pour les mettre dans les siennes"""
@@ -424,8 +424,9 @@ class Sprite:
       tmp = self.fabriqueSprite(self.fichierModele)
     else:
       tmp = loader.loadModel(self.fichierModele)
-      tmp.setScale(self.echelle)
+    
     tmp.reparentTo(self.modele)
+    self.modele.setScale(self.echelle)
     self.modele.node().addSwitch(self.distanceSymbole, 0) 
     
     symbole = self.fabriqueSymbole(self.fichierSymbole)
