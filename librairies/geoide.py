@@ -393,7 +393,7 @@ class Geoide:
     if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")!="flat":
       self.ajouteTextures()
 
-    #self.racine.reparentTo(render)
+    self.racine.reparentTo(render)
     self.racine.analyze()
 
   def fabriqueVegetation(self):
@@ -481,9 +481,6 @@ class Geoide:
     
     if general.configuration.getConfiguration("affichage", "general", "type-eau", "texture")=="shader":
       self.modeleEau.setShader( loader.loadShader( 'data/shaders/water.sha' ) )
-      self.modeleEau.setShaderInput( 'time', 0.0 )
-      _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
-      self.modeleEau.setShaderInput( 'lightvec', _lightvec )
       tex = loader.loadTexture( 'data/textures/eau.jpg' )
       self.modeleEau.setTexture( tex, 1 )
     else:
@@ -540,9 +537,6 @@ class Geoide:
     
     if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader" or general.configuration.getConfiguration("affichage", "general", "type-eau", "texture")=="shader":
       self.azure.setShader( loader.loadShader( 'data/shaders/atmosphere.sha' ) )
-      self.azure.setShaderInput( 'time', 0.0 )
-      _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
-      self.azure.setShaderInput( 'lightvec', _lightvec )
 
     tex = loader.loadTexture( 'data/textures/EarthClearSky2.png' )
     self.azure.setTexture( tex, 1 )

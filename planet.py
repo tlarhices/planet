@@ -41,9 +41,6 @@ class Start:
   
   ### Initialisation ---------------------------------------------------
   def __init__(self):
-    render.setShaderInput( 'time', 0.0 )
-    _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
-    render.setShaderInput( 'lightvec', _lightvec )
     
     general.start = self
     

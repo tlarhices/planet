@@ -324,7 +324,6 @@ class Planete:
       _lightvec = Vec3(self.soleil.getPos() - self.geoide.racine.getPos())
       _lightvec = Vec4(_lightvec[0], _lightvec[1], _lightvec[2], 0.0)
       
-  
     render.setShaderInput( 'lightvec', _lightvec )
       
     #Met à jour l'état des joueurs
