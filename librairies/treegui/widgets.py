@@ -407,11 +407,11 @@ class PictureRadio(Check):
             changaes the state of the radio buttons 
             around it
         """
-        
-        for child in self.parent.children:
-            if child.__class__ == self.__class__:
-                child.value = False
-                child.icon = child.picOff
+        if self.parent != None:
+          for child in self.parent.children:
+              if child.__class__ == self.__class__:
+                  child.value = False
+                  child.icon = child.picOff
                 
         self.value = not self.value
         if self.value:

@@ -161,7 +161,6 @@ class Drawer:
 
         height = 0
         width = 0
-
         for line in text.split("\n"):
             build = []
             maxh = omaxh  
@@ -186,7 +185,7 @@ class Drawer:
             for x,y,u,v,w,h in build:
                 self.rectStreatch((x,y+maxh-h,w,h),(u,v,w,h), alpha)
                 
-            x = ox     
+            x = ox
             y += maxh
             if len(build)>0:
               x,y,u,v,w,h = build[-1]
@@ -194,6 +193,8 @@ class Drawer:
               width = max(_width, width)
               _height = y+maxh-oy
               height = max(_height, height)
+            x = ox     
+            y += maxh
             
         return height, width
     
@@ -257,6 +258,8 @@ class Drawer:
               width = max(_width, width)
               _height = y+maxh-oy
               height = max(_height, height)
+            x = ox
+            y += maxh
             
         return height, width
         

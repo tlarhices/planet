@@ -57,8 +57,6 @@ class Geoide:
     
     self.fini = False
     
-    general.WIREFRAME = general.configuration.getConfiguration("affichage", "general", "fildefer","f")=="t"
-    general.TEXTURES = general.configuration.getConfiguration("affichage", "general", "utilise-textures","t")=="t"
     taskMgr.add(self.ping, "BouclePrincipale-geoide")
     
   def fabriqueVoisinage(self):
@@ -367,21 +365,6 @@ class Geoide:
       
   def fabriqueModel(self):
     """Produit un modèle 3D à partir du nuage des faces"""
-    #Création du cache de texture si nécessaire
-    if general.configuration.getConfiguration("affichage", "general", "force-cache-texture","t")=="t":
-      element = Element("", 0, 0, 0, self, 0, None)
-      totTex = len(element.texturesValides)*len(element.texturesValides)*len(element.texturesValides)
-      cpt=0
-      for t1 in element.texturesValides:
-        for t2 in element.texturesValides:
-          for t3 in element.texturesValides:
-            cpt+=1
-            if cpt%20==0:
-              general.planete.afficheTexte("Création du cache de textures : %.2f%%" %((cpt*1.0)/totTex*100))
-            clef = t1+"-"+t2+"-"+t3
-            if not clef+".png" in os.listdir(os.path.join(".","data","cache")):
-              element.textureMixer(t1, t2, t3)
-              del element.textures[clef]
     self.racine.detachNode()
     self.racineModel = NodePath("model")
     self.racineModel.reparentTo(self.racine)
@@ -410,7 +393,7 @@ class Geoide:
     if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")!="flat":
       self.ajouteTextures()
 
-    self.racine.reparentTo(render)
+    #self.racine.reparentTo(render)
     self.racine.analyze()
 
   def fabriqueVegetation(self):
@@ -498,7 +481,9 @@ class Geoide:
     
     if general.configuration.getConfiguration("affichage", "general", "type-eau", "texture")=="shader":
       self.modeleEau.setShader( loader.loadShader( 'data/shaders/water.sha' ) )
-      
+      self.modeleEau.setShaderInput( 'time', 0.0 )
+      _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
+      self.modeleEau.setShaderInput( 'lightvec', _lightvec )
       tex = loader.loadTexture( 'data/textures/eau.jpg' )
       self.modeleEau.setTexture( tex, 1 )
     else:
@@ -553,7 +538,12 @@ class Geoide:
     self.azure.setDepthTest(False)
     self.azure.setDepthWrite(False)
     
-    self.azure.setShader( loader.loadShader( 'data/shaders/atmosphere.sha' ) )
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader" or general.configuration.getConfiguration("affichage", "general", "type-eau", "texture")=="shader":
+      self.azure.setShader( loader.loadShader( 'data/shaders/atmosphere.sha' ) )
+      self.azure.setShaderInput( 'time', 0.0 )
+      _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
+      self.azure.setShaderInput( 'lightvec', _lightvec )
+
     tex = loader.loadTexture( 'data/textures/EarthClearSky2.png' )
     self.azure.setTexture( tex, 1 )
 

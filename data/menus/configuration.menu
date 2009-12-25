@@ -1,0 +1,141 @@
+[Écran]
+icone = resolution #Icône qui le représente ou none si pas d'icone
+nom = Écran #Ce qui sera affiché dans le menu
+infobulle = Change les paramètres d'affichage de votre écran....
+
+resolution: #Nom interne
+chemin = affichage/general/resolution #Variable qu'il modifie
+icone = resolution #Icône qui le représente ou none si pas d'icone
+nom = Résolution de votre écran
+infobulle = Change la résolution de votre écran.
+type = liste
+valeurs = 320 240|640 480|800 600|1024 768|1280 1024
+
+vitesseAnimationMenus:
+chemin = affichage/general/vitesseAnimationMenus
+icone = fastforward
+nom = Vitesse des menus
+infobulle = Change la vitesse à laquelle les boutons du menu tournent.
+type = float
+valeurMin = 20.0
+valeurMax = 120.0
+
+
+vitesseAnimationMenus:
+chemin = planete/nuages/affiche-nuages
+icone = nebula
+nom = Afficher les nuages
+infobulle = Affiche ou masque les nuages sur la planète
+type = bool
+
+
+[Effets]
+icone = configure
+nom = Effets
+infobulle = Change les paramètres avancés de votre écran
+
+afficheFPS:
+chemin = affichage/general/afficheFPS
+icone = ruller
+nom = Images par secondes
+infobulle = Affiche ou masque le compteur d'images par secondes
+type = bool
+
+multitexturage:
+chemin = affichage/general/multitexturage
+icone = template
+nom = Multitexturage
+infobulle = Définit la façon dont le sol sera tinté.\r\nShader : Meilleure qualité, mais lent\r\nHeightMap : Qualité normale (utilise beaucoup de mémoire vidéo)\r\nFlat : Pas de textures
+type = liste
+valeurs = shader|heightmap|flat
+
+repetition-texture:
+chemin = affichage/general/repetition-texture
+icone = template
+nom = Répétition de la texture
+infobulle = Une valeur faible diminuera la qualité des textures au sol, une valeur élevée risque de faire apparaître des moirés et des répétitions.
+type = int
+valeurMin = 1
+valeurMax = 200
+
+type-eau:
+chemin = affichage/general/type-eau
+icone = sound
+nom = Représentation de l'eau
+infobulle = Shader : qualité maximale, texture : représentation simple
+type = liste
+valeurs = shader|texture
+
+animation-eau:
+chemin = affichage/general/animation-eau
+icone = sound
+nom = Animation de l'eau par vectrice
+infobulle = Si activé, l'eau sera animée. Peut faire des effets étranges avec l'animation en mode shader.
+type = bool
+
+utiliseBloom:
+chemin = affichage/effets/utiliseBloom
+icone = news
+nom = Utilisation du filtre bloom
+infobulle = Si activé, les zones à forte intensité lumineuse seront "brûleront" les couleurs autours d'elles.
+type = bool
+
+normalmapping:
+chemin = affichage/effets/normalmapping
+icone = rangearrow
+nom = Normal mapping
+infobulle = Ajoute un effet de relief supplémentaire aux textures (n'augmente pas la complexité du modèle mais augmente les besoins en mémoire vidéo)
+type = bool
+
+
+[Minimap]
+icone = target
+nom = Minimap
+infobulle = Change les paramètres de la carte
+
+affichesoleil:
+chemin = affichage/Minimap/affichesoleil
+icone = news
+nom = Afficher le soleil
+infobulle = Affiche les zones d'ombre et de lumière sur la carte (nécessite de nombreuses opérations à chaque mise à jour)
+type = bool
+
+dureeMAJPosSoleil:
+chemin = affichage/Minimap/dureeMAJPosSoleil
+icone = clock
+nom = Durée entre 2 mises à jour de la carte du soleil
+infobulle = Une valeur faible peut ralentir le jeu de façon considérable.
+type = float
+valeurMin = 0.1
+valeurMax = 30.0
+
+taille:
+chemin = affichage/Minimap/taille
+icone = resolution
+nom = Taille de la carte
+infobulle = Taille de la minimap à l'écran
+type = liste
+valeurs = 128 128|256 128|128 256|256 256
+
+[Jeu]
+icone = gear
+nom = Jeu
+infobulle = Change les paramètres d'affichage de votre écran....
+
+seuilSauvegardeAuto:
+chemin = affichage/General/seuilSauvegardeAuto
+icone = diskette
+nom = Durée entre 2 sauvegardes automatiques
+infobulle = En secondes
+type = int
+valeurMin = 60
+valeurMax = 3600
+
+dureeMessage:
+chemin = affichage/General/dureeMessage
+icone = quote
+nom = Durée des messages
+infobulle = Durée durant laquelle les messages seront affichés à l'écran
+type = int
+valeurMin = 5
+valeurMax = 120

@@ -41,6 +41,10 @@ class Start:
   
   ### Initialisation ---------------------------------------------------
   def __init__(self):
+    render.setShaderInput( 'time', 0.0 )
+    _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
+    render.setShaderInput( 'lightvec', _lightvec )
+    
     general.start = self
     
     if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
@@ -116,7 +120,7 @@ class Start:
       return
       
     #On ajoute les joueurs
-    j1 = JoueurLocal("Joueur 1", (1.0, 0.0, 0.0, 1.0))
+    j1 = JoueurLocal("Joueur 1", (0.0, 0.0, 1.0, 1.0))
     self.joueur = j1
     j2 = JoueurIA("Joueur 2", (1.0, 0.0, 0.0, 1.0))
     general.planete.ajouteJoueur(j1)
@@ -147,8 +151,7 @@ class Start:
 
   def ping(self, task):
     """Fonction exécutée à chaque image"""
-    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
-      render.setShaderInput( 'time', task.time )
+    render.setShaderInput( 'time', task.time )
     #Calculs du temps écoulé depuis l'image précédente
     if self.preImage != None:
       deltaT = task.time - self.preImage

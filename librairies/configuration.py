@@ -135,7 +135,7 @@ class Configuration:
     self.dicoDefinitionsSprite[fichier] = sprite
     return sprite
       
-  def setConfiguration(self, section, sousection, champ, valeur):
+  def setConfiguration(self, section, soussection, champ, valeur):
     """Change une valeur de la configuration courante"""
     section=str(section).lower()
     champ=str(champ).lower()
@@ -176,3 +176,91 @@ class Configuration:
       
       
     return self.configuration[section][soussection][champ]
+    
+  def chargeMenu(self, menu):
+    if not os.path.exists(os.path.join(".","data","menus",menu+".menu")):
+      print "ChargeMenu, Erreur : fichier de menu inexistant", menu
+      return None
+    fichier = open(os.path.join(".","data","menus",menu+".menu"))
+    sections = []
+    dansSection=False
+    for ligne in fichier:
+      ligne = ligne.strip().split("#")[0].strip().decode("utf-8")
+      if len(ligne)>0:
+        if ligne[0]!="#":
+          if ligne.startswith("[") and ligne.endswith("]"):
+            sections.append([ligne[1:-1],[],{}])
+            dansSection = True
+          elif ligne.endswith(":") and ligne.find("=")==-1:
+            sections[-1][1].append([ligne[:-1],{}])
+            dansSection = False
+          elif ligne.find("=")!=-1:
+            #clef
+            a,b = ligne.split("=")
+            a = str(a.strip()).lower()
+            b = b.strip()
+            if not dansSection:
+              sections[-1][1][-1][1][a]=b
+            else:
+              sections[-1][2][a]=b
+          else:
+            print "ChargeMenu, Erreur : ligne inconnue :", ligne
+            
+    for nomSection, contenuSection, dicoSection in sections:
+      if not 'nom' in dicoSection.keys():
+        print "manque nom !"
+      if not 'infobulle' in dicoSection.keys():
+        print "manque infobulle !"
+      if not 'icone' in dicoSection.keys():
+        print "manque icone !"
+      else:
+        dicoSection["iconeactif"] = "theme/icones/"+dicoSection["icone"]+"-over.png"
+        dicoSection["iconeinactif"] = "theme/icones/"+dicoSection["icone"]+".png"
+        
+      for nomElement, contenuElement in contenuSection:
+        if not 'nom' in contenuElement.keys():
+          print "manque nom !"
+        if not 'chemin' in contenuElement.keys():
+          print "manque chemin !"
+        else:
+          sect, soussect, var = contenuElement["chemin"].split("/")
+          contenuElement["valeur"] = self.getConfiguration(sect, soussect, var, "Erreur !")
+        if not 'infobulle' in contenuElement.keys():
+          print "manque infobulle !"
+        if not 'icone' in contenuElement.keys():
+          print "manque icone !"
+        else:
+          contenuElement["iconeactif"] = "theme/icones/"+contenuElement["icone"]+"-over.png"
+          contenuElement["iconeinactif"] = "theme/icones/"+contenuElement["icone"]+".png"
+        if not 'type' in contenuElement.keys():
+          print "manque type !"
+          contenuElement["type"] = "None"
+        elif contenuElement["type"] not in ["bool", "int", "liste", "float", "str"]:
+          print "type inconnu !", contenuElement["type"]
+          contenuElement["type"] = "None"
+        else:
+          if contenuElement["type"]=="liste":
+            if not 'valeurs' in contenuElement.keys():
+              print "manque valeurs pour type liste !"
+              contenuElement["type"] = "None"
+            else:
+              contenuElement["valeurs"] = contenuElement["valeurs"].split("|")
+          elif contenuElement["type"]=="bool":
+            if contenuElement["valeur"].lower()=="t":
+              contenuElement["valeur"] = True
+            else:
+              contenuElement["valeur"] = False
+          elif contenuElement["type"]=="float":
+            if (not 'valeurmin' in contenuElement.keys()) and (not 'valeurmax' in contenuElement.keys()):
+              print "manque bornes pour type float !"
+              contenuElement["type"] = "None"
+            else:
+              contenuElement["valeur"] = float(contenuElement["valeur"])
+          elif contenuElement["type"]=="int":
+            if (not 'valeurmin' in contenuElement.keys()) and (not 'valeurmax' in contenuElement.keys()):
+              print "manque bornes pour type int !"
+              contenuElement["type"] = "None"
+            else:
+              contenuElement["valeur"] = int(float(contenuElement["valeur"]))
+    return sections
+    

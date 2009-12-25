@@ -443,7 +443,7 @@ class MiniMap(Pane):
     self.souris=[x,y]
     Pane.mouseEvent(self, event, x, y)
     
-  def ajoutePoint(self, point, icone):
+  def ajoutePoint(self, point, icone, couleur):
     """Ajout un point2D à la carte, retourne un indice servant à l'effacer plus tard"""
     if point==None:
       print "Point sur un pôle, coordonnées non calculables..."
@@ -452,14 +452,14 @@ class MiniMap(Pane):
       print "La mini carte n'accepte que des points en 2D !"
       return None
     
-    for id, (pointT, iconeT) in self.points.iteritems():
-      if pointT==point and iconeT==icone:
+    for id, (pointT, iconeT, couleurT) in self.points.iteritems():
+      if pointT==point and iconeT==icone and couleurT==couleur:
         return id
     for i in range(0, len(self.points)):
       if not i in self.points.keys():
-        self.points[i]=(point, icone)
+        self.points[i]=(point, icone, couleur)
         return i
-    self.points[len(self.points)+1]=(point, icone)
+    self.points[len(self.points)+1]=(point, icone, couleur)
     return len(self.points)
     
   def dessineCarte(self, p1, p2, p3, c1, c2, c3, estSoleil=False):
@@ -574,9 +574,9 @@ class MiniMap(Pane):
                 self.soleil.setXel(x, y, couleur[0], couleur[1], couleur[2])
                 self.carteSoleilARedessiner = True
     
-  def ajoutePoint3D(self, point, icone):
+  def ajoutePoint3D(self, point, icone, couleur):
     """Ajout un point3D à la carte, retourne un indice servant à l'effacer plus tard"""
-    return self.ajoutePoint(self.point3DVersCarte(point), icone)
+    return self.ajoutePoint(self.point3DVersCarte(point), icone, couleur)
       
   def point3DVersCarte(self, point):
     point = Vec3(point)
@@ -633,13 +633,14 @@ class MiniMap(Pane):
         self.remove(self.blips[id])
       del self.blips[id]
       
-  def majBlip(self, blipid, point, icone):
+  def majBlip(self, blipid, point, icone, couleur):
     """Change les coordonnées d'un point"""
     point = self.point3DVersCarte(point)
-    self.points[blipid]=(point, icone)
+    self.points[blipid]=(point, icone, couleur)
     if blipid in self.blips.keys():
       self.blips[blipid].doPlacement({"x":point[0], "y":point[1]})
       self.blips[blipid].icon = icone
+      self.blips[blipid].color = couleur
 
   def ping(self, task):
     """Boucle qui met à jour la carte"""
@@ -688,13 +689,15 @@ class MiniMap(Pane):
       self.carteSoleilARedessiner = False
       self.derniereMAJ=task.time
       
-    self.enlevePoint(self.camBlip)
-    self.camBlip = self.ajoutePoint3D(general.io.camera.getPos(),"theme/icones/camera.png")
+    if self.camBlip==None:
+      self.camBlip = self.ajoutePoint3D(general.io.camera.getPos(),"theme/icones/camera.png",(1.0, 1.0, 1.0, 1.0))
+    else:
+      self.majBlip(self.camBlip, general.io.camera.getPos(),"theme/icones/camera.png",(1.0, 1.0, 1.0, 1.0))
     for id in self.points.keys():
       if id not in self.blips.keys():
         #Ce point n'a pas de représentation sur la carte, on en fabrique un nouveau
         self.blips[id] = self.add(Icon(self.points[id][1],x=self.points[id][0][0], y=self.points[id][0][1]))
-        self.blips[id].color=(1.0,0.0,0.0,1.0)
+        self.blips[id].color=self.points[id][2]
         self.blips[id].onClick = self.onClick
     return task.cont
             
@@ -969,102 +972,201 @@ class MenuPrincipal(MenuCirculaire):
     for composant, indice, cote in self.composants:
       composant.doPlacement({"x":composant.x-composant.width})
     
-class MenuConfiguration(MenuCirculaire):
-  """Le menu de configuration"""
-  
+class MenuDepuisFichier(MenuCirculaire):
   select = None
+  nomMenu = None #Le nom du fichier de menu chargé
+  menu = None #La structure de donnée contenant les infos du menu
   
-  def __init__(self, gui):
+  def __init__(self, menu, gui):
     MenuCirculaire.__init__(self, gui)
-    self.changeMenu("")
+    self.nomMenu = menu
+    self.menu = general.configuration.chargeMenu(menu)
+    
+    if self.menu == None:
+      print "Erreur : MenuDepuisFichier, menu invalide", self.nomMenu
+      self.back()
+      return
+      
+    #On ouvre le menu dans la première section
+    self.changeMenu(self.menu[0][2]["nom"])
     
   def changeMenu(self, select):
+    """Affiche le menu à la section "select" """
+    
+    #On garde une trace de quelle section on affiche en ce moment
     self.select = select.lower()
+    
+    #On force l'animation dans le sens "ouverture"
     self.directionAnimation = -1.0
+    
+    #On kicke tous les boutons du menu
     self.clear()
     
-    for section in general.configuration.configuration.keys():
-      aAfficher = general.configuration.getConfiguration(section, "gui", "dansGUI", "f")=="t"
-      if aAfficher:
-        iconeactif=general.configuration.getConfiguration(section, "gui", "icone-actif", "theme/icones/q-over.png")
-        iconeinactif=general.configuration.getConfiguration(section, "gui", "icone-inactif", "theme/icones/q.png")
-        nom=general.configuration.getConfiguration(section, "gui", "menu", section).capitalize()
-        btn = self.ajouteGauche(PictureRadio(iconeactif, iconeinactif, nom, width=LARGEUR_BOUTON))
-        btn.callback = self.clic
-        btn.style = "button"
-        btn.upStyle = "button"
-        btn.overStyle = "button_over"
-        btn.downStyle = "button_down"
-        if self.select.lower().strip() == nom.lower().strip():
-#          btn.style = "CHECKON"
-#          btn.value = True
-          
-          for soussection in general.configuration.configuration[section].keys():
-            if soussection!="gui":
-              btn = self.ajouteDroite(PictureRadio(iconeinactif, iconeinactif, soussection.capitalize(), width=LARGEUR_BOUTON))
-              btn.style = "button"
-              btn.upStyle = "button"
-              btn.overStyle = "button_over"
-              btn.downStyle = "button_down"
-              for element in general.configuration.configuration[section][soussection].keys():
-                valeur = general.configuration.getConfiguration(section, soussection, element,"Erreur 164")
-                if valeur=="t" or valeur=="f":
-                  btnD = self.ajouteDroite(PictureCheck("theme/icones/checkmark.png","theme/icones/blank.png",element.capitalize()+" : "+valeur, width=LARGEUR_BOUTON))
-                  if valeur=="t":
-                    btnD.value = True
-                    btnD.icon = btnD.picOn
-                  else:
-                    btnD.value = False
-                    btnD.icon = btnD.picOff
-                else:
-                  btnD = self.ajouteDroite(Label(element.capitalize()+" : "+valeur, width=LARGEUR_BOUTON))
-                btnD.style = "button"
-                btnD.upStyle = "button"
-                btnD.overStyle = "button_over"
-                btnD.downStyle = "button_down"
-    
+    #On parcours les sections
+    for nomSection, contenuSection, dicoSection in self.menu:
+      #On ajoute les boutons de section
+      btn = self.ajouteGauche(PictureRadio(dicoSection["iconeactif"], dicoSection["iconeinactif"], dicoSection["nom"], width=LARGEUR_BOUTON))
+      btn.callback = self.clicSection
+      btn.style = "button"
+      btn.upStyle = "button"
+      btn.overStyle = "button_over"
+      btn.downStyle = "button_down"
+      
+      #On regarde si la section que l'on construit est celle à afficher
+      if self.select == dicoSection["nom"].lower().strip():
+        #Si c'est le cas, on met à jour l'état actif/inactif du bouton
+        btn.callback = self.clicVide
+        btn.onClick()
+        btn.callback = self.clicSection
+        
+        #On ajoute les boutons de la section active
+        for nomElement, contenuElement in contenuSection:
+          #Les booleens passe entre True et False, l'état est indiqué par l'icone active/inactive (attention aux boutons qui n'ont pas d'état actif !)
+          if contenuElement["type"] == "bool":
+            btn = self.ajouteDroite(PictureRadio(contenuElement["iconeactif"], contenuElement["iconeinactif"], contenuElement["nom"], width=LARGEUR_BOUTON))
+            if contenuElement["valeur"]:
+              btn.callback = self.clicVide
+              btn.onClick()
+            btn.callback = self.clicValeur
+            
+          #Les int et les float ont des boutons +/-
+          elif contenuElement["type"] in ["int", "float"] and "valeurmin" in contenuElement.keys() and "valeurmax" in contenuElement.keys():
+            #Le fond du bouton
+            btn = self.ajouteDroite(Pane(width=LARGEUR_BOUTON, height=HAUTEUR_BOUTON+HAUTEUR_TEXTE))
+            pr = PictureRadio(contenuElement["iconeactif"], contenuElement["iconeinactif"], contenuElement["nom"])
+            btn.add(pr)
+            #Le bouton moins
+            pr = Icon("theme/icones/minus.png", y=HAUTEUR_TEXTE+PAD)
+            pr.callbackParams = {"bouton":"moins-"+contenuElement["nom"], "etat":True}
+            pr.callback = self.clicValeur
+            btn.add(pr)
+            #Le bouton plus
+            pr = Icon("theme/icones/plus.png", y=HAUTEUR_TEXTE+PAD, x=HAUTEUR_TEXTE+PAD)
+            pr.callbackParams = {"bouton":"plus-"+contenuElement["nom"], "etat":True}
+            pr.callback = self.clicValeur
+            btn.add(pr)
+            #Le texte de la forme "valeur [min;max]"
+            pr = Label(str(contenuElement["valeur"])+" ["+str(contenuElement["valeurmin"])+";"+str(contenuElement["valeurmax"])+"]", y=HAUTEUR_TEXTE+PAD, x=HAUTEUR_TEXTE*2+PAD*2)
+            btn.add(pr)
+            
+          #Les listes et les labels sont justes affichés sous la forme
+          #
+          #icone nom
+          #      valeur
+          else:
+            btn = self.ajouteDroite(PictureRadio(contenuElement["iconeactif"], contenuElement["iconeinactif"], contenuElement["nom"]+"\n   "+str(contenuElement["valeur"]), width=LARGEUR_BOUTON))
+            btn.callback = self.clicValeur
+            
+          #On change le style des composant pour avoir un fond de bouton
+          btn.style = "button"
+          btn.upStyle = "button"
+          btn.overStyle = "button_over"
+          btn.downStyle = "button_down"
+      
+    #On construit les boutons
     MenuCirculaire.fabrique(self)
-    
-  resolutions = ["160 120", "320 240", "640 480", "800 600", "1024 768"]
-    
-  def resolutionPlus(self):
-    res = general.configuration.getConfiguration("affichage", "general", "resolution", "640 480")
-    if res in self.resolutions:
-      idx = self.resolutions.index(res)
-      idx+=1
-      while idx>=len(self.resolutions):
-        idx-= len(self.resolutions)
-    else:
-      idx=0
-    general.configuration.setConfiguration("affichage-general", "resolution", self.resolutions[idx])
-    self.clic("affichage", True)
-    
-  def resolutionMoins(self):
-    res = general.configuration.getConfiguration("affichage", "general", "resolution", "640 480")
-    if res in self.resolutions:
-      idx = self.resolutions.index(res)
-      idx-=1
-      while idx<0:
-        idx+= len(self.resolutions)
-    else:
-      idx=0
-    general.configuration.setConfiguration("affichage", "general", "resolution", self.resolutions[idx])
-    self.clic("affichage", True)
-    
-  def clic(self, bouton, etat):
-    """
-    On a cliqué sur un bouton de changement de panneau de configuration
-    bouton : le texte du bouton
-    etat : si True alors le bouton est actif (ce devrait toujours être le cas de figure)
-    """
+      
+  def clicVide(self, bouton, etat):
+    """Une fonction qui ne fait rien, permet de lancer de onClick sans pour autant activer le bouton"""
+    pass
+      
+  def clicSection(self, bouton, etat):
+    """Clic sur un bouton de section (colonne de gauche)"""
+    #On réinitialise l'animation pour refaire une ouverture de menu
+    self.animation = self.angleOuverture
+    #On change de section
     self.changeMenu(bouton)
+
+  def clicValeur(self, bouton, etat):
+    """Clic sur un bouton de configuration (colonne de droite)"""
+    
+    #On ne garde que la première ligne de texte pour les boutons de la forme :
+    #blah blah blah\r\n
+    #valeur du bouton
+    bouton=bouton.split("\n")[0].strip()
+    
+    #Quand on modifie des valeurs int ou float, on utilise des boutons +/-, attrape les infos de boutons
+    #Elles sont passées sous la forme plus-nom_du_bouton et moins-nom_du_bouton
+    modificateur = None
+    if bouton.startswith("plus-"):
+      modificateur = +1
+      bouton=bouton[5:]
+    elif bouton.startswith("moins-"):
+      modificateur = -1
+      bouton=bouton[6:]
+      
+    #On recherche dans la liste des boutons de quel bouton il sagit
+    for nomSection, contenuSection, dicoSection in self.menu:
+      if self.select == dicoSection["nom"].lower().strip():
+        for nomElement, contenuElement in contenuSection:
+          if contenuElement["nom"].lower().split("\n")[0].strip()==bouton.lower():
+            #On a trouvé le bouton, on extrait le chemin de configuration qui lui correspond
+            sect, soussect, clef = contenuElement["chemin"].split("/")
+            
+            #Les float varient entre valeurMin et valeurMax par pas de 1/20 de l'espace à parcourir
+            if contenuElement["type"] == "float":
+              delta = (float(contenuElement["valeurmax"])-float(contenuElement["valeurmin"]))/20
+              nvVal = float(contenuElement["valeur"])+delta*modificateur
+              if nvVal<float(contenuElement["valeurmin"]):
+                nvVal = float(contenuElement["valeurmin"])
+              if nvVal>float(contenuElement["valeurmax"]):
+                nvVal = float(contenuElement["valeurmax"])
+              #Met à jour la configuration
+              general.configuration.setConfiguration(sect, soussect, clef, nvVal)
+              
+            #Les int varient entre valeurMin et valeurMax par pas de 1
+            elif contenuElement["type"] == "int":
+              nvVal = int(float(contenuElement["valeur"]))+modificateur
+              if nvVal<int(contenuElement["valeurmin"]):
+                nvVal = int(contenuElement["valeurmin"])
+              if nvVal>int(contenuElement["valeurmax"]):
+                nvVal = int(contenuElement["valeurmax"])
+              #Met à jour la configuration
+              general.configuration.setConfiguration(sect, soussect, clef, nvVal)
+              
+            #Pour les listes, à chaque clic on passe à l'élément suivant de façon circulaire
+            #Si l'élément courant n'est pas dans la liste (modification manuelle du fichier de config)
+            #On commence avec l'élément 0
+            elif contenuElement["type"] == "liste":
+              if contenuElement["valeur"] in contenuElement["valeurs"]:
+                idx = contenuElement["valeurs"].index(contenuElement["valeur"])
+              else:
+                idx=-1 #Element pas dans la liste, on commence à l'indice 0 (-1 +1)
+                print contenuElement["valeur"],"n'est pas dans",contenuElement["valeurs"]
+              idx+=1
+              if idx>=len(contenuElement["valeurs"]):
+                idx-=len(contenuElement["valeurs"])
+              #Met à jour la configuration
+              general.configuration.setConfiguration(sect, soussect, clef, contenuElement["valeurs"][idx])
+              
+            #Pour les booléens, on inverse leur valeur
+            elif contenuElement["type"] == "bool":
+              #Met à jour la configuration
+              general.configuration.setConfiguration(sect, soussect, clef, str(not contenuElement["valeur"])[0])
+              
+            #On sauvegarde les changements
+            general.configuration.sauve(os.path.join(".","configuration","utilisateur.cfg"))
+            #On recharge le menu (pour avoir les nouvelles variables de config à jour)
+            self.menu = general.configuration.chargeMenu(self.nomMenu)
+            #On reconstruit le menu sans l'animer
+            self.changeMenu(self.select)
+            return
+    print "Pas trouvé", bouton.lower()
     
   def anime(self, temps):
     MenuCirculaire.anime(self, temps)
     for composant, indice, cote in self.composants:
       if cote==0:
         composant.doPlacement({"x":composant.x-composant.width})
-    
+
+class MenuConfiguration(MenuDepuisFichier):
+  """Le menu de configuration"""
+  
+  def __init__(self, gui):
+    if isinstance(gui.menuCourant, EnJeu):
+      MenuDepuisFichier.__init__(self, "configuration-enjeu", gui)
+    else:
+      MenuDepuisFichier.__init__(self, "configuration", gui)
     
 class MenuVierge(MenuCirculaire):
   """Contient la liste des planètes vierges que l'on peut charger"""

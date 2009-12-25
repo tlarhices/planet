@@ -231,7 +231,7 @@ class IO:
   
   def quitter(self):
     """Quitte l'application"""
-    general.gui.quitter()
+    general.interface.quitter()
   
   def testeSouris(self):
     """Teste ce qui se trouve sous le curseur de la souris"""

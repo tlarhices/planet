@@ -232,14 +232,14 @@ class Sprite:
     if self.blipid!=None:
       try:
         #On a un point sur la carte, donc on le met à jour
-        general.interface.menuCourant.miniMap.majBlip(self.blipid,self.position,self.icone)
+        general.interface.menuCourant.miniMap.majBlip(self.blipid,self.position,self.icone,self.joueur.couleur)
       except AttributeError:
         self.blipid=None
     else:
       try:
         #On a pas de point sur la carte mais on a une icône, on fabrique un nouveau point
         if self.icone != None and self.icone != "none":
-          self.blipid = general.interface.menuCourant.miniMap.ajoutePoint3D(self.position,self.icone)
+          self.blipid = general.interface.menuCourant.miniMap.ajoutePoint3D(self.position,self.icone,self.joueur.couleur)
       except AttributeError:
         pass
   

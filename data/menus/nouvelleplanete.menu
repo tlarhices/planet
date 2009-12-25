@@ -1,0 +1,96 @@
+[Génération]
+icone = news
+nom = Génération
+infobulle = Change les paramètres de construction de la planète
+
+tesselation:
+chemin = planete/generation/tesselation
+icone = un_hide_all
+nom = Tesselation
+infobulle = Nombre de subdivision de la planète. Plus ce nombre est élevé, plus la planète sera grande.
+type = int
+valeurMin = 1
+valeurMax = 10
+
+delta:
+chemin = planete/generation/delta
+icone = ruller
+nom = Delta
+infobulle = Écart entre le niveau de la mer et le plus haut sommet (en % du rayon de la planète)
+type = float
+valeurMin = 0.01
+valeurMax = 0.45
+
+[Écosystème]
+icone = vegetable
+nom = Écosystème
+infobulle = Change les paramètres de végétation
+
+nombre-bosquet:
+chemin = planete/generation/nombre-bosquet
+icone = debree
+nom = Nombre de bosquets
+infobulle = Nombre de bosquet par élément du géoïde
+type = int
+valeurMin = 0
+valeurMax = 5
+
+densite-bosquet:
+chemin = planete/generation/densite-bosquet
+icone = debree
+nom = Densité du bosquet
+infobulle = Densité de chaque bosquet
+type = float
+valeurMin = 0.01
+valeurMax = 2.0
+
+Nuages-quantite:
+chemin = planete/nuages/quantite
+icone = debree
+nom = Nombre de nuages
+infobulle = Nombre de nuages
+type = int
+valeurMin = 10
+valeurMax = 200
+
+Nuages-taille:
+chemin = planete/nuages/densite
+icone = ruller
+nom = Taille d'un nuage
+infobulle = Taille d'un nuage
+type = float
+valeurMin = 0.01
+valeurMax = 0.5
+
+Nuages-densite:
+chemin = planete/nuages/densite
+icone = debree
+nom = Densité des nuages
+infobulle = Densité des nuages
+type = int
+valeurMin = 2
+valeurMax = 20
+
+[Univers]
+icone = nebula
+nom = Univers
+infobulle = Change les paramètres de construction de la planète
+
+distanceSoleil:
+chemin = planete/Univers/distanceSoleil
+icone = debree
+nom = Distance du soleil
+infobulle = Distance du soleil
+type = float
+valeurMin = 5.0
+valeurMax = 50.0
+
+vitesseSoleil:
+chemin = planete/Univers/vitesseSoleil
+icone = debree
+nom = Vitesse du soleil
+infobulle = Vitesse du soleil
+type = float
+valeurMin = 0.001
+valeurMax = 0.5
+

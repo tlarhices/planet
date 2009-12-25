@@ -319,14 +319,13 @@ class Planete:
             flare.setPos(*p)
           self.flare.reparentTo(render2d)"""      
           
-    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
-      if self.soleil != None and self.geoide!=None:
-        _lightvec = Vec3(self.soleil.getPos() - self.geoide.racine.getPos())
-        _lightvec = Vec4(_lightvec[0], _lightvec[1], _lightvec[2], 0.0)
-      else:
-        _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
-    
-      render.setShaderInput( 'lightvec', _lightvec )
+    _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
+    if self.soleil != None and self.geoide!=None:
+      _lightvec = Vec3(self.soleil.getPos() - self.geoide.racine.getPos())
+      _lightvec = Vec4(_lightvec[0], _lightvec[1], _lightvec[2], 0.0)
+      
+  
+    render.setShaderInput( 'lightvec', _lightvec )
       
     #Met à jour l'état des joueurs
     for joueur in self.joueurs:
