@@ -381,11 +381,6 @@ class MiniMap(Pane):
   carteARedessiner = None #vaut True si la carte a été modifiée
   carteSoleilARedessiner = None #vaut True si la zone d'ombre a été modifiée
   
-  fond = None
-  fondFlou = None
-  soleil = None
-  soleilFlou = None
-  
   carte = None
 
   def __init__(self, gui):
@@ -416,24 +411,6 @@ class MiniMap(Pane):
     
     self.carte = FondCarte(self.tailleMiniMapX, self.tailleMiniMapY)
     
-    general.TODO("Utiliser les librairies de dessin au lieu de PNMImage pour plus de puissance")
-    #L'image de fond
-    self.fond = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
-    self.fond.fillVal(0, 0, 0)
-    self.fondFlou = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
-    self.fondFlou.fillVal(0, 0, 0)
-    self.soleilFlou = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
-    self.soleilFlou.fillVal(255, 255, 255)
-    self.soleil = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
-    self.soleil.fillVal(255, 255, 255)
-    
-    self.fondRendu = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
-    self.fondRendu.fillVal(255, 0, 0)
-    self.fusion = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
-    self.fusion.fillVal(0, 255, 0)
-    self.soleilRendu = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
-    self.soleilRendu.fillVal(0, 0, 255)
-    
     taskMgr.add(self.ping, "Boucle minimap")
     
   def onClick(self):
@@ -463,161 +440,10 @@ class MiniMap(Pane):
     self.points[len(self.points)+1]=(point, icone, couleur)
     return len(self.points)
     
-  def dessineCarte(self, p1, p2, p3, c1, c2, c3, estSoleil=False):
-    if p1.length()<=general.planete.geoide.niveauEau:
-      c1=(0.0,0.0,1.0)
-    if p2.length()<=general.planete.geoide.niveauEau:
-      c2=(0.0,0.0,1.0)
-    if p3.length()<=general.planete.geoide.niveauEau:
-      c3=(0.0,0.0,1.0)
-    if len(p1)==3:
-      p1 = self.point3DVersCarte(p1)
-    if len(p2)==3:
-      p2 = self.point3DVersCarte(p2)
-    if len(p3)==3:
-      p3 = self.point3DVersCarte(p3)
-    if p1==None or p2==None or p3==None:
-      return
-    minx = min(p1[0], p2[0], p3[0])
-    maxx = max(p1[0], p2[0], p3[0])
-    miny = min(p1[1], p2[1], p3[1])
-    maxy = max(p1[1], p2[1], p3[1])
-    
-    def signe(p1, p2, p3):
-      return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1]);
-    def estDansTriangle(pt, s1, s2, s3):
-      b1 = signe(pt, s1, s2) < 0.0
-      b2 = signe(pt, s2, s3) < 0.0
-      b3 = signe(pt, s3, s1) < 0.0
-      return ((b1 == b2) and (b2 == b3))
-    
-    #Test des points à cheval sur les bords, s'il y en a, on dessine 2 triangles qui débordent de chaque coté de la carte
-    if maxx-minx>float(self.tailleMiniMapX)*2.0/3.0:
-      p1min = Vec2(p1)
-      p2min = Vec2(p2)
-      p3min = Vec2(p3)
-      if p1min[0]<float(self.tailleMiniMapX)/2.0:
-        p1min[0]=p1min[0]+float(self.tailleMiniMapX)
-      if p2min[0]<float(self.tailleMiniMapX)/2.0:
-        p2min[0]=p2min[0]+float(self.tailleMiniMapX)
-      if p3min[0]<float(self.tailleMiniMapX)/2.0:
-        p3min[0]=p3min[0]+float(self.tailleMiniMapX)
-      
-      if p1!=p1min or p2!=p2min or p3!=p3min:
-        self.dessineCarte(p1min, p2min, p3min, c1, c2, c3, estSoleil)
-
-      p1max = Vec2(p1)
-      p2max = Vec2(p2)
-      p3max = Vec2(p3)
-      if p1max[0]>float(self.tailleMiniMapX)/2.0:
-        p1max[0]=p1max[0]-float(self.tailleMiniMapX)
-      if p2max[0]>float(self.tailleMiniMapX)/2.0:
-        p2max[0]=p2max[0]-float(self.tailleMiniMapX)
-      if p3max[0]>float(self.tailleMiniMapX)/2.0:
-        p3max[0]=p3max[0]-float(self.tailleMiniMapX)
-      
-      if p1!=p1max or p2!=p2max or p3!=p3max:
-        self.dessineCarte(p1max, p2max, p3max, c1, c2, c3, estSoleil)
-      return
-      
-    if maxy-miny>float(self.tailleMiniMapY)*2.0/3.0:
-      p1min = Vec2(p1)
-      p2min = Vec2(p2)
-      p3min = Vec2(p3)
-      if p1min[1]<float(self.tailleMiniMapY)/2.0:
-        p1min[1]=p1min[1]+float(self.tailleMiniMapY)
-      if p2min[1]<float(self.tailleMiniMapY)/2.0:
-        p2min[1]=p2min[1]+float(self.tailleMiniMapY)
-      if p3min[1]<float(self.tailleMiniMapY)/2.0:
-        p3min[1]=p3min[1]+float(self.tailleMiniMapY)
-      print p1,p2,p3,"min ->", p1min, p2min, p3min
-      if p1!=p1min or p2!=p2min or p3!=p3min:
-        self.dessineCarte(p1min, p2min, p3min, c1, c2, c3, estSoleil)
-
-      p1max = Vec2(p1)
-      p2max = Vec2(p2)
-      p3max = Vec2(p3)
-      if p1max[1]>float(self.tailleMiniMapY)/2.0:
-        p1max[1]=p1max[1]-float(self.tailleMiniMapY)
-      if p2max[1]>float(self.tailleMiniMapY)/2.0:
-        p2max[1]=p2max[1]-float(self.tailleMiniMapY)
-      if p3max[1]>float(self.tailleMiniMapY)/2.0:
-        p3max[1]=p3max[1]-float(self.tailleMiniMapY)
-      print p1,p2,p3,"max ->", p1max, p2max, p3max
-      if p1!=p1max or p2!=p2max or p3!=p3max:
-        self.dessineCarte(p1max, p2max, p3max, c1, c2, c3, estSoleil)
-      return
-      
-      
-    #Dessine le triangle
-    for x in range(int(minx+0.5), int(maxx+0.5)):
-      if x in range(0, self.tailleMiniMapX):
-        for y in range(int(miny+0.5), int(maxy+0.5)):
-          if y in range(0, self.tailleMiniMapY):
-            d1=(Vec2(x,y)-Vec2(p1[0], p1[1])).length()
-            d2=(Vec2(x,y)-Vec2(p2[0], p2[1])).length()
-            d3=(Vec2(x,y)-Vec2(p3[0], p3[1])).length()
-            fact=(d1+d2+d3)/2
-            d1=1-d1/fact
-            d2=1-d2/fact
-            d3=1-d3/fact
-            
-            couleur=c1[0]*d1+c2[0]*d2+c3[0]*d3, c1[1]*d1+c2[1]*d2+c3[1]*d3, c1[2]*d1+c2[2]*d2+c3[2]*d3
-            if not estSoleil:
-              self.fondFlou.setXel(x, y, couleur[0], couleur[1], couleur[2])
-            else:
-              self.soleilFlou.setXel(x, y, couleur[0], couleur[1], couleur[2])
-            if estDansTriangle((x,y),p1,p2,p3):
-              if not estSoleil:
-                self.fond.setXel(x, y, couleur[0], couleur[1], couleur[2])
-                self.carteARedessiner = True
-              else:
-                self.soleil.setXel(x, y, couleur[0], couleur[1], couleur[2])
-                self.carteSoleilARedessiner = True
-    
   def ajoutePoint3D(self, point, icone, couleur):
     """Ajout un point3D à la carte, retourne un indice servant à l'effacer plus tard"""
-    return self.ajoutePoint(self.point3DVersCarte(point), icone, couleur)
+    return self.ajoutePoint(general.cartographie.point3DVersCarte(point, (self.tailleMiniMapX, self.tailleMiniMapY)), icone, couleur)
       
-  def point3DVersCarte(self, point):
-    point = Vec3(point)
-    point.normalize()
-    x,y,z = point
-    lon = math.acos(z)
-    
-    tmp = Vec2(x,y)
-    tmp.normalize()
-    x,y=tmp
-    
-    if x==0.0 and y==0.0:
-      lat=0.0
-    elif y>=0:
-      if x==0:
-        lat=math.acos(0.0)
-      else:
-        lat=math.acos(x/math.sqrt(x*x+y*y))
-    else:
-      lat=2 * math.pi - math.acos(x/math.sqrt(x*x+y*y))
-    lat=lat*float(self.tailleMiniMapX)/(2*math.pi)
-    
-    z=(-z*self.tailleMiniMapY/2+self.tailleMiniMapY/2)
-    return int(lat+0.5), int(z+0.5)
-    
-  def carteVersPoint3D(self, point):
-    if point==None:
-      return None
-      
-    lat, z = point
-    z=-(float(z)-float(self.tailleMiniMapY)/2)/(float(self.tailleMiniMapY)/2)
-    
-    lat = float(lat)*(2*math.pi)/float(self.tailleMiniMapX)
-    x=math.cos(lat)
-    y=math.sin(lat)
-    if z==1.0 or z==-1.0:
-      x=0.0
-      y=0.0
-    return (x, y, z)
-  
   def enlevePoint(self, id):
     """
     Supprime un point de la carte
@@ -636,7 +462,7 @@ class MiniMap(Pane):
       
   def majBlip(self, blipid, point, icone, couleur):
     """Change les coordonnées d'un point"""
-    point = self.point3DVersCarte(point)
+    point = general.cartographie.point3DVersCarte(point, (self.tailleMiniMapX, self.tailleMiniMapY))
     self.points[blipid]=(point, icone, couleur)
     if blipid in self.blips.keys():
       self.blips[blipid].doPlacement({"x":point[0], "y":point[1]})
@@ -645,50 +471,10 @@ class MiniMap(Pane):
 
   def ping(self, task):
     """Boucle qui met à jour la carte"""
-    #Le fond de carte
-    if self.derniereMAJ==None or task.time-self.derniereMAJ>10.0:
-      if self.carteARedessiner:
-        for x in range(0, self.tailleMiniMapX):
-          for y in range(0, self.tailleMiniMapY):
-            px = self.fond.getXel(x,y)
-            if px[0]==0.0 and px[1]==0.0 and px[2]==0.0:
-              self.fondRendu.setXel(x,y, self.fondFlou.getXel(x,y))
-            else:
-              self.fondRendu.setXel(x,y, px)
-        #fond.gaussianFilter(2.0)
-        #self.fondRendu.write(Filename("./carte.png"))
-      #La zone d'ombre
-      if self.carteSoleilARedessiner and general.configuration.getConfiguration("affichage","minimap","affichesoleil","t")=="t":
-        for x in range(0, self.tailleMiniMapX):
-          for y in range(0, self.tailleMiniMapY):
-            spx = self.soleil.getXel(x,y)
-            if spx[0]==1.0 and spx[1]==1.0 and spx[2]==1.0:
-              self.soleilRendu.setXel(x,y, self.soleilFlou.getXel(x,y))
-            else:
-              self.soleilRendu.setXel(x,y, spx)
-        #On la rends floue pour qu'elle soit plus jolie
-        self.soleilRendu.gaussianFilter(5.0)
-        #self.soleilRendu.write(Filename("./soleil.png"))
-      #La fusion fond + ombre
-      if general.configuration.getConfiguration("affichage","minimap","affichesoleil","t")=="t":
-        if self.carteARedessiner or self.carteSoleilARedessiner:
-          for x in range(0, self.tailleMiniMapX):
-            for y in range(0, self.tailleMiniMapY):
-              px = self.fondRendu.getXel(x,y)
-              spx = self.soleilRendu.getXel(x,y)
-              self.fusion.setXel(x, y, px[0]*spx[0], px[1]*spx[1], px[2]*spx[2])
-          #self.fusion.write(Filename("./fusion.png"))
-          texture = Texture("fusion")
-          texture.load(self.fusion)
-          self.carte.setImage(texture)
-      elif self.carteARedessiner:
-        texture = Texture("fond")
-        texture.load(self.fondRendu)
-        self.carte.setImage(texture)
-        
-      self.carteARedessiner = False
-      self.carteSoleilARedessiner = False
-      self.derniereMAJ=task.time
+    texture = loader.loadTexture("data/cache/minimap.png")
+    self.carte.setImage(texture)
+      
+    self.derniereMAJ=task.time
       
     if self.camBlip==None:
       self.camBlip = self.ajoutePoint3D(general.io.camera.getPos(),"theme/icones/camera.png",(1.0, 1.0, 1.0, 1.0))

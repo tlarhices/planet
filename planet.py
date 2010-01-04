@@ -13,6 +13,8 @@ sys.path.append(os.path.join(".", "librairies"))
 sys.path.append(os.path.join(".", "librairies","ai"))
 
 import general
+
+#Préparation du todo
 general.chargeTODO()
 general.TODO("Trouver un nom au projet")
 general.TODO("Chasser les dépendances circulaires et faire des weakref")
@@ -25,6 +27,7 @@ from configuration import *
 from ai import *
 from joueur import *
 from gui import *
+from cartographie import Cartographie
 
 try:
     import psyco
@@ -67,6 +70,8 @@ class Start:
     general.DEBUG_AI_VA_VERS = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_VA_VERS","f")=="t"
     general.DEBUG_AI_SUIT_CHEMIN = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_SUIT_CHEMIN","f")=="t"
     general.DEBUG_AI_PING_PILE_COMPORTEMENT = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_PING_PILE_COMPORTEMENT","f")=="t"
+    
+    general.cartographie = Cartographie()
     
     general.aiPlugin = AIPlugin()
     general.aiPlugin.scan()

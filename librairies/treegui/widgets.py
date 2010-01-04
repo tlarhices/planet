@@ -140,8 +140,6 @@ class Widget(object):
         return None
       return p2
       
- 
- 
 class Icon(Widget):
     """ a simple image that can act as a button"""
     clips = False
@@ -160,7 +158,6 @@ class Icon(Widget):
             
     def callback(self):
       pass
-
         
 class Label(Widget):
     """ display a string of text in the ui """
