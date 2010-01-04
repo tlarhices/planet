@@ -13,6 +13,12 @@ sys.path.append(os.path.join(".", "librairies"))
 sys.path.append(os.path.join(".", "librairies","ai"))
 
 import general
+general.chargeTODO()
+general.TODO("Trouver un nom au projet")
+general.TODO("Chasser les dépendances circulaires et faire des weakref")
+general.TODO("Sélection des unités")
+general.TODO("Groupement des unités")
+general.TODO("Formations des groupements d'unités")
 
 from planete import *
 from configuration import *

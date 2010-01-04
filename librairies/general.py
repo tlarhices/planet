@@ -5,7 +5,7 @@
 #Copyright (C) 2009 Clerc Mathias
 #See the license file in the docs folder for more details
 
-import math
+import math, os, sys
 from pandac.PandaModules import *
 
 
@@ -195,3 +195,30 @@ def lerp(pt1, v1, pt2, v2, pt3, v3, pt):
   d2 = d2/s
   d3 = d3/s
   return v1*d1+v2*d2+v3*d3
+  
+  
+LISTE_TODO = []
+def chargeTODO():
+  try:
+    fichier = open(os.path.join("todo.txt"))
+  except IOError:
+    return
+    
+  for ligne in fichier:
+    ligne = ligne.strip()
+    if ligne not in LISTE_TODO:
+      LISTE_TODO.append(ligne)
+def sauveTODO():
+  fichier = open(os.path.join("todo.txt"), "w")
+  for todo in LISTE_TODO:
+    fichier.write(todo+"\r\n")
+def TODO(texte):
+  #On attrape le fichier et la fonction qui a appelé le TODO
+  frame = sys._getframe(1)
+  texte=str(frame.f_code.co_filename)+"::"+str(frame.f_code.co_name)+"@"+str(frame.f_lineno)+" > "+texte.strip()
+  if texte not in LISTE_TODO:
+    LISTE_TODO.append(texte)
+    LISTE_TODO.sort()
+    sauveTODO()
+    
+    print "TODO :: "+texte

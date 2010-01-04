@@ -29,6 +29,11 @@ class Bulbe:
     for attaquant in finAttaque:
       del self.attaquants[attaquant]
       
+  def sauvegarde(self):
+    out = "bulbe-classe:"+self._classe_+":\r\n"
+    general.TODO("Sauvegarde du bulbe"+str(self._classe_))
+    return out
+      
   def ennui(self):
     #On fait se promener le gugusse en rond sans but (bouffe quelques watts de pathfinding)
     point = general.planete.geoide.trouveSommet(self.sprite.position)
@@ -36,6 +41,7 @@ class Bulbe:
     for i in range(2, int(random.random()*6)):
       cible = random.choice(general.planete.geoide.voisinage[cible])
     self.sprite.marcheVers(cible)
+    return True
       
   def seFaitAttaquerPar(self, sprite):
     self.attaquants[sprite]=0.0

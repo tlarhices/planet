@@ -47,19 +47,20 @@ class AIPlugin:
 class AINavigation:
   #Classe qui gère la navigation sur la surface de la planète
   graph = None #Le graph de navigation
-  maxcout = 100000000 #Ce coût veut dire que c'est impossible
   angleSolMax = None
 
   def __init__(self):
+    general.TODO("Prise en compte des bateaux lors des calculs de déplacement")
     self.angleSolMax = float(general.configuration.getConfiguration("ai","navigation", "angleSolMax","70.0"))
     
   def detruit(self):
     self.graph = None
     
   # Création d'infos ---------------------------------------------------    
-  def coutPassage(self, idxSommet1, idxSommet2, estSommets):
-    """Retourne le cout necessaire pour passer du sommet idxSommet1 au sommet idxSommet2"""
-    #cout = (general.planete.geoide.sommets[idxSommet2].length() - general.planete.geoide.sommets[idxSommet1].length())*100
+  def anglePassage(self, idxSommet1, idxSommet2, estSommets):
+    """Retourne l'angle necessaire pour passer du sommet idxSommet1 au sommet idxSommet2"""
+    general.TODO("Vérifier que l'angle soit calculer comme il devrait être")
+    
     if estSommets:
       ptxSommet1, ptxSommet2 = Vec3(general.planete.geoide.sommets[idxSommet1]), Vec3(general.planete.geoide.sommets[idxSommet2])
     else:
@@ -70,35 +71,37 @@ class AINavigation:
     ptxSommet1.normalize()
     spH = ptxSommet2 - ptxSommet1
     angle = spH.angleDeg(sp)
-    
-    if angle >= self.angleSolMax or angle <= -self.angleSolMax:
-      angle = self.maxcout
       
-    #navigation = NodePath("nav")
-    #navigation.reparentTo(general.planete.geoide.racine)
-    #On ne peut pas passer sous l'eau
-    if ptxSommet2.length() <= general.planete.geoide.niveauEau or ptxSommet1.length() <= general.planete.geoide.niveauEau:
-      cout = self.maxcout
-    #  navigation.attachNewNode(self.dessineLigne((0.0, 0.0, 1.0), general.planete.geoide.sommets[idxSommet1] * 1.25, general.planete.geoide.sommets[idxSommet2] * 1.25))
-    #elif angle==self.maxcout:
-    #  navigation.attachNewNode(self.dessineLigne((1.0, 0.0, 0.0), general.planete.geoide.sommets[idxSommet1] * 1.25, general.planete.geoide.sommets[idxSommet2] * 1.25))
-    #else:
-    #  navigation.attachNewNode(self.dessineLigne((0.0, 1.0, 0.0), general.planete.geoide.sommets[idxSommet1] * 1.25, general.planete.geoide.sommets[idxSommet2] * 1.25))
     return angle
     
-  def dessineLigne(self, couleur, depart, arrivee):
-    """Dessine une ligne de depart vers arrivée et ne fait pas de doublons"""
-    ls = LineSegs()
-    ls.setColor(*couleur)
-    ls.setThickness(1.0)
-    ls.moveTo(*depart)
-    ls.drawTo(*arrivee)
-    return ls.create()
-    
+  def peutPasser(self, idxSommet1, idxSommet2, angleSolMax=None):
+    if angleSolMax==None:
+      angleSolMax = self.angleSolMax
+      
+    connu = False
+      
+    if idxSommet1 in self.graph.keys():
+      if idxSommet2 in self.graph[idxSommet1].keys():
+        angle = self.graph[idxSommet1][idxSommet2]
+        
+        connu = True
+        
+        if angle >= angleSolMax or angle <= -angleSolMax:
+          return False
+        
+        #On ne peut pas passer sous l'eau
+        if general.planete.geoide.sommets[idxSommet2].length() <= general.planete.geoide.niveauEau or general.planete.geoide.sommets[idxSommet1].length() <= general.planete.geoide.niveauEau:
+          return False
+          
+    if not connu :
+      print "Erreur navigation, arc inconnu", idxSommet1, idxSommet2
+      
+    return connu
+          
   def grapheDeplacement(self):
     """
     Fabrique le graphe de deplacement de la planète
-    graph[sommet de départ]=[(sommet accessible 1, cout pour y aller), (sommet accessible 2, cout pour y aller), ...]
+    graph[sommet de départ][sommet d'arrivée possible]=angle entre les 2
     """
     general.startChrono("AINavigation::grapheDeplacement")
     cpt=0.0
@@ -111,19 +114,19 @@ class AINavigation:
         if cpt%250==0:
           general.planete.afficheTexte("Création du graphe de déplacement... %i/%i" %(cpt,totclef))
       for voisin in general.planete.geoide.voisinage[source]:
-        self.ajouteNoeud(source, voisin)
+        if source!=voisin:
+          self.ajouteNoeud(source, voisin)
       cpt+=1.0
     general.stopChrono("AINavigation::grapheDeplacement")
         
   def ajouteNoeud(self, pt1, pt2):
     """Ajoute un noeud au graphe"""
     general.startChrono("AINavigation::ajouteNoeud")
-    cout = self.coutPassage(pt1, pt2, True)
+    angle = self.anglePassage(pt1, pt2, True)
     if pt1 not in self.graph.keys():
-      self.graph[pt1]=[]
+      self.graph[pt1]={}
     
-    if (pt2, cout) not in self.graph[pt1]:
-      self.graph[pt1].append((pt2, cout))
+    self.graph[pt1][pt2] = angle
     general.stopChrono("AINavigation::ajouteNoeud")
       
   def maj(self, idxSommet):
@@ -131,22 +134,15 @@ class AINavigation:
     Met à jour les données après modifications d'un sommet
     """
     general.startChrono("AINavigation::maj")
-    voisins = self.graph[idxSommet][:]
-    del self.graph[idxSommet]
-    for voisin, cout in voisins:
+    voisins = self.graph[idxSommet].keys()
+    for voisin in voisins:
       self.ajouteNoeud(idxSommet, voisin)
-      newCout = self.coutPassage(voisin, idxSommet, True)
-      valeurs = self.graph[voisin][:]
-      for i in range(0, len(valeurs)):
-        id, cout = valeurs[i]
-        if id==idxSommet:
-          valeurs[i] = (id, newCout)
-      self.graph[voisin] = valeurs
+      self.ajouteNoeud(voisin, idxSommet)
     general.stopChrono("AINavigation::maj")
   # Fin création d'infos -----------------------------------------------
   
   # Recherche d'itinéraire ---------------------------------------------
-  def aStar(self, deb, fin):
+  def aStar(self, deb, fin, angleSolMax=None):
     """
     Calcule la trajectoire la plus courte allant du sommet deb vers le sommet fin selon le graphe self.graph
     Prend en compte les changements d'élévation et la présence d'eau.
@@ -187,10 +183,10 @@ class AINavigation:
       fait.append(x)
       
       #On parcours la liste des noeuds voisins
-      for y in self.noeudsVoisins(x):
+      for y in self.noeudsVoisins(x, angleSolMax):
         if not y in fait:
           #Si on ne l'a pas déjà parcourut
-          tmpG = g[x] + self.cout(x,y)
+          tmpG = g[x] + self.angle(x, y)
           
           if not y in afaire:
             #S'il n'est pas en attente, on l'y met
@@ -202,6 +198,7 @@ class AINavigation:
           else:
             #On peut atteindre ce sommet par un chemin plus court
             mieux = False
+            
           if mieux:
             #On met a jour les infos de parcours pour ce point
             promenade[y] = x
@@ -209,33 +206,34 @@ class AINavigation:
             h[y] = (general.planete.geoide.sommets[y] - general.planete.geoide.sommets[fin]).lengthSquared()
             f[y] = g[y] + h[y]
             
-    general.gui.afficheTexte("Impossible de trouver une trajectoire pour aller de "+str(deb)+" à "+str(fin), "avertissement")
+    general.interface.afficheTexte("Impossible de trouver une trajectoire pour aller de "+str(deb)+" à "+str(fin), "avertissement")
     general.stopChrono("AINavigation::aStar")
     #On a rien trouvé
     return None
     
-  def cout(self, x, y):
-    """Calcul le cout nécessaire pour passer du sommet x au sommet y"""
-    general.startChrono("AINavigation::cout")
-    for elem in self.graph[x]:
-      if elem[0]==y:
-        general.stopChrono("AINavigation::cout")
-        return elem[1]
+  def angle(self, x, y):
+    """Calcul l'angle pour passer du sommet x au sommet y"""
+    if x in self.graph.keys():
+      if y in self.graph[x].keys():
+        return self.graph[x][y]
     #On arrive là si on ne peut pas passer de x à y directement
     #Ce qui est impossible normalement mais on sait jamais
-    print "AStar : Erreur calcul de cout"
-    general.stopChrono("AINavigation::cout")
+    print "AStar : Erreur calcul d'angle de",x,"à",y
     return None    
     
-  def noeudsVoisins(self, id):
+  def noeudsVoisins(self, id, angleSolMax=None):
     """Retourne les indices des sommets voisins au sommet id"""
     general.startChrono("AINavigation::noeudsVoisins")
-    #On ne peut pas utiliser general.planete.geoide.voisinage[id] car il ne prend pas en compte les couts
+    
+    if angleSolMax==None:
+      angleSolMax = self.angleSolMax
+    
+    #On ne peut pas utiliser general.planete.geoide.voisinage[id] car il ne prend pas en compte les angles
     voisins = []
     
-    for elem in self.graph[id]:
-      if elem[1] != self.maxcout:
-        voisins.append(elem[0])
+    for elem in self.graph[id].keys():
+      if self.graph[id][elem] <= angleSolMax:
+        voisins.append(elem)
     general.stopChrono("AINavigation::noeudsVoisins")
     return voisins
    
@@ -284,6 +282,14 @@ class AI:
     self.comportement.clear()
     self.comportement = None
     
+  def sauvegarde(self):
+    out = ""
+    if self.comportement != None:
+      out+=self.comportement.sauvegarde()
+    if self.bulbe != None:
+      out+=self.bulbe.sauvegarde()
+    return out
+    
 class AIComportementUnitaire:
   comportement = None
   priorite = None
@@ -295,6 +301,11 @@ class AIComportementUnitaire:
     self.priorite = priorite
     self.force = Vec3(0.0, 0.0, 0.0)
     self.fini = False
+    
+  def sauvegarde(self):
+    out = ""
+    general.TODO("Sauvegarde des comportements unitaires de type :"+str(self.__class__))
+    return out
     
   def ping(self, temps):
     self.supprime()
@@ -373,6 +384,8 @@ class SuitChemin(AIComportementUnitaire):
     if self.courant == None:
       if general.DEBUG_AI_SUIT_CHEMIN:
         print "va vers checkpoint suivant..."
+      general.TODO("Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est")
+
       #Comme on a pas de cible au chemin pour le moment
       #On prend le point suivant sur le chemin
       cible = self.getCoord(self.chemin.pop(0))
@@ -506,7 +519,6 @@ class Routine(AIComportementUnitaire):
     if True:#isinstance(tache, list):
       fonction, dico = tache
       return AppelFonction(fonction, dico, self.comportement, priorite)
-    print "TODO IA::produitTache pour ", tache, priorite
     return VaVers(self.comportement.ai.sprite.position, self.comportement, priorite)
       
   def supprime(self):
@@ -531,6 +543,22 @@ class AIComportement:
     self.comportements = []
     self.ennui = False
     
+  def sauvegarde(self):
+    out = ""
+    out += "aicomportement-steeringforce:"+self.ai.sprite.id+":"+str(self.steeringForce[0])+":"+str(self.steeringForce[1])+":"+str(self.steeringForce[2])+":\r\n"
+    if len(self.recrues)>0:
+      out += "aicomportement-recrues:"
+      for element in self.recrues:
+        out += element.id+":"
+      out += "\r\n"
+    if self.leader!=None:
+      out += "aicomportement-leader:"+self.leader.id+":\r\n"
+    if len(self.checklist)>0:
+      general.TODO("AIComportement::sauvegarde :: Sauvegarde de la checklist")
+      out += "aicomportement-checklist:"+str(self.checklist)+":\r\n"
+    for comportement in self.comportements:
+      out+=comportement.sauvegarde()
+    return out
     
   def ping(self, temps):
     force = Vec3(0.0,0.0,0.0)
@@ -567,8 +595,8 @@ class AIComportement:
     if len(self.comportements)<=0:
       self.ennui = True
       if self.ai.bulbe != None:
-        print self.ai.sprite.id,"s'ennuie"
-        self.ai.bulbe.ennui()
+        if self.ai.bulbe.ennui():
+          print self.ai.sprite.id,"s'ennuie"
     else:
       self.ennui = False
         
@@ -621,8 +649,10 @@ class AIComportement:
                 proche = sprite
                 distanceA = distA
                 distance = dist
-                  
-      conn.send(proche.id)
+      if proche!=None:
+        conn.send(proche.id)
+      else:
+        conn.send(None)
     except Exception as inst:
       self.afficheErreur(str(inst))
     
@@ -694,7 +724,7 @@ class AIComportement:
       indentation += 1
 
     #On affiche le message qu'on a eut en cadal
-    print sys.exc_info()[2].print_exc()
+    print sys.exc_info()#[2].print_exc()
     print ">>> "+str(texteErreur)
     print "--- ERREUR"
     print

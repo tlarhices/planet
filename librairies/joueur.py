@@ -70,9 +70,9 @@ class Joueur:
       sprite.tue("destruction du joueur")
       
   def sauvegarde(self):
-    out = "j:"+str(self.type)+":"+self.nom+":"+str(self.couleur)+":"+str(general.interface.joueur==self)+":\r\n"
+    out = "joueur:"+str(self.type)+":"+self.nom+":"+str(self.couleur)+":"+str(general.interface.joueur==self)+":\r\n"
     for ressource in self.ressources.keys():
-      out += "jr:"+self.nom+":"+ressource+":"+str(self.ressources[ressource])+":\r\n"
+      out += "joueur-ressource:"+self.nom+":"+ressource+":"+str(self.ressources[ressource])+":\r\n"
     return out
       
 class JoueurLocal(Joueur):

@@ -416,6 +416,7 @@ class MiniMap(Pane):
     
     self.carte = FondCarte(self.tailleMiniMapX, self.tailleMiniMapY)
     
+    general.TODO("Utiliser les librairies de dessin au lieu de PNMImage pour plus de puissance")
     #L'image de fond
     self.fond = PNMImage(self.tailleMiniMapX,self.tailleMiniMapY)
     self.fond.fillVal(0, 0, 0)

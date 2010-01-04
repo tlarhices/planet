@@ -714,12 +714,15 @@ class Geoide:
   # Fin Mise à jour ----------------------------------------------------
         
   # Fonctions diverses -------------------------------------------------
-  def trouveSommet(self, point, tiensCompteDeLAngle=False):
+  def trouveSommet(self, point, tiensCompteDeLAngle=False, angleSolMax=None):
     """
     Retourne le sommet le plus proche
     point : le point à rechercher
     """
     general.startChrono("Planete::trouveSommet")
+    if angleSolMax==None:
+      angleSolMax = general.planete.aiNavigation.angleSolMax
+      
     dst = (self.sommets[0]-point).lengthSquared()
     id = 0
     for s in self.sommets:
@@ -729,7 +732,7 @@ class Geoide:
         if not tiensCompteDeLAngle:
           id = self.sommets.index(s)
           dst = d
-        elif general.planete.aiNavigation.coutPassage(point, s, False)<general.planete.aiNavigation.maxcout:
+        elif general.planete.aiNavigation.anglePassage(point, s, False)<angleSolMax:
           id = self.sommets.index(s)
           dst = d
     general.stopChrono("Planete::trouveSommet")
@@ -740,8 +743,8 @@ class Geoide:
     Retourne la face dans laquelle le point se trouve
     point : le point à rechercher
     sub : la liste des faces à parcourir (utiliser None dans le doute)
-    TODO utiliser testIntersectionTriangleDroite pour plus de rapidité (voir #B#)
     """
+    general.TODO("Utiliser testIntersectionTriangleDroite pour plus de rapidité (voir #B#)")
     general.startChrono("Planete::trouveFace")
     ## ------------ Version avec self.sommetDansFace
     sommetProche = self.trouveSommet(point)
@@ -1138,6 +1141,8 @@ class Geoide:
     #image.show()
       
   def ajouteTextures(self):
+    general.TODO("Finir le texturage via heightmap")
+    
     if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
       tex0 = loader.loadTexture( 'data/textures/subsubaquatique.png' )
       tex0.setMinfilter( Texture.FTLinearMipmapLinear )

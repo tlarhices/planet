@@ -173,7 +173,7 @@ class Planete:
           self.angleSoleil = float(elements[1])
         else:
           print "Donnée inconnue : ",element[0]
-      elif type=="j":
+      elif type=="joueur":
         #Création d'un joueur
         type, nom, couleur, estJoueur, vide = elements
         couleur = VBase4(general.floatise(couleur.replace("(","").replace(")","").replace("[","").replace("]","").split(",")))
@@ -187,13 +187,13 @@ class Planete:
         else:
           print "PLANETE :: Charge :: Erreur, type de joueur inconnu :", type
         self.ajouteJoueur(classe(nom, couleur, estJoueur.lower().strip()=="true"))
-      elif type=="jr":
+      elif type=="joueur-ressource":
         #Création des ressources d'un joueur
         nomjoueur, nomressource, valeur, vide = elements
         for joueur in self.joueurs:
           if joueur.nom.lower().strip()==nomjoueur.lower().strip():
             joueur.ressources[nomressource] = int(valeur)
-      elif type=="s":
+      elif type=="sprite":
         #Sprites
         id, nomjoueur, modele, symbole, position, vitesse, vie, bouge, aquatique, vide = elements
         position = Vec3(*general.floatise(position.replace("[","").replace("]","").replace("(","").replace(")","").split(",")))
@@ -209,15 +209,16 @@ class Planete:
         sprite.aquatique = aquatique.lower().strip()=="true"
         self.sprites.append(sprite)
         joueur.sprites.append(sprite)
-      elif type=="sm":
-        #Mouvement des sprites
-        id, elem, vide = elements
+      elif type=="sprite-contenu":
+        id, type, valeur = elements
+        valeur = float(valeur)
         for sprite in self.sprites:
           if sprite.id.lower().strip() == id.lower().strip():
-            sprite.marcheVersTab.append(int(elem))
+            sprite.contenu[type]=valeur
       elif ligne.strip()!="":
         print
         print "Avertissement : Planete::charge, type de ligne inconnue :", type,"sur la ligne :\r\n",ligne.strip()
+        general.TODO("Ajouter la prise en charge du chargement de "+type)
         
     self.afficheTexte("Chargement terminé", "sauvegarde")
   # Fin Import / Export ------------------------------------------------
@@ -288,6 +289,13 @@ class Planete:
     temps = task.time-self.lastPing
     self.lastPing = task.time
     
+    #Sauvegarde automatique
+    self.lastSave += temps
+    if self.seuilSauvegardeAuto != -1 and self.lastSave > self.seuilSauvegardeAuto:
+      self.afficheTexte("Sauvegarde automatique en cours...", "sauvegarde")
+      self.sauvegarde(os.path.join(".","sauvegardes","sauvegarde-auto.pln"))
+      self.lastSave = 0
+
     #On fabrique le soleil si on en a pas
     if self.soleil == None:
       self.fabriqueSoleil()
@@ -341,14 +349,6 @@ class Planete:
         while sprite in self.sprites:
           self.sprites.remove(sprite)
         
-    #Sauvegarde automatique
-    self.lastSave += temps
-    if self.seuilSauvegardeAuto != -1 and self.lastSave > self.seuilSauvegardeAuto:
-      self.afficheTexte("Sauvegarde automatique en cours...", "sauvegarde")
-      self.sauvegarde(os.path.join(".","sauvegardes","sauvegarde-auto.pln"))
-      self.lastSave = 0
-      
-      
     if general.configuration.getConfiguration("affichage","minimap","affichesoleil","t")=="t":
       #Met à jour la carte du soleil
       self.lastMAJPosSoleil += temps

@@ -72,6 +72,15 @@ class Sprite:
     modele : le nom du fichier 3D à charger
     planete : la planète de laquelle cet objet dépend
     """
+    general.TODO("Ajouter des sprites qui ne vivent que durant un certain temps (utile pour faire des cadavres et autres trucs qui disparaissent après un moment)")
+    general.TODO("Ajouter la gestion des boulots")
+    general.TODO("Ajouter sprite.regardeVers")
+    general.TODO("Ajouter la gestion des animations de sprite")
+    general.TODO("Support des objets non ponctuels")
+    general.TODO("Faire dépendre la vitesse du sprite selon l'angle du sol sur lequel il se déplace")
+    general.TODO("Gestion des barres de vie")
+    general.TODO("Gestion d'une icone pour indiquer les activité (glandage, construction, baston, ...)")
+    
     self.joueur = joueur
     self.id = id
     self.miseAJourPosition(position)
@@ -245,6 +254,7 @@ class Sprite:
   
   def testeSol(self, temps):
     """Regarde l'angle entre la normale de la face et le sprite qui s'y tient"""
+    general.TODO("Debugger le teste d'inclinaison de sol")
     return
     sp = Vec3(position)
     sp.normalize()
@@ -255,6 +265,7 @@ class Sprite:
     
   def appliqueGravite(self, temps):
     """Fait tomber les objets sur le sol"""
+    general.TODO("Debugger la gestion de la gravité")
     return
     altitudeCible = general.planete.geoide.altitudeCarre(self.position)
     if abs(self.altCarre-altitudeCible)>0.001:
@@ -321,9 +332,7 @@ class Sprite:
   def deplace(self, cible, temps):
     """
     Déplace un personnage entre 2 points
-    TODO : Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
     """
-      
     cible = self.versCoord(cible)
       
     sp = cible - self.position
@@ -360,6 +369,8 @@ class Sprite:
       
   def tue(self, type):
     """Gère la mort du sprite"""
+    general.TODO("Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...")
+    general.TODO("Ajouter les ruines et les cadavres")
     general.interface.afficheTexte(self.id+" est mort par "+type, "mort")
     self.vie = 0
     self.typeMort = type
@@ -389,12 +400,13 @@ class Sprite:
     nom = "none"
     if self.joueur != None:
       nom = self.joueur.nom
-    out = "s:"+self.id+":"+nom+":"+self.fichierModele+":"+self.fichierSymbole
+    out = "sprite:"+self.id+":"+nom+":"+self.fichierModele+":"+self.fichierSymbole
     out += ":"+str(self.position)+":"+str(self.vitesse)+":"+str(self.vie)+":"+str(self.bouge)+":"+str(self.aquatique)+":\r\n"
     if self.ai != None:
-      print "SPRITE :: Erreur : comportement non sauvegardé"
+      out += self.ai.sauvegarde()
     if self.contenu != None:
-      print "SPRITE :: Erreur : contenu non géré dans la sauvegarde"
+      for element in self.contenu.keys():
+        out += "sprite-contenu:"+self.id+":"+element+":"+str(self.contenu[element])+":\r\n"
     return out
     
   def marcheVers(self, cible):
@@ -418,7 +430,7 @@ class Sprite:
     
     fichierCarte = self.fichierModele[:-4]+"-card.txt"
     if os.path.exists(fichierCarte):
-      print "TODO : Charger les images "+self.fichierModele[:-4]+"-1.png... pour faire un lod"
+      general.TODO("Charger les images "+self.fichierModele[:-4]+"-1.png... pour faire un lod")
       
     if self.fichierModele.endswith(".png"):
       tmp = self.fabriqueSprite(self.fichierModele)

@@ -171,6 +171,7 @@ class Element:
     return p1, p2, p3
     
   def point3DVersCarte(self, point, taille):
+    general.TODO("Centraliser tous les calculs de carte")
     x, y, z = point
    
     r = math.sqrt((x*x) + (y*y))
