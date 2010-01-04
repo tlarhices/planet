@@ -17,9 +17,13 @@ import Image
 
 class Cartographie:
   """Contient toute la gestion des cartes 2D"""
+  miniMap = None
+  heightMap = None
   
   def __init__(self):
     """Gère les cartes 2D"""
+    self.miniMap = None
+    self.heightMap = None
 
   def triangleVersCarte(self, p1, p2, p3, taille=None):
     if taille == None:
@@ -114,7 +118,9 @@ class Cartographie:
 
   def calculHeightMap(self, listeElements=None):
     tailleHeightMap = 800
-    image = Image.new(mode="RGB",size=(tailleHeightMap, tailleHeightMap),color=(0,0,0))
+    if self.heightMap == None:
+      self.heightMap = Image.new(mode="RGB",size=(tailleHeightMap, tailleHeightMap),color=(0,0,0))
+    image = self.heightMap
     draw  =  ImageDraw.Draw(image)
     
     if listeElements==None:
@@ -146,8 +152,6 @@ class Cartographie:
       cpt+=1
 
     del draw
-    for i in range(0, 5):
-      image = image.filter(ImageFilter.BLUR)
     image.save(os.path.join(".","data","cache","zoneherbe.png"), "PNG")
     import ImageEnhance
     enhancer = ImageEnhance.Contrast(image)
@@ -181,7 +185,9 @@ class Cartographie:
       draw.polygon((a1,a2,a3), fill=c, outline=None)
   
   def calculMiniMap(self, taille, listeElements=None):
-    image = Image.new(mode="RGB",size=taille,color=(0,0,0))
+    if self.miniMap == None:
+      self.miniMap = Image.new(mode="RGB",size=taille,color=(0,0,0))
+    image = self.miniMap
     draw  =  ImageDraw.Draw(image)
 
     if general.interface.menuCourant !=None:
@@ -197,8 +203,8 @@ class Cartographie:
           compte+=1
           self.procedeRenduElement(element, taille, draw, False)
     del draw
-    for i in range(0, 1):
-      image = image.filter(ImageFilter.BLUR)
+    """for i in range(0, 1):
+      image = image.filter(ImageFilter.BLUR)"""
     image.save(os.path.join(".","data","cache","minimap.png"), "PNG")
     #image.show()
     
