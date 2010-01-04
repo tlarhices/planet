@@ -5,3 +5,4 @@ data/cache/*
 tmp
 configuration/utilisateur.cfg
 profiler.log
+sauvegardes/sauvegarde-auto.pln
