@@ -13,6 +13,8 @@ import sys
 import os
 import zipfile
 
+from weakref import proxy
+
 from element import *
 from ai import *
 from sprite import *
@@ -185,14 +187,14 @@ class Geoide:
     self.sommets = [XP, XM, YP, YM, ZP, ZM]
     iXP = 0;iXM = 1;iYP = 2;iYM = 3;iZP = 4;iZM = 5
     self.elements = []
-    self.elements.append(Element("["+str(len(self.elements))+"]", iXP, iZP, iYP, self, 0, None))
-    self.elements.append(Element("["+str(len(self.elements))+"]", iYP, iZP, iXM, self, 0, None))
-    self.elements.append(Element("["+str(len(self.elements))+"]", iXM, iZP, iYM, self, 0, None))
-    self.elements.append(Element("["+str(len(self.elements))+"]", iYM, iZP, iXP, self, 0, None))
-    self.elements.append(Element("["+str(len(self.elements))+"]", iXP, iYP, iZM, self, 0, None))
-    self.elements.append(Element("["+str(len(self.elements))+"]", iYP, iXM, iZM, self, 0, None))
-    self.elements.append(Element("["+str(len(self.elements))+"]", iXM, iYM, iZM, self, 0, None))
-    self.elements.append(Element("["+str(len(self.elements))+"]", iYM, iXP, iZM, self, 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iXP, iZP, iYP, proxy(self), 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iYP, iZP, iXM, proxy(self), 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iXM, iZP, iYM, proxy(self), 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iYM, iZP, iXP, proxy(self), 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iXP, iYP, iZM, proxy(self), 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iYP, iXM, iZM, proxy(self), 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iXM, iYM, iZM, proxy(self), 0, None))
+    self.elements.append(Element("["+str(len(self.elements))+"]", iYM, iXP, iZM, proxy(self), 0, None))
     
   def fabriqueSphereIcosahedre2(self):
     a = math.sqrt(2.0/(5.0+math.sqrt(5.0)))

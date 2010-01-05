@@ -74,7 +74,7 @@ class Planete:
     for joueur in self.joueurs:
       joueur.detruit()
     for sprite in self.sprites:
-      sprite.tue("destruction de la planète")
+      sprite.tue("destruction de la planète", silence=True)
     self.sprites = []
     self.joueurs = []
   # Fin Initialisation -------------------------------------------------

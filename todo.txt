@@ -1,9 +1,12 @@
 ./librairies/ai.py::__init__@52 > Prise en compte des bateaux lors des calculs de déplacement
+./librairies/ai.py::__init__@54 > Prise en compte des bateaux lors des calculs de déplacement
 ./librairies/ai.py::anglePassage@59 > Vérifier que l'angle soit calculer comme il devrait être
 ./librairies/ai.py::anglePassage@60 > Vérifier que l'angle soit calculer comme il devrait être
+./librairies/ai.py::anglePassage@62 > Vérifier que l'angle soit calculer comme il devrait être
 ./librairies/ai.py::ping@359 > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
 ./librairies/ai.py::ping@361 > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
 ./librairies/ai.py::ping@362 > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
+./librairies/ai.py::ping@364 > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
 ./librairies/ai.py::sauvegarde@302 > Sauvegarde des comportements unitaires de type :ai.AppelFonction
 ./librairies/ai.py::sauvegarde@302 > Sauvegarde des comportements unitaires de type :ai.Routine
 ./librairies/ai.py::sauvegarde@302 > Sauvegarde des comportements unitaires de type :ai.SuitChemin
@@ -30,15 +33,28 @@
 ./librairies/sprite.py::__init__@68 > Gestion d'une icone pour indiquer les activité (glandage, construction, baston, ...)
 ./librairies/sprite.py::__init__@68 > Gestion des barres de vie
 ./librairies/sprite.py::__init__@68 > Support des objets non ponctuels
+./librairies/sprite.py::__init__@69 > Ajouter des sprites qui ne vivent que durant un certain temps (utile pour faire des cadavres et autres trucs qui disparaissent après un moment)
+./librairies/sprite.py::__init__@69 > Ajouter la gestion des animations de sprite
+./librairies/sprite.py::__init__@69 > Ajouter la gestion des boulots
+./librairies/sprite.py::__init__@69 > Ajouter sprite.regardeVers
+./librairies/sprite.py::__init__@69 > Faire dépendre la vitesse du sprite selon l'angle du sol sur lequel il se déplace
+./librairies/sprite.py::__init__@69 > Gestion d'une icone pour indiquer les activité (glandage, construction, baston, ...)
+./librairies/sprite.py::__init__@69 > Gestion des barres de vie
+./librairies/sprite.py::__init__@69 > Support des objets non ponctuels
 ./librairies/sprite.py::appliqueGravite@264 > Debugger la gestion de la gravité
 ./librairies/sprite.py::appliqueGravite@266 > Debugger la gestion de la gravité
+./librairies/sprite.py::appliqueGravite@270 > Debugger la gestion de la gravité
 ./librairies/sprite.py::fabriqueModel@407 > Charger les images data/modeles/birchc-1.png... pour faire un lod
 ./librairies/sprite.py::fabriqueModel@418 > Charger les images data/modeles/birchc-1.png... pour faire un lod
 ./librairies/sprite.py::fabriqueModel@420 > Charger les images data/modeles/birchc-1.png... pour faire un lod
+./librairies/sprite.py::fabriqueModel@421 > Charger les images data/modeles/birchc-1.png... pour faire un lod
+./librairies/sprite.py::fabriqueModel@425 > Charger les images data/modeles/birchc-1.png... pour faire un lod
 ./librairies/sprite.py::tue@368 > Ajouter les ruines et les cadavres
 ./librairies/sprite.py::tue@368 > Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...
 ./librairies/sprite.py::tue@370 > Ajouter les ruines et les cadavres
 ./librairies/sprite.py::tue@370 > Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...
+./librairies/sprite.py::tue@374 > Ajouter les ruines et les cadavres
+./librairies/sprite.py::tue@374 > Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...
 ./planet.py::<module>@17 > Trouver un nom au projet
 ./planet.py::<module>@18 > Chasser les dépendances circulaires et faire des weakref
 ./planet.py::<module>@19 > Sélection des unités

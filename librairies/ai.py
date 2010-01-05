@@ -15,6 +15,8 @@ import time
 from pandac.PandaModules import *
 from multiprocessing import Process, Pipe
 
+from weakref import ref, proxy
+
 class AIPlugin:
   plugins=None
   
@@ -257,7 +259,7 @@ class AI:
   bulbe = None
   
   def __init__(self, sprite):
-    self.sprite = sprite
+    self.sprite = proxy(sprite)
     self.comportement = AIComportement(self)
     
   def choisitComportement(self, type):
@@ -536,7 +538,7 @@ class AIComportement:
   ennui = None
   
   def __init__(self, AI):
-    self.ai = AI
+    self.ai = proxy(AI)
     self.recrues = []
     self.checklist = []
     self.steeringForce = Vec3(0.0, 0.0, 0.0)

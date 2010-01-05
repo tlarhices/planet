@@ -13,6 +13,7 @@ import os
 from ai import AI
 
 from pandac.PandaModules import *
+from weakref import proxy
 
 class Sprite:
   """Un objet du monde"""
@@ -81,7 +82,10 @@ class Sprite:
     general.TODO("Gestion des barres de vie")
     general.TODO("Gestion d'une icone pour indiquer les activité (glandage, construction, baston, ...)")
     
-    self.joueur = joueur
+    if joueur !=None:
+      self.joueur = proxy(joueur)
+    else:
+      self.joueur = None
     self.id = id
     self.miseAJourPosition(position)
     
@@ -367,11 +371,12 @@ class Sprite:
       self.pointeRacineSol()
     pass
       
-  def tue(self, type):
+  def tue(self, type, silence=False):
     """Gère la mort du sprite"""
     general.TODO("Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...")
     general.TODO("Ajouter les ruines et les cadavres")
-    general.interface.afficheTexte(self.id+" est mort par "+type, "mort")
+    if not silence:
+      general.interface.afficheTexte(self.id+" est mort par "+type, "mort")
     self.vie = 0
     self.typeMort = type
     if self.rac!=None:
@@ -570,10 +575,10 @@ class SpritePlan(Sprite):
   point1 = None
   point2 = None
   
-  def __init__(self, id, point1, point2, modele, symbole, planete, joueur):
+  def __init__(self, id, point1, point2, modele, symbole, joueur):
     self.point1, self.point2, position = self.preparePoints(point1, point2)
     
-    Sprite.__init__(self, id, position, modele, symbole, planete, joueur)
+    Sprite.__init__(self, id, position, modele, symbole, joueur)
 
   def preparePoints(self, point1, point2):
     point1 = (min(point1[0], point2[0]), min(point1[1], point2[1]), min(point1[2], point2[2]))

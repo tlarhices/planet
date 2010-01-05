@@ -11,7 +11,7 @@ import sys, os
 import random
 
 from pandac.PandaModules import *
-    
+
 class Element:
   id = None #Identifiant de la face, utilisé pour reconstruire la géométrie au chargement
   sommets = None #Liste des 3 sommets de la face
