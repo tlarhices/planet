@@ -921,9 +921,9 @@ class Geoide:
     n1=self.sommetDansFace[self.sommets.index(p)][0].calculNormale(p)
     
     if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="heightmap":
-      ci1 = general.cartographie.point3DVersCarte(p, (1.0, 1.0))
+      ci1 = general.cartographie.point3DVersCarte(p, (1.0, 1.0), coordonneesTexturage=True)
     else:
-      ci1 = general.cartographie.point3DVersCarte(p, (float(general.configuration.getConfiguration("affichage","general", "repetition-texture","17.0")), float(general.configuration.getConfiguration("affichage","general", "repetition-texture","17.0"))))
+      ci1 = general.cartographie.point3DVersCarte(p, (float(general.configuration.getConfiguration("affichage","general", "repetition-texture","17.0")), float(general.configuration.getConfiguration("affichage","general", "repetition-texture","17.0"))), coordonneesTexturage=True)
     
     if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
       minAlt = (1.0-self.delta)

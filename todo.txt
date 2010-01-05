@@ -1,12 +1,15 @@
 ./librairies/ai.py::__init__@52 > Prise en compte des bateaux lors des calculs de déplacement
 ./librairies/ai.py::__init__@54 > Prise en compte des bateaux lors des calculs de déplacement
+./librairies/ai.py::__init__@57 > Prise en compte des bateaux lors des calculs de déplacement
 ./librairies/ai.py::anglePassage@59 > Vérifier que l'angle soit calculer comme il devrait être
 ./librairies/ai.py::anglePassage@60 > Vérifier que l'angle soit calculer comme il devrait être
 ./librairies/ai.py::anglePassage@62 > Vérifier que l'angle soit calculer comme il devrait être
+./librairies/ai.py::anglePassage@65 > Vérifier que l'angle soit calculé comme il devrait être
 ./librairies/ai.py::ping@359 > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
 ./librairies/ai.py::ping@361 > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
 ./librairies/ai.py::ping@362 > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
 ./librairies/ai.py::ping@364 > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
+./librairies/ai.py::ping@399 > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
 ./librairies/ai.py::sauvegarde@302 > Sauvegarde des comportements unitaires de type :ai.AppelFonction
 ./librairies/ai.py::sauvegarde@302 > Sauvegarde des comportements unitaires de type :ai.Routine
 ./librairies/ai.py::sauvegarde@302 > Sauvegarde des comportements unitaires de type :ai.SuitChemin
@@ -19,6 +22,7 @@
 ./librairies/geoide.py::ajouteTextures@962 > Finir le texturage via heightmap
 ./librairies/geoide.py::ajouteTextures@965 > Finir le texturage via heightmap
 ./librairies/geoide.py::ajouteTextures@966 > Finir le texturage via heightmap
+./librairies/geoide.py::ajouteTextures@968 > Finir le texturage via heightmap
 ./librairies/geoide.py::ajouteTextures@969 > Finir le texturage via heightmap
 ./librairies/geoide.py::trouveFace@738 > Utiliser testIntersectionTriangleDroite pour plus de rapidité (voir #B#)
 ./librairies/geoide.py::trouveFace@741 > GEOIDE::TrouveFace::utiliser testIntersectionTriangleDroite pour plus de rapidité (voir #B#)
@@ -65,3 +69,6 @@
 ./planet.py::<module>@21 > Sélection des unités
 ./planet.py::<module>@22 > Groupement des unités
 ./planet.py::<module>@23 > Formations des groupements d'unités
+./planet.py::start@135 > Donner des gugusses aux joueurs de façon non aléatoire
+./planet.py::start@135 > Faire la création des joueurs comme il faut et pas hardcodé
+./planet.py::start@135 > Passer le pointeur sur joueur local dans general

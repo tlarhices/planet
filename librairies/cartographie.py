@@ -25,12 +25,12 @@ class Cartographie:
     self.miniMap = None
     self.heightMap = None
 
-  def triangleVersCarte(self, p1, p2, p3, taille=None):
+  def triangleVersCarte(self, p1, p2, p3, taille=None, coordonneesTexturage=False):
     if taille == None:
       taille = 0.2
-    p1=self.point3DVersCarte(p1, taille)
-    p2=self.point3DVersCarte(p2, taille)
-    p3=self.point3DVersCarte(p3, taille)
+    p1=self.point3DVersCarte(p1, taille, coordonneesTexturage)
+    p2=self.point3DVersCarte(p2, taille, coordonneesTexturage)
+    p3=self.point3DVersCarte(p3, taille, coordonneesTexturage)
     tx, ty = taille
     
     test=False
@@ -60,15 +60,13 @@ class Cartographie:
     
     return p1, p2, p3
     
-  def point3DVersCarte(self, point, taille):
+  def point3DVersCarte(self, point, taille, coordonneesTexturage=False):
     general.TODO("voir pourquoi type=1 fait des jolies cartes et un mauvais texturage alors que type=0 a un texturage parfait, mais des cartes moches")
-    
-    type=1
     
     x, y, z = point
     tx, ty = taille
    
-    if type==0:
+    if coordonneesTexturage:
       r = math.sqrt((x*x) + (y*y))
       radiansLatitude = math.atan2(r,z)
       v = 1 - (radiansLatitude / (math.pi))
@@ -127,25 +125,6 @@ class Cartographie:
     
     if listeElements==None:
       listeElements=general.planete.geoide.elements
-      
-    """def procedeElement(element, taille, draw):
-      s1,s2,s3 = element.sommets
-      s1=general.planete.geoide.sommets[s1]
-      s2=general.planete.geoide.sommets[s2]
-      s3=general.planete.geoide.sommets[s3]
-      c1 = (max(general.planete.geoide.niveauEau, min(1.0+general.planete.geoide.delta, s1.length()))-1.0)/(general.planete.geoide.delta+general.planete.geoide.niveauEau-1.0)
-      c2 = (max(general.planete.geoide.niveauEau, min(1.0+general.planete.geoide.delta, s1.length()))-1.0)/(general.planete.geoide.delta+general.planete.geoide.niveauEau-1.0)
-      c3 = (max(general.planete.geoide.niveauEau, min(1.0+general.planete.geoide.delta, s1.length()))-1.0)/(general.planete.geoide.delta+general.planete.geoide.niveauEau-1.0)
-      a1,a2,a3 = self.triangleVersCarte(s1, s2, s3, tailleHeightMap)
-      a1 = a1[0], a1[1]
-      a2 = a2[0], a2[1]
-      a3 = a3[0], a3[1]
-      c = int((c1+c2+c3)/3*255)
-      draw.polygon((a1,a2,a3), fill=(c,c,c), outline=None)
-      
-      if element.enfants!=None:
-        for element2 in element.enfants:
-          procedeElement(element2, taille, draw)"""
           
     cpt = 0
     for element in listeElements:
@@ -180,7 +159,7 @@ class Cartographie:
         c3 = (max(general.planete.geoide.niveauEau, min(1.0+general.planete.geoide.delta, p3.length()))-1.0)/(general.planete.geoide.delta+general.planete.geoide.niveauEau-1.0)
       c = (Vec4(c1)+Vec4(c2)+Vec4(c3))/3.0
       c = int(c[0]*255), int(c[1]*255), int(c[2]*255)
-      a1,a2,a3 = self.triangleVersCarte(p1, p2, p3, taille)
+      a1,a2,a3 = self.triangleVersCarte(p1, p2, p3, taille, coordonneesTexturage=heightMap)
       a1 = int(a1[0]+0.5), int(a1[1]+0.5)
       a2 = int(a2[0]+0.5), int(a2[1]+0.5)
       a3 = int(a3[0]+0.5), int(a3[1]+0.5)
