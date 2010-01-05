@@ -215,7 +215,7 @@ def sauveTODO():
 def TODO(texte):
   #On attrape le fichier et la fonction qui a appelé le TODO
   frame = sys._getframe(1)
-  texte=str(frame.f_code.co_filename)+"::"+str(frame.f_code.co_name)+"@"+str(frame.f_lineno)+" > "+texte.strip()
+  texte=str(frame.f_code.co_filename)+"::"+"??"+"::"+str(frame.f_code.co_name)+" > "+texte.strip()
   if texte not in LISTE_TODO:
     LISTE_TODO.append(texte)
     LISTE_TODO.sort()

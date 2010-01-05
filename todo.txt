@@ -1,74 +1,33 @@
-./librairies/ai.py::__init__@52 > Prise en compte des bateaux lors des calculs de déplacement
-./librairies/ai.py::__init__@54 > Prise en compte des bateaux lors des calculs de déplacement
-./librairies/ai.py::__init__@57 > Prise en compte des bateaux lors des calculs de déplacement
-./librairies/ai.py::anglePassage@59 > Vérifier que l'angle soit calculer comme il devrait être
-./librairies/ai.py::anglePassage@60 > Vérifier que l'angle soit calculer comme il devrait être
-./librairies/ai.py::anglePassage@62 > Vérifier que l'angle soit calculer comme il devrait être
-./librairies/ai.py::anglePassage@65 > Vérifier que l'angle soit calculé comme il devrait être
-./librairies/ai.py::ping@359 > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
-./librairies/ai.py::ping@361 > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
-./librairies/ai.py::ping@362 > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
-./librairies/ai.py::ping@364 > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
-./librairies/ai.py::ping@399 > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
-./librairies/ai.py::sauvegarde@302 > Sauvegarde des comportements unitaires de type :ai.AppelFonction
-./librairies/ai.py::sauvegarde@302 > Sauvegarde des comportements unitaires de type :ai.Routine
-./librairies/ai.py::sauvegarde@302 > Sauvegarde des comportements unitaires de type :ai.SuitChemin
-./librairies/ai.py::sauvegarde@302 > Sauvegarde des comportements unitaires de type :ai.VaVers
-./librairies/ai/bucheron.py::ennui@44 > Bulbe::bucheron::vider les poches
-./librairies/ai/bucheron.py::ennui@44 > ajouter une icone 'je réfléchit' au dessus des sprites qui calculent des trucs
-./librairies/ai/bucheron.py::ennui@44 > créer les stocks de matières premières
-./librairies/ai/bucheron.py::ennui@44 > vider les poches
-./librairies/cartographie.py::point3DVersCarte@63 > voir pourquoi type=1 fait des jolies cartes et un mauvais texturage alors que type=0 a un texturage parfait, mais des cartes moches
-./librairies/geoide.py::ajouteTextures@962 > Finir le texturage via heightmap
-./librairies/geoide.py::ajouteTextures@965 > Finir le texturage via heightmap
-./librairies/geoide.py::ajouteTextures@966 > Finir le texturage via heightmap
-./librairies/geoide.py::ajouteTextures@968 > Finir le texturage via heightmap
-./librairies/geoide.py::ajouteTextures@969 > Finir le texturage via heightmap
-./librairies/geoide.py::trouveFace@738 > Utiliser testIntersectionTriangleDroite pour plus de rapidité (voir #B#)
-./librairies/geoide.py::trouveFace@741 > GEOIDE::TrouveFace::utiliser testIntersectionTriangleDroite pour plus de rapidité (voir #B#)
-./librairies/geoide.py::trouveFace@741 > Utiliser testIntersectionTriangleDroite pour plus de rapidité (voir #B#)
-./librairies/geoide.py::trouveFace@742 > Utiliser testIntersectionTriangleDroite pour plus de rapidité (voir #B#)
-./librairies/gui.py::__init__@391 > Utiliser les librairies de dessin au lieu de PNMImage pour plus de puissance
-./librairies/sprite.py::__init__@68 > Ajouter des sprites qui ne vivent que durant un certain temps (utile pour faire des cadavres et autres trucs qui disparaissent après un moment)
-./librairies/sprite.py::__init__@68 > Ajouter la gestion des animations de sprite
-./librairies/sprite.py::__init__@68 > Ajouter la gestion des boulots
-./librairies/sprite.py::__init__@68 > Ajouter sprite.regardeVers
-./librairies/sprite.py::__init__@68 > Faire dépendre la vitesse du sprite selon l'angle du sol sur lequel il se déplace
-./librairies/sprite.py::__init__@68 > Gestion d'une icone pour indiquer les activité (glandage, construction, baston, ...)
-./librairies/sprite.py::__init__@68 > Gestion des barres de vie
-./librairies/sprite.py::__init__@68 > Support des objets non ponctuels
-./librairies/sprite.py::__init__@69 > Ajouter des sprites qui ne vivent que durant un certain temps (utile pour faire des cadavres et autres trucs qui disparaissent après un moment)
-./librairies/sprite.py::__init__@69 > Ajouter la gestion des animations de sprite
-./librairies/sprite.py::__init__@69 > Ajouter la gestion des boulots
-./librairies/sprite.py::__init__@69 > Ajouter sprite.regardeVers
-./librairies/sprite.py::__init__@69 > Faire dépendre la vitesse du sprite selon l'angle du sol sur lequel il se déplace
-./librairies/sprite.py::__init__@69 > Gestion d'une icone pour indiquer les activité (glandage, construction, baston, ...)
-./librairies/sprite.py::__init__@69 > Gestion des barres de vie
-./librairies/sprite.py::__init__@69 > Support des objets non ponctuels
-./librairies/sprite.py::appliqueGravite@264 > Debugger la gestion de la gravité
-./librairies/sprite.py::appliqueGravite@266 > Debugger la gestion de la gravité
-./librairies/sprite.py::appliqueGravite@270 > Debugger la gestion de la gravité
-./librairies/sprite.py::fabriqueModel@407 > Charger les images data/modeles/birchc-1.png... pour faire un lod
-./librairies/sprite.py::fabriqueModel@418 > Charger les images data/modeles/birchc-1.png... pour faire un lod
-./librairies/sprite.py::fabriqueModel@420 > Charger les images data/modeles/birchc-1.png... pour faire un lod
-./librairies/sprite.py::fabriqueModel@421 > Charger les images data/modeles/birchc-1.png... pour faire un lod
-./librairies/sprite.py::fabriqueModel@425 > Charger les images data/modeles/birchc-1.png... pour faire un lod
-./librairies/sprite.py::tue@368 > Ajouter les ruines et les cadavres
-./librairies/sprite.py::tue@368 > Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...
-./librairies/sprite.py::tue@370 > Ajouter les ruines et les cadavres
-./librairies/sprite.py::tue@370 > Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...
-./librairies/sprite.py::tue@374 > Ajouter les ruines et les cadavres
-./librairies/sprite.py::tue@374 > Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...
-./planet.py::<module>@17 > Trouver un nom au projet
-./planet.py::<module>@18 > Chasser les dépendances circulaires et faire des weakref
-./planet.py::<module>@19 > Sélection des unités
-./planet.py::<module>@19 > Trouver un nom au projet
-./planet.py::<module>@20 > Chasser les dépendances circulaires et faire des weakref
-./planet.py::<module>@20 > Groupement des unités
-./planet.py::<module>@21 > Formations des groupements d'unités
-./planet.py::<module>@21 > Sélection des unités
-./planet.py::<module>@22 > Groupement des unités
-./planet.py::<module>@23 > Formations des groupements d'unités
-./planet.py::start@135 > Donner des gugusses aux joueurs de façon non aléatoire
-./planet.py::start@135 > Faire la création des joueurs comme il faut et pas hardcodé
-./planet.py::start@135 > Passer le pointeur sur joueur local dans general
+./librairies/ai.py::??::__init__ > Prise en compte des bateaux lors des calculs de déplacement
+./librairies/ai.py::??::anglePassage > Vérifier que l'angle soit calculé comme il devrait être
+./librairies/ai.py::??::ping > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
+./librairies/ai.py::??::sauvegarde > Sauvegarde des comportements unitaires de type :ai.AppelFonction
+./librairies/ai.py::??::sauvegarde > Sauvegarde des comportements unitaires de type :ai.Routine
+./librairies/ai.py::??::sauvegarde > Sauvegarde des comportements unitaires de type :ai.SuitChemin
+./librairies/ai.py::??::sauvegarde > Sauvegarde des comportements unitaires de type :ai.VaVers
+./librairies/ai/bucheron.py::??::ennui > ajouter une icone 'je réfléchit' au dessus des sprites qui calculent des trucs
+./librairies/ai/bucheron.py::??::ennui > créer les stocks de matières premières
+./librairies/ai/bucheron.py::??::ennui > vider les poches
+./librairies/cartographie.py::??::point3DVersCarte > voir pourquoi type=1 fait des jolies cartes et un mauvais texturage alors que type=0 a un texturage parfait, mais des cartes moches
+./librairies/geoide.py::??::ajouteTextures > Finir le texturage via heightmap
+./librairies/sprite.py::??::__init__ > Ajouter des sprites qui ne vivent que durant un certain temps (utile pour faire des cadavres et autres trucs qui disparaissent après un moment)
+./librairies/sprite.py::??::__init__ > Ajouter la gestion des animations de sprite
+./librairies/sprite.py::??::__init__ > Ajouter la gestion des boulots
+./librairies/sprite.py::??::__init__ > Ajouter sprite.regardeVers
+./librairies/sprite.py::??::__init__ > Faire dépendre la vitesse du sprite selon l'angle du sol sur lequel il se déplace
+./librairies/sprite.py::??::__init__ > Gestion d'une icone pour indiquer les activité (glandage, construction, baston, ...)
+./librairies/sprite.py::??::__init__ > Gestion des barres de vie
+./librairies/sprite.py::??::__init__ > Support des objets non ponctuels
+./librairies/sprite.py::??::appliqueGravite > Debugger la gestion de la gravité
+./librairies/sprite.py::??::fabriqueModel > Charger les images data/modeles/birchc-1.png... pour faire un lod
+./librairies/sprite.py::??::tue > Ajouter les ruines et les cadavres
+./librairies/sprite.py::??::tue > Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...
+./planet.py::??::<module> > Chasser les dépendances circulaires et faire des weakref
+./planet.py::??::<module> > Formations des groupements d'unités
+./planet.py::??::<module> > Groupement des unités
+./planet.py::??::<module> > Sélection des unités
+./planet.py::??::<module> > Trouver un nom au projet
+./planet.py::??::modifieAltitude > Déplacer la modification d'altitude dans general.io
+./planet.py::??::start > Donner des gugusses aux joueurs de façon non aléatoire
+./planet.py::??::start > Faire la création des joueurs comme il faut et pas hardcodé
+./planet.py::??::start > Passer le pointeur sur joueur local dans general
