@@ -100,14 +100,16 @@ class Cartographie:
     z=(-z*ty/2+ty/2)
     return Vec2(lat, z)
     
-  def carteVersPoint3D(self, point):
+  def carteVersPoint3D(self, point, taille):
     if point==None:
       return None
       
+    tx, ty = taille
+      
     lat, z = point
-    z=-(float(z)-float(self.tailleMiniMapY)/2)/(float(self.tailleMiniMapY)/2)
+    z=-(float(z)-float(ty)/2)/(float(ty)/2)
     
-    lat = float(lat)*(2*math.pi)/float(self.tailleMiniMapX)
+    lat = float(lat)*(2*math.pi)/float(tx)
     x=math.cos(lat)
     y=math.sin(lat)
     if z==1.0 or z==-1.0:
@@ -206,6 +208,7 @@ class Cartographie:
     """for i in range(0, 1):
       image = image.filter(ImageFilter.BLUR)"""
     image.save(os.path.join(".","data","cache","minimap.png"), "PNG")
+    general.miniMapAchangee = True
     #image.show()
     
   def dessineCarte(self, p1, p2, p3, c1, c2, c3, taille, carteDure, carteFloue):

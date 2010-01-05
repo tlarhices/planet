@@ -396,10 +396,10 @@ class Geoide:
   def fabriqueVegetation(self):
     vegetation=[]
     vegetation.append([]) #Vide
-    vegetation.append(["palmier",]) #Sable/plage
-    vegetation.append(["herbe", "sapin1","cerisier","boulot1","boulot2"]) #Herbe/champ
-    vegetation.append(["herbe", "sapin2","cerisier","boulot1","boulot2","arbrerond"]) #Feuilluts
-    vegetation.append(["herbe", "sapin3","petitarbre","sapin2","sapin1"]) #Altitude
+    vegetation.append(["palmier","banana","benjamina01","dypsis01","ficus01","ginger","greenhouse-palm-acai01","greenhouse-palm-acai02","greenhouse-palm-acai03","greenhouse-palm-cycas01","greenhouse-palm-jubaea01","howea01"]) #Sable/plage
+    vegetation.append(["herbe", "sapin1","cerisier","boulot1","boulot2","benjamina01","bougainvillier","dypsis01","eucalyptus","ginger", "howea01", "sophora", "rose"]) #Herbe/champ
+    vegetation.append(["herbe", "sapin2","cerisier","boulot1","boulot2","arbrerond","bougainvillier","dypsis01","eucalyptus","ginger", "greenhouse-if01", "greenhouse-if02", "greenhouse-if03", "howea01", "sophora"]) #Feuilluts
+    vegetation.append(["herbe", "sapin3","petitarbre","sapin2","sapin1","bougainvillier","ginger", "greenhouse-if01", "greenhouse-if02", "greenhouse-if03", "rose"]) #Altitude
         
     self.vegetation = NodePath("vegetation")
     self.vegetation.reparentTo(self.racine)
@@ -961,7 +961,7 @@ class Geoide:
     cWriter.setData4f(self.elements[0].couleurSommet(self.sommets[indice])[0])
       
     #On met à jour la minimap
-    self.calculMiniMap(self.sommetDansFace[indice])
+    general.cartographie.calculMiniMap((256, 128),self.sommetDansFace[indice])
       
   def ajouteTextures(self):
     general.TODO("Finir le texturage via heightmap")

@@ -415,7 +415,7 @@ class MiniMap(Pane):
     taskMgr.add(self.ping, "Boucle minimap")
     
   def onClick(self):
-    general.io.placeCameraAuDessusDe(self.carteVersPoint3D(self.souris))
+    general.io.placeCameraAuDessusDe(general.cartographie.carteVersPoint3D(self.souris, (256, 128)))
     
   souris = [-1,-1]
   def mouseEvent(self,event,x,y):
@@ -470,12 +470,17 @@ class MiniMap(Pane):
       self.blips[blipid].icon = icone
       self.blips[blipid].color = couleur
 
+  textureMiniMap=None
   def ping(self, task):
     """Boucle qui met à jour la carte"""
-    texture = loader.loadTexture("data/cache/minimap.png")
-    self.carte.setImage(texture)
+    if self.textureMiniMap==None or (general.miniMapAchangee and task.time-self.derniereMAJ>1.0):
+      if self.textureMiniMap!=None:
+        loader.unloadTexture(self.textureMiniMap)
+      self.textureMiniMap = loader.loadTexture("data/cache/minimap.png")
+      general.miniMapAchangee = False
+      self.carte.setImage(self.textureMiniMap)
       
-    self.derniereMAJ=task.time
+      self.derniereMAJ=task.time
       
     if self.camBlip==None:
       self.camBlip = self.ajoutePoint3D(general.io.camera.getPos(),"theme/icones/camera.png",(1.0, 1.0, 1.0, 1.0))
