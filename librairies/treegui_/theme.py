@@ -9,11 +9,11 @@ class Stretch:
         self.name = name
         self.border = 0
 
-    def draw(self,drawer,pos,size):
+    def draw(self,drawer,pos,size,alpha):
         x,y = pos[0],pos[1]
         xs,ys = size[0],size[1]
         u,v,us,vs = drawer.atlas.getRect(self.name) 
-        drawer.rectStreatch((x,y,xs,ys),(u,v,us,vs))
+        drawer.rectStreatch((x,y,xs,ys),(u,v,us,vs),alpha)
 
 class IconLike:
     
@@ -21,10 +21,10 @@ class IconLike:
         self.name = name
         self.border = 0
 
-    def draw(self,drawer,pos,size):
+    def draw(self,drawer,pos,size,alpha):
         x,y = pos[0],pos[1]
         u,v,us,vs = drawer.atlas.getRect(self.name)
-        drawer.rectStreatch((x,y,us,vs),(u,v,us,vs))
+        drawer.rectStreatch((x,y,us,vs),(u,v,us,vs),alpha)
 
 class Single:
     
@@ -32,11 +32,11 @@ class Single:
         self.name = name
         self.border = 0
 
-    def draw(self,drawer,pos,size):
+    def draw(self,drawer,pos,size,alpha):
         x,y = pos[0],pos[1]
         u,v,us,vs = drawer.atlas.getRect(self.name)
         xs,ys = min(us,size[0]),min(vs,size[1])
-        drawer.rectStreatch((x,y,xs,ys),(u,v,xs,ys))
+        drawer.rectStreatch((x,y,xs,ys),(u,v,xs,ys),alpha)
         
 class StretchBorder:
     
@@ -44,7 +44,7 @@ class StretchBorder:
         self.name = name
         self.border = border
     
-    def draw(self,drawer,pos,size):
+    def draw(self,drawer,pos,size,alpha):
         u,v,us,vs = drawer.atlas.getRect(self.name) 
         b = self.border 
         
@@ -53,32 +53,32 @@ class StretchBorder:
         us -= b*2
         vs -= b*2
         
-        self.drawBlock(drawer,pos,size,u,v,us,vs) # center
+        self.drawBlock(drawer,pos,size,u,v,us,vs, alpha) # center
         x,y = pos[0],pos[1]
         xs,ys = size[0],size[1]
         
-        self.drawBlock(drawer,Vec2(x,y-b),Vec2(xs,b),u,v-b,us,b) # N
-        self.drawBlock(drawer,Vec2(x,y+ys),Vec2(xs,b),u,v+vs,us,b) # S
-        self.drawBlock(drawer,Vec2(x-b,y),Vec2(b,ys),u-b,v,b,vs) # W
-        self.drawBlock(drawer,Vec2(x+xs,y),Vec2(b,ys),u+us,v,b,vs) # E
+        self.drawBlock(drawer,Vec2(x,y-b),Vec2(xs,b),u,v-b,us,b,alpha) # N
+        self.drawBlock(drawer,Vec2(x,y+ys),Vec2(xs,b),u,v+vs,us,b,alpha) # S
+        self.drawBlock(drawer,Vec2(x-b,y),Vec2(b,ys),u-b,v,b,vs,alpha) # W
+        self.drawBlock(drawer,Vec2(x+xs,y),Vec2(b,ys),u+us,v,b,vs,alpha) # E
 
-        self.drawBlock(drawer,Vec2(x-b,y-b),Vec2(b,b),u-b,v-b,b,b) # NW
-        self.drawBlock(drawer,Vec2(x+xs,y+ys),Vec2(b,b),u+us,v+vs,b,b) # SE 
-        self.drawBlock(drawer,Vec2(x-b,y+ys),Vec2(b,b),u-b,v+vs,b,b) # SW
-        self.drawBlock(drawer,Vec2(x+xs,y-b),Vec2(b,b),u+us,v-b,b,b) # NW
+        self.drawBlock(drawer,Vec2(x-b,y-b),Vec2(b,b),u-b,v-b,b,b,alpha) # NW
+        self.drawBlock(drawer,Vec2(x+xs,y+ys),Vec2(b,b),u+us,v+vs,b,b,alpha) # SE 
+        self.drawBlock(drawer,Vec2(x-b,y+ys),Vec2(b,b),u-b,v+vs,b,b,alpha) # SW
+        self.drawBlock(drawer,Vec2(x+xs,y-b),Vec2(b,b),u+us,v-b,b,b,alpha) # NW
         
-    def drawBlock(self,drawer,pos,size,u,v,us,vs):
+    def drawBlock(self,drawer,pos,size,u,v,us,vs,alpha):
         x,y = pos[0],pos[1]
         xs,ys = size[0],size[1]
         #u,v,us,vs = self.xStart,self.yStart,self.xEnd,self.yEnd
-        drawer.rectStreatch((x,y,xs,ys),(u,v,us,vs))
+        drawer.rectStreatch((x,y,xs,ys),(u,v,us,vs),alpha)
     
 class Tiled:
     
     def __init__(self,xStart,yStart,xEnd,yEnd):
         self.xStart,self.yStart,self.xEnd,self.yEnd = xStart,yStart,xEnd,yEnd
 
-    def draw(self,drawer,pos,size):
+    def draw(self,drawer,pos,size,alpha):
         x,y = pos[0],pos[1]
         xs,ys = size[0],size[1]
         z = 0
@@ -93,7 +93,7 @@ class Tiled:
                 fixed_us,fixed_vs = us,vs
                 if xFit < 1: fixed_us = xs%us 
                 if yFit < 1: fixed_vs = ys%vs
-                drawer.rect((xPos,yPos,fixed_us,fixed_vs),(u,v))
+                drawer.rect((xPos,yPos,fixed_us,fixed_vs),(u,v),alpha)
                 yPos += vs
                 yFit -= 1
             xPos += us
@@ -101,7 +101,7 @@ class Tiled:
         
 class TileBorder(StretchBorder):
     
-    def draw(self,drawer,pos,size):
+    def draw(self,drawer,pos,size,alpha):
         
         u,v,us,vs = drawer.atlas.getRect(self.name) 
         b = self.border 
@@ -115,18 +115,18 @@ class TileBorder(StretchBorder):
         x,y = pos[0],pos[1]
         xs,ys = size[0],size[1]
         
-        self.drawBlock(drawer,Vec2(x,y-b),Vec2(xs,b),u,v-b,us,b) # N
-        self.drawBlock(drawer,Vec2(x,y+ys),Vec2(xs,b),u,v+vs,us,b) # S
-        self.drawBlock(drawer,Vec2(x-b,y),Vec2(b,ys),u-b,v,b,vs) # W
-        self.drawBlock(drawer,Vec2(x+xs,y),Vec2(b,ys),u+us,v,b,vs) # E
+        self.drawBlock(drawer,Vec2(x,y-b),Vec2(xs,b),u,v-b,us,b,alpha) # N
+        self.drawBlock(drawer,Vec2(x,y+ys),Vec2(xs,b),u,v+vs,us,b,alpha) # S
+        self.drawBlock(drawer,Vec2(x-b,y),Vec2(b,ys),u-b,v,b,vs,alpha) # W
+        self.drawBlock(drawer,Vec2(x+xs,y),Vec2(b,ys),u+us,v,b,vs,alpha) # E
 
-        self.drawBlock(drawer,Vec2(x-b,y-b),Vec2(b,b),u-b,v-b,b,b) # NW
-        self.drawBlock(drawer,Vec2(x+xs,y+ys),Vec2(b,b),u+us,v+vs,b,b) # SE 
-        self.drawBlock(drawer,Vec2(x-b,y+ys),Vec2(b,b),u-b,v+vs,b,b) # SW
-        self.drawBlock(drawer,Vec2(x+xs,y-b),Vec2(b,b),u+us,v-b,b,b) # NW
+        self.drawBlock(drawer,Vec2(x-b,y-b),Vec2(b,b),u-b,v-b,b,b,alpha) # NW
+        self.drawBlock(drawer,Vec2(x+xs,y+ys),Vec2(b,b),u+us,v+vs,b,b,alpha) # SE 
+        self.drawBlock(drawer,Vec2(x-b,y+ys),Vec2(b,b),u-b,v+vs,b,b,alpha) # SW
+        self.drawBlock(drawer,Vec2(x+xs,y-b),Vec2(b,b),u+us,v-b,b,b,alpha) # NW
         
 
-    def drawBlock(self,drawer,pos,size,u,v,us,vs):
+    def drawBlock(self,drawer,pos,size,u,v,us,vs,alpha):
         x,y = pos[0],pos[1]
         xs,ys = size[0],size[1]
         z = 0
@@ -142,20 +142,20 @@ class TileBorder(StretchBorder):
                         fixed_us = xs%us 
                 if yFit < 1: 
                         fixed_vs = ys%vs
-                drawer.rect((xPos,yPos,fixed_us,fixed_vs),(u,v))
+                drawer.rect((xPos,yPos,fixed_us,fixed_vs),(u,v),alpha)
                 yPos += vs
                 yFit -= 1
             xPos += us
             xFit -= 1
 
 class TileBarX(TileBorder):
-    def draw(self,drawer,pos,size):
+    def draw(self,drawer,pos,size,alpha):
         u,v,us,vs,b = self.xStart,self.yStart,self.xEnd,self.yEnd,self.border
-        self.drawBlock(drawer,pos,size,u,v,us,vs) # center
+        self.drawBlock(drawer,pos,size,u,v,us,vs,alpha) # center
         x,y = pos[0],pos[1]
         xs,ys = size[0],size[1]
-        self.drawBlock(drawer,Vec2(x-b,y),Vec2(b,ys),u-b,v,b,vs) # W
-        self.drawBlock(drawer,Vec2(x+xs,y),Vec2(b,ys),u+us+b,v,b,vs) # E
+        self.drawBlock(drawer,Vec2(x-b,y),Vec2(b,ys),u-b,v,b,vs,alpha) # W
+        self.drawBlock(drawer,Vec2(x+xs,y),Vec2(b,ys),u+us+b,v,b,vs,alpha) # E
 
 
 class TreeGUIFontInvalid(Exception):

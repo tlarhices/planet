@@ -110,18 +110,16 @@ class ScrollPane(Pane):
     def __init__(self,*args,**kargs):
         Pane.__init__(self,*args,**kargs)
         self._createInner()
-        
+ 
     def _createInner(self,xextend=3,yextend=3):
         self.inner = self.add(Pane())
         self.inner.width=100000
         self.inner.height=100000
         self.inner.style = None
-        
-        self.sx = self.add(ScrollBarX(x=xextend,y="bottom -3",
-            height=10,width="100% -20"))
-        self.sy = self.add(ScrollBarY(y=yextend,x="right  -3",
-            width=10, height="100% -20"))
-        
+         
+        self.sx = self.add(ScrollBarX(x=xextend,y="bottom -3", height=10,width="100% -20"))
+        self.sy = self.add(ScrollBarY(y=yextend,x="right  -3", width=10, height="100% -20"))
+                    
         self.sx._compute = self.xScroll
         self.sy._compute = self.yScroll
         self.add = self.inner.add
@@ -145,7 +143,7 @@ class ScrollPane(Pane):
         range = float(abs(a-b))
         slideRange = max(0,self.bounds[1]-self._height+100)
         self.inner.y = -slideRange*v/range
-  
+        
 class ScrollDownPane(ScrollPane):
     """ scroll pane with one Y scroll shown """
         
@@ -195,8 +193,6 @@ class SingleSelectList(ScrollDownPane):
             
     def onSelect(self):  
         """ overide this if you need too """
-
-    
     
 class ProgressBar(Pane):
     """ display a string of text in the ui """
@@ -220,7 +216,7 @@ class ProgressBar(Pane):
     def getProgress(self):
         return self.filler.width * 100 / self.width
     
-class Form(ScrollPane):
+class Form(Pane):
     """
         A complete window with title bar, 
         resizing, min, max and close buttons     
@@ -235,24 +231,24 @@ class Form(ScrollPane):
             Button(title, width="100%", onClick=self._move))
         self.titleBar.anitClips = True
         
-        self.reSize = self.add(
-            Button("", y="bottom", x= "right",width=10,height=10,
-                 onClick=self._reSize))
-        self.reSize.onDrag = self._onReSize
-        self.reSize.anitClips = True
-        self._createInner(3,30)
-    
+        #self.reSize = self.add(
+        #    Button("", y="bottom", x= "right",width=10,height=10,
+        #         onClick=self._reSize))
+        #self.reSize.onDrag = self._onReSize
+        #self.reSize.anitClips = True
+        #self._createInner(3,30)
+
     def _move(self):
-        gui.drag(self)
-        
+        #gui.drag(self)
+        pass
+ 
     def _onReSize(self):
         self.width = self.reSize.x + 10
         self.height = self.reSize.y + 10
-        
+ 
     def _reSize(self):
         gui.drag(self.reSize)
-        
-
+ 
 def clearStyle(chidren):
     if chidren:
         for c in chidren:
@@ -261,9 +257,10 @@ def clearStyle(chidren):
             c.overStyle = None
             c.downStyle = None
             clearStyle(c.children)
-        
+ 
 class MicroForm(Form):
     def __init__(self,title,*args,**kargs):
         Form.__init__(self,title,*args,**kargs)
         clearStyle(self.children)
-       
+        
+        

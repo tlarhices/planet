@@ -48,9 +48,10 @@ class Holder:
         
     def remove(self, child):
         """ removes a ui component"""
-        child.parent = None
-        child.onRemove()
-        self.children.remove(child)
+        if child!=None:
+          child.parent = None
+          child.onRemove()
+          self.children.remove(child)
         return child
 
     def clear(self):

@@ -11,6 +11,7 @@ from inout import IO
 import treegui
 from treegui.components import *
 from treegui.widgets import *
+from treegui.customwidgets import *
 from treegui.core import Gui
 import theme
 import os

@@ -38,8 +38,7 @@ class Drawer:
         vfs = VirtualFileSystem.getGlobalPtr()
         
         self.atlas = EggAtlas(gui.theme.ATLAS)
-        
-        self.image = loader.loadTexture(gui.theme.TEXTURE)
+        self.image = loader.loadTexture("./"+gui.theme.TEXTURE)
         self.image.setCompression(Texture.CMOff)
         self.image.setMinfilter(Texture.FTNearest)
         self.image.setMagfilter(Texture.FTLinear)
@@ -94,11 +93,8 @@ class Drawer:
         """ draws a single thing """
         self.z = z
         
-        
-        
         if not thing.visable:
             return 
-        
         
         self.color = Vec4(*thing.color)
         
@@ -111,7 +107,7 @@ class Drawer:
                 style.draw(
                     self,
                     (realX,realY),
-                    (float(thing._width),float(thing._height)))
+                    (float(thing._width),float(thing._height)), thing.alpha)
         
         if thing.clips:
             # set clip stuff
@@ -122,25 +118,24 @@ class Drawer:
             if rect: 
                 self.color = thing.color
                 u,v,us,vs = rect
-                self.rectStreatch((realX,realY,us,vs),(u,v,us,vs))
+                self.rectStreatch((realX,realY,us,vs),(u,v,us,vs), thing.alpha)
             
         if thing.text:
             # draw text stuff
             if thing.editsText:
-                self.drawEditText(
+                thing.size = self.drawEditText(
                     gui.theme.defineFont(thing.font),
                     thing.text,
                     realX,
-                    realY,
+                    realY, thing.alpha,
                     thing.selection,
                     thing.caret)
             else:
-                self.drawText(
+                thing.size = self.drawText(
                     gui.theme.defineFont(thing.font),
                     thing.text,
                     realX,
-                    realY)
-           
+                    realY, thing.alpha)
             
         if thing.children:
             for child in thing.children:
@@ -152,7 +147,7 @@ class Drawer:
     
      
     
-    def drawText(self, font, text, x, y):
+    def drawText(self, font, text, x, y, alpha):
         """ 
             draws just text
         """
@@ -160,12 +155,17 @@ class Drawer:
         
         name =  font.name
         ox = x
+        oy = y
         baseLetter = self.atlas.getChar(name + str(ord("T")))
         omaxh = baseLetter[3] - baseLetter[4][1]
 
+        height = 0
+        width = 0
         for line in text.split("\n"):
             build = []
             maxh = omaxh  
+            _height = 0
+            _width = 0
                 
             for c in line:
                 code = ord(c)            
@@ -177,17 +177,28 @@ class Drawer:
                   u,v,w,h,e = self.atlas.getChar(name + str(code))
                 except KeyError:
                   u,v,w,h,e = self.atlas.getChar(name + str(ord("?")))
+                  
                 build.append((x,y+e[1],u,v,w,h))
                 x += e[0]
                 maxh = max(maxh,h-e[1])
                  
             for x,y,u,v,w,h in build:
-                self.rectStreatch((x,y+maxh-h,w,h),(u,v,w,h))
+                self.rectStreatch((x,y+maxh-h,w,h),(u,v,w,h), alpha)
                 
+            x = ox
+            y += maxh
+            if len(build)>0:
+              x,y,u,v,w,h = build[-1]
+              _width = x+w-ox
+              width = max(_width, width)
+              _height = y+maxh-oy
+              height = max(_height, height)
             x = ox     
             y += maxh
+            
+        return height, width
     
-    def drawEditText(self, font, text, x, y, selection=(0,0), caret=-1):
+    def drawEditText(self, font, text, x, y, alpha, selection=(0,0), caret=-1):
         """ 
             draws the text
             and selection
@@ -198,12 +209,18 @@ class Drawer:
         
         char_count = 0 
         ox = x
+        oy = y
         baseLetter = self.atlas.getChar(name + str(ord("T")))
         omaxh = baseLetter[3] - baseLetter[4][1]
 
+        height = 0
+        width = 0
+
         for line in text.split("\n"):
             build = []
-            maxh = omaxh  
+            maxh = omaxh
+            _height = 0
+            _width = 0
                 
             for c in line:
                 if char_count == caret:
@@ -231,16 +248,26 @@ class Drawer:
                 char_count += 1 
                  
             for x,y,u,v,w,h in build:
-                self.rectStreatch((x,y+maxh-h,w,h),(u,v,w,h))
+                self.rectStreatch((x,y+maxh-h,w,h),(u,v,w,h), alpha)
                 
-            x = ox     
-            y += maxh    
+            x = ox
+            y += maxh
+            if len(build)>0:
+              x,y,u,v,w,h = build[-1]
+              _width = x+w-ox
+              width = max(_width, width)
+              _height = y+maxh-oy
+              height = max(_height, height)
+            x = ox
+            y += maxh
+            
+        return height, width
         
-    def rect(self,(x,y,xs,ys),(u,v)):
+    def rect(self,(x,y,xs,ys),(u,v),alpha):
         """ draw a rectangle """
         us = xs
         vs = ys
-        self.rectStreatch((x,y,xs,ys),(u,v,us,vs))
+        self.rectStreatch((x,y,xs,ys),(u,v,us,vs),alpha)
         
         
     def doClip(self,xs,ys,xe,ye):
@@ -253,7 +280,7 @@ class Drawer:
         
         self.clip.append((xs,ys,xe,ye))   
         
-    def rectStreatch(self,(x,y,xs,ys),(u,v,us,vs)):
+    def rectStreatch(self,(x,y,xs,ys),(u,v,us,vs),alpha):
         """ draw a generic stretched rectangle """
         # do clipping now:
         
@@ -268,7 +295,9 @@ class Drawer:
             
         elif ((x >= clipXStart or x+xs <= clipXEnd) and 
               (y >= clipYStart or y+ys <= clipYEnd)):
-            
+            if xs==0 or ys==0:
+              return
+              
             xRatio = us/xs
             yRatio = vs/ys 
             
@@ -319,7 +348,8 @@ class Drawer:
         
         w = self.w
         h = self.h
-        
+        color = Vec4(color)
+        color[3]=color[3]*alpha
         u,v,us,vs = u/w,1-v/h,(u+us)/w,1-(v+vs)/h,
         self.drawer.tri( 
             v1, color, Vec2(u,v),

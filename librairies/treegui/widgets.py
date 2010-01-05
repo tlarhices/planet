@@ -23,9 +23,7 @@ class Widget(object):
     _y = 0
     _width = 20
     _height = 20
-    size = [-1,-1]
 
-    alpha = 1.0
 
     text = None     
     font = "default_font"     
@@ -44,7 +42,6 @@ class Widget(object):
     editsText = False
     
     color = (1,1,1,1)
-    # makes the widget esear to click by expanding it in all direction by set ammount
     clickExpand = 0
     
     def __init__(self,**placement):
@@ -120,44 +117,14 @@ class Widget(object):
     def fix(self,x,y):
         """ does some thing before the thing is drawn """
         
-    def getSize(self, gui=None):
-      if self.size[0]==-1 and self.size[1]==-1:
-        if gui==None:
-          gui = self.getGUI()
-        gui._draw()
-      return self.size
-      
-    def getGUI(self):
-      p1 = self.parent
-      p2 = self.parent
-      from core import Holder
-      from components import Pane
-      from core import Gui
-      while isinstance(p1, Holder):
-        p2=p1
-        p1=p1.parent
-      if not isinstance(p2, Gui):
-        return None
-      return p2
-      
+        
 class Icon(Widget):
     """ a simple image that can act as a button"""
     clips = False
     style = None
-    callbackParams=None
-    
     def __init__(self, icon, **placement):
         self.doPlacement(placement)    
         self.icon = icon
-        
-    def onClick(self):
-      if self.callbackParams != None:
-        self.callback(**self.callbackParams)
-      else:
-        self.callback()
-            
-    def callback(self):
-      pass
         
 class Label(Widget):
     """ display a string of text in the ui """
@@ -192,7 +159,18 @@ class Button(Widget):
         self.style = self.upStyle
 
 
-
+class ValueButton(Button):
+    """ 
+        this button has a value that gets passed to 
+        onSelect button
+    """
+    def __init__(self, text, value, onSelect, **placement):
+        Button.__init__(self, text, self.onClick, **placement)
+        self.value = value
+        self.onSelect = onSelect
+   
+    def onClick(self):
+       self.onSelect(self.value)
 
 
 
@@ -247,8 +225,6 @@ class TextArea(Label):
         elif self.multiLine and char == "enter" :
             self.text += "\n"
             self.caret += 1
-        elif not self.multiLine and char == "enter" :
-            self.onEnter()
         elif self.multiLine and char == "arrow_up" :
             lastLine = 0
             thisLine = 0
@@ -314,10 +290,10 @@ class Check(Label):
     """
     style = "CHECKOFF"
     value = False
-    
+
     def __init__(self, text, **placement):
         self.doPlacement(placement)    
-        self.text = "   "+text
+        self.text = "     "+text
             
     def onClick(self):
         """ checks or uncecks the button value """
@@ -325,37 +301,7 @@ class Check(Label):
         if self.value:
             self.style = "CHECKON"
         else:
-            self.style = "CHECKOFF"
-        self.callback(self.text.strip(), self.value)
-            
-    def callback(self, text, value):
-      pass
-      
-class PictureCheck(Label):
-    """
-        Standard on/off button
-    """
-    style = "CHECKOFF"
-    value = False
-    
-    def __init__(self, picOn, picOff, text, **placement):
-        self.doPlacement(placement)    
-        self.text = "   "+text
-        self.icon = picOff
-        self.picOff = picOff
-        self.picOn = picOn
-
-    def onClick(self):
-        """ checks or uncecks the button value """
-        self.value = not self.value
-        if self.value:
-            self.icon = self.picOn
-        else:
-            self.icon = self.picOff
-        self.callback(self.text.strip(), self.value)
-            
-    def callback(self, text, value):
-      pass
+            self.style = "CHECKOFF"  
             
 class Radio(Check):
     """ 
@@ -383,52 +329,3 @@ class Radio(Check):
         else:
             self.style = "RADIOOFF"  
         
-class PictureRadio(Check):
-    """ 
-        radio button ... only one button of this 
-        type can be selected in a given parent 
-    """
-    style = "RADIOOFF"
-    value = False
-            
-    def __init__(self, picOn, picOff, text="", **placement):
-        self.text = "   "+text
-        self.doPlacement(placement)    
-        self.icon = picOff
-        self.picOff = picOff
-        self.picOn = picOn
-            
-    def onClick(self):
-        """ 
-            changes the state of the radio and 
-            changaes the state of the radio buttons 
-            around it
-        """
-        if self.parent != None:
-          for child in self.parent.children:
-              if child.__class__ == self.__class__:
-                  child.value = False
-                  child.icon = child.picOff
-                
-        self.value = not self.value
-        if self.value:
-            self.icon = self.picOn
-        else:
-            self.icon = self.picOff  
-        self.callback(self.text.strip(), self.value)
-            
-    def callback(self, text, value):
-      pass
-
-class ValueButton(Button):
-    """ 
-        this button has a value that gets passed to 
-        onSelect button
-    """
-    def __init__(self, text, value, onSelect, **placement):
-        Button.__init__(self, text, self.onClick, **placement)
-        self.value = value
-        self.onSelect = onSelect
- 
-    def onClick(self):
-       self.onSelect(self.value)

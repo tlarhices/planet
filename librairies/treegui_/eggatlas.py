@@ -9,7 +9,6 @@ import math
 import os
 import sha
 from imagetable import ImageTable
-
 import re
 
 def getAllType(eggNode,eggType):
@@ -48,7 +47,7 @@ class Image:
             (self.name,self.x,self.y,self.w,self.h,self.extend[0],self.extend[1]))
 
 
-class EggAtlas:
+class EggAtlas():
     """
         Egg atlas reads *.atlas.egg files
         and helps with the data that is stored in them
@@ -63,7 +62,7 @@ class EggAtlas:
     def readEgg(self,filename):
         """ reads the egg file and stores the info"""
         egg = EggData()
-        egg.read(filename)
+        egg.read("./"+filename)
         for char in getAllEggGroup(egg):
             name = str(char.getName())
             
@@ -97,7 +96,8 @@ class EggAtlas:
             image = self.images[name]
             return image.x,image.y,image.w,image.h
         except KeyError:
-            print "can't find",name,"in:",self.images.keys()
+            raw_input("EGG ATLAS :: can't find %s" %name)
+            print "in:",self.images.keys()
             return None
     
     def getChar(self,name):
@@ -108,16 +108,15 @@ class EggAtlas:
         image = self.images[name]
         return image.x,image.y,image.w,image.h,image.extend
     
-    
 def extensionOneOf(path,l):
-    os.path.splitext
-
+  os.path.splitext
+  
 def walkdir(dir):
     """ walks a dir and returns file names """
     for path, dirs, files in os.walk(dir):
         for file in files:
             if not re.match(".*?(\..*?)/.*",path+"/"+file):
-                yield  path+"/"+file
+              yield  path+"/"+file
 
 
 def getAllType(eggNode,eggType):
@@ -149,7 +148,7 @@ def takeFile(file):
         return file[i+1:]
     return file
 
-class EggAtlasMaker:
+class EggAtlasMaker():
     """ 
         Egg Atlas is a *.atlas.egg file desing to be 
         using with many 2d billboard or ui components

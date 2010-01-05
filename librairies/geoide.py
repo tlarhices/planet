@@ -397,9 +397,9 @@ class Geoide:
     vegetation=[]
     vegetation.append([]) #Vide
     vegetation.append(["palmier",]) #Sable/plage
-    vegetation.append(["sapin1","cerisier","boulot1","boulot2"]) #Herbe/champ
-    vegetation.append(["sapin2","cerisier","boulot1","boulot2","arbrerond"]) #Feuilluts
-    vegetation.append(["sapin3","petitarbre","sapin2","sapin1"]) #Altitude
+    vegetation.append(["herbe", "sapin1","cerisier","boulot1","boulot2"]) #Herbe/champ
+    vegetation.append(["herbe", "sapin2","cerisier","boulot1","boulot2","arbrerond"]) #Feuilluts
+    vegetation.append(["herbe", "sapin3","petitarbre","sapin2","sapin1"]) #Altitude
         
     self.vegetation = NodePath("vegetation")
     self.vegetation.reparentTo(self.racine)
@@ -413,20 +413,24 @@ class Geoide:
         h1 = self.elements[0].couleurSommet(sommet)[2]
         if h1>0:
           for i in range(0, int(random.random()*int(general.configuration.getConfiguration("planete","Generation", "nombre-bosquet","2")))):
-            if random.random()>float(general.configuration.getConfiguration("planete","Generation", "densite-bosquet","0.8")):
+            if random.random()>1.0-float(general.configuration.getConfiguration("planete","Generation", "densite-bosquet","0.8")):
               alt=-1
               cpt=0
               while alt<=self.niveauEau and cpt<10:
                 cpt+=1
                 r1=random.random()
                 r2=random.random()
-                r3=random.random()
+                if r1+r2>1.0:
+                  r2=1.0-r1
+                r3=1.0-(r1+r2)
+                s2 = self.sommets[random.choice(self.voisinage[self.sommets.index(sommet)])]
+                s3 = self.sommets[random.choice(self.voisinage[self.sommets.index(sommet)])]
                 
-                p = sommet+Vec3(r1, r2, r3)
-                alt = self.altitude(p)
+                p = sommet*r1+s2*r2+s3*r3
+                alt = p.length()#self.altitude(p)
               if alt>self.niveauEau:
-                p.normalize()
-                p=p*alt
+                #p.normalize()
+                #p=p*alt
                 typeVegetation = random.choice(vegetation[h1])
                 sprite = general.planete.ajouteSprite(typeVegetation, p, typeVegetation)
                 sprite.rac.reparentTo(self.vegetation)
@@ -478,7 +482,7 @@ class Geoide:
     
     if general.configuration.getConfiguration("affichage", "general", "type-eau", "texture")=="shader":
       self.modeleEau.setShader( loader.loadShader( 'data/shaders/water.sha' ) )
-      tex = loader.loadTexture( 'data/textures/eau.jpg' )
+      tex = loader.loadTexture( 'data/textures/017eau.jpg' )
       self.modeleEau.setTexture( tex, 1 )
     else:
       self.modeleEau.setColor(0.0,0.0,0.0,0.5)
@@ -975,7 +979,7 @@ class Geoide:
       tex3 = loader.loadTexture( 'data/textures/herbe.png' )
       tex3.setMinfilter( Texture.FTLinearMipmapLinear )
       tex3.setMagfilter( Texture.FTLinearMipmapLinear )
-      tex4 = loader.loadTexture( 'data/textures/feuillesc.png' )
+      tex4 = loader.loadTexture( 'data/textures/herbe_2.jpg' )
       tex4.setMinfilter( Texture.FTLinearMipmapLinear )
       tex4.setMagfilter( Texture.FTLinearMipmapLinear )
       tex5 = loader.loadTexture( 'data/textures/cailloux.png' )

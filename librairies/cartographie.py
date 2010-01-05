@@ -177,7 +177,7 @@ class Cartographie:
         c2 = (max(general.planete.geoide.niveauEau, min(1.0+general.planete.geoide.delta, p2.length()))-1.0)/(general.planete.geoide.delta+general.planete.geoide.niveauEau-1.0)
         c3 = (max(general.planete.geoide.niveauEau, min(1.0+general.planete.geoide.delta, p3.length()))-1.0)/(general.planete.geoide.delta+general.planete.geoide.niveauEau-1.0)
       c = (Vec4(c1)+Vec4(c2)+Vec4(c3))/3.0
-      c = c[0]*255, c[1]*255, c[2]*255
+      c = int(c[0]*255), int(c[1]*255), int(c[2]*255)
       a1,a2,a3 = self.triangleVersCarte(p1, p2, p3, taille)
       a1 = int(a1[0]+0.5), int(a1[1]+0.5)
       a2 = int(a2[0]+0.5), int(a2[1]+0.5)
