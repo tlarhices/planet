@@ -45,3 +45,7 @@ class Bulbe:
       
   def seFaitAttaquerPar(self, sprite):
     self.attaquants[sprite]=0.0
+
+  def detruit(self):
+    pass
+    

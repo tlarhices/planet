@@ -21,20 +21,23 @@ class AIPlugin:
   plugins=None
   
   def __init__(self):
+    """Gère les plugins d'IA, à ne créer qu'une fois"""
     self.plugins={}
     
   def scan(self):
+    """Scan le dossier de plugins d'IA et en fait la liste"""
     for fichier in os.listdir(os.path.join(".","librairies","ai")):
       if fichier.endswith(".py"):
         try:
           _temp = __import__(fichier[:-3], globals(), locals(), ['Bulbe'], -1)
-          bulbe = _temp.Bulbe(None)
+          bulbe = _temp.Bulbe(None) #On appel le constructeur pour être sûr que ça marche et attraper les infos de classe
           print "AIPlugin :: trouvé plugin `",bulbe._classe_,"` dans le fichier",os.path.join(".","librairies","ai",fichier)
           self.plugins[bulbe._classe_]=_temp.Bulbe
         except AttributeError:
           print "Avertissement :: ",os.path.join(".","librairies","ai",fichier),"n'est pas un plugin d'IA valide"
           
   def getIA(self, type):
+    """Retourne le plugin d'IA demandé s'il existe ou None"""
     if not type in self.plugins.keys():
       print "Erreur AIPlugin :: Plugin d'IA '"+str(type)+"' inexistant ou invalide"
       if len(self.plugins)>0:
@@ -61,7 +64,7 @@ class AINavigation:
   # Création d'infos ---------------------------------------------------    
   def anglePassage(self, idxSommet1, idxSommet2, estSommets):
     """Retourne l'angle necessaire pour passer du sommet idxSommet1 au sommet idxSommet2"""
-    general.TODO("Vérifier que l'angle soit calculer comme il devrait être")
+    general.TODO("Vérifier que l'angle soit calculé comme il devrait être")
     
     if estSommets:
       ptxSommet1, ptxSommet2 = Vec3(general.planete.geoide.sommets[idxSommet1]), Vec3(general.planete.geoide.sommets[idxSommet2])
@@ -77,6 +80,13 @@ class AINavigation:
     return angle
     
   def peutPasser(self, idxSommet1, idxSommet2, angleSolMax=None):
+    """
+    Retourne True si l'angle pour passer de idxSommet1 à idxSommet2
+    est inférieur à angleSolMax et si aucun des 2 sommets ne se trouve
+    sous l'eau
+    """
+    general.TODO("Ajouter le support des sprites qui savent nager et voler")
+    
     if angleSolMax==None:
       angleSolMax = self.angleSolMax
       
@@ -88,6 +98,7 @@ class AINavigation:
         
         connu = True
         
+        #Le terrain est trop pentu
         if angle >= angleSolMax or angle <= -angleSolMax:
           return False
         
@@ -95,6 +106,7 @@ class AINavigation:
         if general.planete.geoide.sommets[idxSommet2].length() <= general.planete.geoide.niveauEau or general.planete.geoide.sommets[idxSommet1].length() <= general.planete.geoide.niveauEau:
           return False
           
+    #idxSommet1 n'est pas à coté de idxSommet2
     if not connu :
       print "Erreur navigation, arc inconnu", idxSommet1, idxSommet2
       
@@ -254,15 +266,20 @@ class AINavigation:
   # Fin Recherche d'itinéraire -----------------------------------------
   
 class AI:
+  """Le centre de l'IA des sprite"""
   sprite = None
   comportement = None
   bulbe = None
   
   def __init__(self, sprite):
+    """Construit une IA pour sprite"""
     self.sprite = proxy(sprite)
+    #Prépare les moulinettes de base
     self.comportement = AIComportement(self)
     
   def choisitComportement(self, type):
+    """Choisit un type de comportement pour cette IA"""
+    #On charge un nouveau type de comportement depuis le plugin
     self.bulbe = general.aiPlugin.getIA(type)
     if self.bulbe == None:
       print "AI :: Impossible de charger comportement"
@@ -270,21 +287,31 @@ class AI:
       self.bulbe=self.bulbe(self.sprite)
     
   def ping(self, temps):
+    """Boucle de calcul de l'IA"""
+    #On calcul chaque comportement
     self.comportement.ping(temps)
+    
+    #On calcul l'accélération et la direction du déplacement
     acceleration = self.comportement.steeringForce / self.sprite.masse
     self.sprite.inertieSteering = acceleration
     self.sprite.direction = Vec3(self.comportement.steeringForce)
     self.sprite.direction.normalize()
     
+    #On ping l'IA comportementale
     if self.bulbe != None:
       self.bulbe.ping(temps)
     
   def clear(self):
+    """Purge l'IA"""
     self.sprite = None
-    self.comportement.clear()
-    self.comportement = None
+    if self.comportement!=None:
+      self.comportement.clear()
+      self.comportement = None
+    if self.bulbe!=None:
+      self.bulbe.detruit()
     
   def sauvegarde(self):
+    """Sauvegarde l'IA dans un fichier"""
     out = ""
     if self.comportement != None:
       out+=self.comportement.sauvegarde()
@@ -293,6 +320,7 @@ class AI:
     return out
     
 class AIComportementUnitaire:
+  """Définit la classe de base de la gestion des comportements"""
   comportement = None
   priorite = None
   force = None
@@ -316,14 +344,13 @@ class AIComportementUnitaire:
     self.comportement = None
     self.fini = True
     
-    
-
 class SuitChemin(AIComportementUnitaire):
   chemin = None
   courant = None
   cible = None
   
   def __init__(self, chemin, cible, comportement, priorite):
+    """Fait suivre au sprite le chemin allant à cible"""
     AIComportementUnitaire.__init__(self, comportement, priorite)
     self.chemin = chemin
     self.cible = cible
@@ -331,8 +358,11 @@ class SuitChemin(AIComportementUnitaire):
       self.nettoieChemin()
     
   def nettoieChemin(self):
+    """Simplifie le début et la fin des chemins supprimant des points de passages inutiles"""
     if self.chemin==None:
       return
+      
+    general.TODO("Vérifier si en troncant, on ne jette pas le sprite à la mer")
       
     if len(self.chemin)>2:
       if (self.getCoord(self.chemin[0])-self.getCoord(self.chemin[1])).lengthSquared() > (self.getCoord(self.chemin[0])-self.getCoord(self.chemin[2])).lengthSquared():
@@ -344,6 +374,7 @@ class SuitChemin(AIComportementUnitaire):
         print "Troncage du chemin pour",self.chemin
   
   def afficheChemin(self):
+    """Affiche le chemin à l'écran"""
     if self.chemin==None:
       return
       
@@ -357,16 +388,22 @@ class SuitChemin(AIComportementUnitaire):
         prev = element
         
   def getCoord(self, point):
+    """
+    Retourne les coordonnées du point
+    (Traduit les indices de sommets en coordonnées de sommet)
+    """
     if isinstance(point, int):
       return general.planete.geoide.sommets[point]
     return point
     
   def ping(self, temps):
+    """Boucle de calcul"""
     if self.chemin == None:
       #On a pas de chemin à suivre
       self.supprime()
       return
       
+    #Si le chemin est une socket, alors on est en train d'attendre de recevoir un résultat de l'IA de navigation
     if not isinstance(self.chemin, list):
       if self.chemin.poll():
         recep = self.chemin.recv()
@@ -384,6 +421,7 @@ class SuitChemin(AIComportementUnitaire):
       return
       
     if self.courant == None:
+      #On change de point de contrôle
       if general.DEBUG_AI_SUIT_CHEMIN:
         print "va vers checkpoint suivant..."
       general.TODO("Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est")
@@ -414,10 +452,12 @@ class VaVers(AIComportementUnitaire):
   fini = False
   
   def __init__(self, cible, comportement, priorite):
+    """Déplace l'IA cers le point cible en ligne droite"""
     AIComportementUnitaire.__init__(self, comportement, priorite)
     self.cible = cible
     
   def ping(self, temps):
+    """Boucle de calcul"""
     if self.cible == None:
       #on a nulle part où aller
       self.supprime()
@@ -453,14 +493,24 @@ class AppelFonction(AIComportementUnitaire):
   dico = None
   
   def __init__(self, fonction, dico, comportement, priorite):
+    """
+    Appel la fonction, lui donnant le dictionnaire de paramètres
+    Le paramètre "temps" sera automatiquement ajouté et/ou mit à jour au temps de ping du comportement
+    La fonction peut retourner :
+    - -1 : Pas besoin de rappeler la fonction, on a fini
+    - 0 : La fonction n'a rien fait, on la rappel au ping suivant
+    - 1 : La fonction a fait un truc mais demande à être rappelée au ping suivant
+    """
     AIComportementUnitaire.__init__(self, comportement, priorite)
     self.fonction = fonction
     self.dico = dico
     
   def ping(self, temps):
+    """Boucle de calcul"""
     if self.fini:
       return
       
+    #Met à jour l'info de temps dans le dico
     if "temps" in self.dico.keys():
       self.dico["temps"]=temps
       
@@ -474,11 +524,13 @@ class Routine(AIComportementUnitaire):
   comportementBC = None
   
   def __init__(self, comportement, priorite):
+    """Exécute des tâches selon une checkliste"""
     AIComportementUnitaire.__init__(self, comportement, priorite)
     self.elements = []
     self.comportementBC = comportement
     
   def ajouteCheck(self, element, cyclique, priorite):
+    """Ajoute une nouvelle tâche, si cyclique==True, alors elle sera replacée à la fin de la liste lors de son exécution"""
     if self.elements == None:
       self.elements = []
       self.fini = False
@@ -487,6 +539,7 @@ class Routine(AIComportementUnitaire):
     self.elements.append((element, cyclique, priorite))
     
   def ping(self, temps):
+    """La boucle de calcul"""
     if self.elements == None:
       #on a rien à faire
       self.supprime()
@@ -518,6 +571,7 @@ class Routine(AIComportementUnitaire):
       self.courant = None
       
   def produitTache(self, tache, priorite):
+    """Tranforme la tache en quelque chose d'utilisable"""
     if True:#isinstance(tache, list):
       fonction, dico = tache
       return AppelFonction(fonction, dico, self.comportement, priorite)
@@ -529,18 +583,17 @@ class Routine(AIComportementUnitaire):
     self.courant = None
     
 class AIComportement:
-  ai = None
-  leader = None
-  recrues = None
-  checklist = None
-  steeringForce = None
-  comportements = None
-  ennui = None
+  ai = None #L'IA qui gère le sprite
+  leader = None #Le chef du sprite (s'il en a un)
+  recrues = None #Les sprites qui ont cette IA pour chef (s'il y en a)
+  steeringForce = None #La force produite par l'IA (la direction et la vitesse à laquelle on y va)
+  comportements = None #La liste de tous les bouts d'IA qu'il faut prendre en compte pour le calcul
+  ennui = None #Vaut True si l'IA s'ennuie (elle n'a rien à faire) (hook vers le plugin)
   
   def __init__(self, AI):
+    """Le centre de la partie steering de l'IA"""
     self.ai = proxy(AI)
     self.recrues = []
-    self.checklist = []
     self.steeringForce = Vec3(0.0, 0.0, 0.0)
     self.comportements = []
     self.ennui = False
@@ -555,19 +608,18 @@ class AIComportement:
       out += "\r\n"
     if self.leader!=None:
       out += "aicomportement-leader:"+self.leader.id+":\r\n"
-    if len(self.checklist)>0:
-      general.TODO("AIComportement::sauvegarde :: Sauvegarde de la checklist")
-      out += "aicomportement-checklist:"+str(self.checklist)+":\r\n"
     for comportement in self.comportements:
       out+=comportement.sauvegarde()
     return out
     
   def ping(self, temps):
+    """Boucle de calcul"""
     force = Vec3(0.0,0.0,0.0)
     facteurs = 0.0
     
-    finis = []
+    finis = [] #La liste des comportements qui ont finis (à retirer)
     
+    #On ping chaque comportement et on regarde là où il tente d'emmener l'IA
     for comportement in self.comportements:
       comportement.ping(temps)
       if not comportement.fini:
@@ -576,6 +628,7 @@ class AIComportement:
       else:
         finis.append(comportement)
         
+    #On retire les comportements qui ont fini
     for comportement in finis:
       while self.comportements.count(comportement)>0:
         self.comportements.remove(comportement)
@@ -584,16 +637,17 @@ class AIComportement:
       print self.ai.sprite.id,"somme forces",force
       print self.ai.sprite.id,"somme facteurs", facteurs
       
+    #On calcul la force résultante
     if facteurs!=0:
       delta = 1.0/facteurs
     else:
       delta = 0.0
-      
     force = force*delta
     self.steeringForce = force
     if general.DEBUG_AI_PING_PILE_COMPORTEMENT:
       print self.ai.sprite.id,"steering force", facteurs
       
+    #On met à jour les hook de l'IA
     if len(self.comportements)<=0:
       self.ennui = True
       if self.ai.bulbe != None:
@@ -616,6 +670,7 @@ class AIComportement:
       - None -> uniquement les sprites qui n'appartiennent à personne
       - -1 -> tous les sprites
     strict : si True, alors le sprite retourné possédera tous les types de ressource demandé, sinon le plus proche qui en a au moins une
+    DANGER : retourne une Socket
     """
     parent_conn, child_conn = Pipe()
     p = Process(target=self._chercheSpriteProche_thread, args=(child_conn, depot, ressources, joueur, strict))
@@ -623,11 +678,13 @@ class AIComportement:
     return parent_conn
 
   def _chercheSpriteProche_thread(self, conn, depot, ressources, joueur, strict):
+    """A ne pas appeler directement, utiliser chercheSpriteProche"""
     try:
       proche = None
       distance = None
       distanceA = None
       
+      #Regarde si les ressources correspondent à la requète
       def testeRessources(trouver, contenu, strict=False):
         for element in trouver:
           if element in contenu.keys():
@@ -638,7 +695,7 @@ class AIComportement:
               return False #Strict et il en manque au moin 1
         return True #Strict et on a tout trouvé
         
-      
+      #On cherche dans tous les sprites le sprite le plus proche (en longueur de chemin et pas à vol d'oiseau) qui correspond à la requète
       for sprite in general.planete.sprites:
         if joueur==-1 or sprite.joueur==joueur or sprite.joueur.nom==joueur:
           if ressources==-1 or testeRessources(ressources, sprite.contenu, strict):
@@ -659,13 +716,19 @@ class AIComportement:
       self.afficheErreur(str(inst))
     
   def calculChemin(self, debut, fin, priorite):
+    """
+    Calcule le chemin allant de debut à fin (retourne une chaine de caractère)
+    DANGER : retourne une Socket
+    """
     parent_conn, child_conn = Pipe()
     p = Process(target=self._calculChemin_thread, args=(child_conn, debut, fin, priorite))
     p.start()
     self.suitChemin(parent_conn, fin, priorite)
     
   def _calculChemin_thread(self, conn, debut, fin, priorite):
+    """A ne pas appeler directement, utiliser calculChemin"""
     try:
+      #Prépare les coordonnées
       if isinstance(debut, int):
         idP=debut
       else:
@@ -674,6 +737,7 @@ class AIComportement:
         idC=fin
       else:
         idC = general.planete.geoide.trouveSommet(fin, tiensCompteDeLAngle=True)
+      #Fait le calcul de navigation
       chemin = general.planete.aiNavigation.aStar(idP, idC)
       
       print "De",idP,"à",idC,":",
@@ -681,6 +745,7 @@ class AIComportement:
         print chemin
       else:
         print "impossible"
+      #Retourne le chemin
       conn.send(str(chemin))
     except Exception as inst:
       self.afficheErreur(str(inst))
@@ -732,25 +797,35 @@ class AIComportement:
     print
       
   def piller(self, sprite, priorite):
+    """Récupère les ressources contenues dans sprite"""
     print self.ai.sprite.id, "va chopper des ressources à",sprite.id
     self.routine([self.ai.sprite.piller, {"sprite":sprite, "temps":0.0}], False, priorite)
     
   def suitChemin(self, chemin, fin, priorite):
+    """Suit le chemin"""
     self.comportements.append(SuitChemin(chemin, fin, self, priorite))
     
   def vaVers(self, cible, priorite):
+    """Va vers la cible en ligne droite"""
     self.comportements.append(VaVers(cible, self, priorite))
 
   def fuit(self, cible, distancePanique, distanceOK, priorite):
+    """
+    Fuit la cible si la distance entre self et cible est < à distancePanique
+    redevient normal si cette distance est supérieure à distanceOK
+    """
     self.comportements.append(Fuit(cible, distancePanique, distanceOK, self, priorite))
 
   def poursuit(self, cible, distanceMax, priorite):
-    self.comportements.append(Poursuit(cible, distanceMax, self,priorite))
+    """Poursuit un sprite jusqu'à ce que la distance parcourue soit supérieure à distanceMax"""
+    self.comportements.append(Poursuit(cible, distanceMax, self, priorite))
 
   def reconnaissance(self, rayonZone, rayonChangeDirection, priorite):
+    """Se promène dans une zone de rayon rayonZone autour de sa position initiale variant sa direction selon rayonChangeDirection"""
     self.comportements.append(Reconnaissance(rayonZone, rayonChangeDirection, self, priorite))
 
   def routine(self, checklist, cyclique, priorite):
+    """Effectue des taches (cycliques ou non) selon une liste"""
     routine = None
     for comportement in self.comportements:
       if isinstance(comportement, Routine):
@@ -761,19 +836,23 @@ class AIComportement:
     routine.ajouteCheck(checklist, cyclique, priorite)
     
   def devientChef(self):
-    self.leader = self
+    """Devient le leader d'une armée"""
+    self.leader = None
     
   def recrute(self, ai):
-    if self.leader!=None and self.leader!=self:
+    """Une ai se met sous ses ordres"""
+    if self.leader!=None:
+      #Si on a un leader, alors l'ai va suivre ce leader aussi
       self.leader.recrute(ai)
     else:
-      if self.leader==None:
-        self.devientChef()
-      ai.leader=self
+      #Si on a pas de leader, on le devient
+      ai.leader=proxy(self)
+      #on dit à l'AI de poursuivre indéfiniment
       ai.comportement.poursuit(self, -1, 0.75)
       self.recrues.append(ai)
       
   def dissolution(self):
+    """On dissous son armée (si on en a une)"""
     for ai in self.recrues:
       ai.dissolution()
       ai.comportement._poursuit = None

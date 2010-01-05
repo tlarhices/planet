@@ -28,6 +28,7 @@ from ai import *
 from joueur import *
 from gui import *
 from cartographie import Cartographie
+from weakref import proxy
 
 try:
     import psyco
@@ -71,14 +72,19 @@ class Start:
     general.DEBUG_AI_SUIT_CHEMIN = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_SUIT_CHEMIN","f")=="t"
     general.DEBUG_AI_PING_PILE_COMPORTEMENT = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_PING_PILE_COMPORTEMENT","f")=="t"
     
+    #Gère le dessin des cartes
     general.cartographie = Cartographie()
     
+    #Gère les types de comportements d'IA
     general.aiPlugin = AIPlugin()
     general.aiPlugin.scan()
     
+    
     if base.camLens != None:
+      #Si on a une fenêtre ouverte, on charge l'interface graphique
       general.interface = Interface()
     else:
+      #Sinon (étrange debug mode console uniquement) on la remplace par une fausse classe d'interface
       class DUMMYCAMERA:
         def getPos(self, dummy=None):
           return Vec3(0.0,0.0,0.0)
@@ -104,35 +110,44 @@ class Start:
           
       general.interface = DUMMY(self)
     
+    #On lance PStats (debugger de panda3d) si la configuration dit qu'on en a envie
     if general.configuration.getConfiguration("debug", "panda", "DEBUG_PANDA_VIA_PSTATS","f")=="t":
       #Profile du code via PStat
       PStatClient.connect()
 
+    #On affiche le compteur d'images par seconde si besoin est
     if general.configuration.getConfiguration("affichage", "general", "afficheFPS","f")=="t":
       base.setFrameRateMeter(True)
-    #Place une sphère à la place de la planète pendant la construction
+      
+    #On fabrique une planète toute simple pour faire un fond au menu
     general.planete = Planete()
     general.planete.seuilSauvegardeAuto = -1
     general.planete.fabriqueNouvellePlanete(tesselation=3, delta=0.2)
     general.planete.fabriqueModel()
     
+    #general.io est crée par l'interface
+    #Place la caméra dans l'arbre de rendu
     general.io.positionneCamera(render)
+    
     #On affiche le menu principal
     general.interface.lanceInterface()
     
   def start(self):
     """Lance le rendu et la boucle de jeu"""
 
-    if general.planete == None:
-      print "Vous devez créer une planète avant !"
-      return
-      
     #On ajoute les joueurs
+    general.TODO("Faire la création des joueurs comme il faut et pas hardcodé")
     j1 = JoueurLocal("Joueur 1", (0.0, 0.0, 1.0, 1.0))
-    self.joueur = j1
+    general.TODO("Passer le pointeur sur joueur local dans general")
+    self.joueur = proxy(j1) #Le joueur 1 est le joueur local, on le garde en temps que tel
     j2 = JoueurIA("Joueur 2", (1.0, 0.0, 0.0, 1.0))
+    
+    #On place les joueurs sur la planète
     general.planete.ajouteJoueur(j1)
     general.planete.ajouteJoueur(j2)
+    
+    general.TODO("Donner des gugusses aux joueurs de façon non aléatoire")
+    #Ajoute des gugusses aux joueurs
     for i in range(0, 10):
       OK=False
       while not OK:
@@ -148,24 +163,24 @@ class Start:
 
     #On construit le modèle 3D de la planète
     general.planete.fabriqueModel()
+    
+    #On retire la planete qui servait de fond de menu
     general.planete.afficheTexte("Supression de la planète du menu")
     general.tmp.detruit()
     general.tmp = None
+    
+    #On repositionne la caméra (la distance du sol peu avoir changé, tout comme l'épaisseur d'atmosphère)
     general.io.positionneCamera()
     
 
   def afficheStat(self):
+    #Affiche le contenu du chronomètre
     general.afficheStatChrono()
 
   def ping(self, task):
     """Fonction exécutée à chaque image"""
+    #On met à jour l'heure actuelle pour les calculs dans les shaders
     render.setShaderInput( 'time', task.time )
-    #Calculs du temps écoulé depuis l'image précédente
-    if self.preImage != None:
-      deltaT = task.time - self.preImage
-    else:
-      deltaT = task.time
-    self.preImage = task.time
     
     #On indique que l'on veut toujours cette fonction pour la prochaine image
     return Task.cont
@@ -174,20 +189,27 @@ class Start:
   ### Gestion de la planète --------------------------------------------
   def fabriquePlanete(self):
     """Construit une nouvelle planète via les gentils algos"""
+    #On place la planète courante comme fond de menu
     general.tmp=general.planete
     general.planete=None
-    self.detruit()
+    
+    #On fabrique une nouvelle planete vide
     general.planete = Planete()
+    #On lit la configuration
     tesselation = int(general.configuration.getConfiguration("planete", "generation", "tesselation", "4"))
     delta = float(general.configuration.getConfiguration("planete", "generation", "delta", "0.2"))
+    #On fabrique la planète
     general.planete.fabriqueNouvellePlanete(tesselation=tesselation, delta=delta)
     
   def chargePlanete(self, fichierPlanete):
     """Charge une planète depuis un fichier"""
+    #On place la planète courante comme fond de menu
     general.tmp=general.planete
     general.planete=None
-    self.detruit()
+    
+    #On fabrique une nouvelle planete vide
     general.planete = Planete()
+    #On charge la planète
     general.planete.charge(fichier=fichierPlanete)
     
   def detruit(self):
@@ -200,6 +222,7 @@ class Start:
   ### Autres -----------------------------------------------------------
   def modifieAltitude(self, direction):
     """Change l'altitude d'un point, si direction>0 alors l'altitude sera accrue sinon diminuée"""
+    general.TODO("Déplacer la modification d'altitude dans general.io")
     general.io.testeSouris()
     
     if general.planete.geoide.survol == None:
@@ -272,12 +295,13 @@ def deb():
 
   #On lance la boucle magique de panda
   run()
+  #Boucle qui fait presque tout comme "run()"
   """while True:
     taskMgr.step()
+    #VSynch à 60FPS
     time.sleep(1.0 / 60.0)"""
 
 if __name__=="__main__":
-
   fichierConfig = None
   profile = False
   besoinDetails = False
@@ -296,19 +320,26 @@ if __name__=="__main__":
     else:
       assert False, "Paramètre inconnu"
       
-
   general.configuration = Configuration()
   #Charge la configuration par défaut
   general.configuration.charge(os.path.join(".","configuration","defaut.cfg"))
-  #Si on a une configuration utilisateur, on écrase celle par défaut
-  general.configuration.charge(os.path.join(".","configuration","utilisateur.cfg"), erreurSiExistePas=False)
+  
+  if fichierConfig == None:
+    #Si on a une configuration utilisateur, on écrase celle par défaut
+    general.configuration.charge(os.path.join(".","configuration","utilisateur.cfg"), erreurSiExistePas=False)
+  else:
+    #Si on a un fichier de config donné par ligne de commande, on l'utilise
+    general.configuration.charge(fichierConfig, erreurSiExistePas=True)
 
   from pandac.PandaModules import *
 
   #Change le titre de la fenêtre
   loadPrcFileData("",u"window-title Planète".encode("iso8859"))
+  #Change le dossier où sera stocké les données temporaires
   loadPrcFileData("","model-cache-dir ./data/cache/")
+  #Debug si les nuages déconnent
   #loadPrcFileData("","hardware-point-sprites 0")
+  
   #Change la résolution de la fenêtre
   resolution = general.configuration.getConfiguration("affichage","general", "resolution","640 480")
   if resolution == "0 0":
@@ -316,15 +347,20 @@ if __name__=="__main__":
     loadPrcFileData("",u"window-type none")
   else:
     loadPrcFileData("",u"win-size "+resolution)
+    
   #Kicke la synchro avec VSynch pour pouvoir dépasser les 60 FPS
   loadPrcFileData("",u"sync-video #f")
+  
   #On bloque les touches cholaxes de windows (shift pressé plus de 5s, plus de 5 fois rapidement, ...)
   loadPrcFileData("",u"disable-sticky-keys 1")
-  #On dit à Panda d'utiliser le coeur le moins utilisé pour le moment
+  
+  #On dit à Panda d'utiliser le coeur le moins utilisé pour le moment et pas le coeur 1
   loadPrcFileData("",u"client-cpu-affinity -1")
+  
   import direct.directbase.DirectStart
   from direct.task import Task
 
+  #Change le frontclip
   if base.camLens != None:
     base.camLens.setNear(0.001)
 
