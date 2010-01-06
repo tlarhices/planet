@@ -63,23 +63,23 @@ class Theme(Theme):
         (0,0,0,1))
         
         
-    BLACK_COMPL_SMALL_FONT = Font(
+    """BLACK_COMPL_SMALL_FONT = Font(
         "BLACK_COMPL_SMALL_FONT",
-        "theme/fonts/DejaVuSans.ttf",
+        "theme/fonts/ttf-japanese-mincho.ttf",
         8,
         (0,0,0,1))
 
     BLACK_COMPL_FONT = Font(
         "BLACK_COMPL_FONT",
-        "theme/fonts/DejaVuSans.ttf",
+        "theme/fonts/ttf-japanese-mincho.ttf",
         10,
         (0,0,0,1))
     
     BLACK_COMPL_BIG_FONT = Font(
         "BLACK_COMPL_BIG_FONT",
-        "theme/fonts/DejaVuSans.ttf",
+        "theme/fonts/ttf-japanese-mincho.ttf",
         14,
-        (0,0,0,1))
+        (0,0,0,1))"""
 
     DEFAULT_FONT = BLACK_FIX_FONT
     

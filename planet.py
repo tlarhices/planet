@@ -47,8 +47,6 @@ class Start:
   #Autres
   preImage = None #L'heure à laquelle la précédente image a été rendue
   
-  joueur = None
-  
   ### Initialisation ---------------------------------------------------
   def __init__(self):
     
@@ -103,7 +101,7 @@ class Start:
         def afficheTexte(self, texte, type="normal", forceRefresh=False):
           print "[",type,"]",texte
         def ajouteJoueur(self, joueur):
-          self.joueur = joueur
+          pass
         def lanceInterface(self):
           self.start.fabriquePlanete()
           self.start.start()
@@ -138,8 +136,6 @@ class Start:
     #On ajoute les joueurs
     general.TODO("Faire la création des joueurs comme il faut et pas hardcodé")
     j1 = JoueurLocal("Joueur 1", (0.0, 0.0, 1.0, 1.0))
-    general.TODO("Passer le pointeur sur joueur local dans general")
-    self.joueur = proxy(j1) #Le joueur 1 est le joueur local, on le garde en temps que tel
     j2 = JoueurIA("Joueur 2", (1.0, 0.0, 0.0, 1.0))
     
     #On place les joueurs sur la planète

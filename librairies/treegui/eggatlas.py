@@ -97,6 +97,10 @@ class EggAtlas:
             image = self.images[name]
             return image.x,image.y,image.w,image.h
         except KeyError:
+            for key in self.images.keys():
+                if key.endswith(name):
+                    image = self.images[key]
+                    return image.x,image.y,image.w,image.h
             print "can't find",name,"in:",self.images.keys()
             return None
     
@@ -234,17 +238,6 @@ class EggAtlasMaker:
         def dec(s):
             return int(s, 16)
          
-        unicodePlanes = [(-1, dec("00FF")), (dec("10000"), dec("1FFFF")), (dec("20000"), dec("2FFFF")), (dec("E0000"), dec("EFFFF"))]
-        #In order :
-        #Basic multilingual plane (BMP) Note : The start of -1 is to be sure to have an invalid character in the font creation
-        #Supplementary Multilingual Plane (SMP)
-        #Supplementary Ideographic Plane (SIP)
-        #Supplementary Special-purpose Plane (SSP)
-        # -- Skipped --
-        #Range 30000-3FFFF is Tertiary Ideographic Plane (TIP) but not yet in use in unicode
-        #Range 40000-DFFFF is unassigned
-        #Range F0000-FFFFF is Supplementary Private Use Area-A
-        #Range F0000-FFFFF is Supplementary Private Use Area-B
         
         def isGlyphValid(emptyGlyph, glyph):
           #print glyph.getTop(), glyph.getBottom(), glyph.getRight(), glyph.getLeft()
@@ -262,16 +255,25 @@ class EggAtlasMaker:
         emptyGlyph = font.getGlyph(-1)
         hasBad = False
         
-        for plane in unicodePlanes:
-          for i in range(*plane):
+        plane = (-1, dec("EFFFF"))
+        
+        #Checking in order :
+        #Basic multilingual plane (BMP) Note : The start of -1 is to be sure to have an invalid character in the font creation
+        #Supplementary Multilingual Plane (SMP)
+        #Supplementary Ideographic Plane (SIP)
+        #Supplementary Special-purpose Plane (SSP)
+        #Tertiary Ideographic Plane (TIP)
+        #Range F0000-FFFFF is Supplementary Private Use
+        
+        for i in range(*plane):
             if i>-1:
-              char = unichr(i)
+                char = unichr(i)
             else:
-              char = "empty" #The "missing character" glyph case
+                char = "empty" #The "missing character" glyph case
               
             if i%1000==0:
-              print "Font :: unicode plane %i/%i :: %.2f%% : %s\r" %(unicodePlanes.index(plane)+1, len(unicodePlanes), (float(i)-plane[0])/float(plane[1]-plane[0])*100, char),
-              sys.stdout.flush()
+                print "Font :: %.2f%% : %s\r" %((float(i)-plane[0])/float(plane[1]-plane[0])*100, char),
+                sys.stdout.flush()
             charName = name+str(i)
             #print i,charName,"'%s'"%char
             glyph = font.getGlyph(i)
@@ -280,9 +282,9 @@ class EggAtlasMaker:
             
             if valid or not hasBad:
                 if not valid:
-                  #We had an invalid glyph to have the "missing character" glyph
-                  hasBad=True
-                  charName=name+"empty"
+                    #We had an invalid glyph to have the "missing character" glyph
+                    hasBad=True
+                    charName=name+"empty"
                 w,h = glyph.getWidth(),glyph.getBottom()-glyph.getTop()
                 image = PNMImage(w+PADDING*2,h+PADDING*2)
                 image.addAlpha()

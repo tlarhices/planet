@@ -214,8 +214,8 @@ class Configuration:
       if not 'icone' in dicoSection.keys():
         print "manque icone !"
       else:
-        dicoSection["iconeactif"] = "theme/icones/"+dicoSection["icone"]+"-over.png"
-        dicoSection["iconeinactif"] = "theme/icones/"+dicoSection["icone"]+".png"
+        dicoSection["iconeactif"] = "icones/"+dicoSection["icone"]+"-over.png"
+        dicoSection["iconeinactif"] = "icones/"+dicoSection["icone"]+".png"
         
       for nomElement, contenuElement in contenuSection:
         if not 'nom' in contenuElement.keys():
@@ -230,8 +230,8 @@ class Configuration:
         if not 'icone' in contenuElement.keys():
           print "manque icone !"
         else:
-          contenuElement["iconeactif"] = "theme/icones/"+contenuElement["icone"]+"-over.png"
-          contenuElement["iconeinactif"] = "theme/icones/"+contenuElement["icone"]+".png"
+          contenuElement["iconeactif"] = "icones/"+contenuElement["icone"]+"-over.png"
+          contenuElement["iconeinactif"] = "icones/"+contenuElement["icone"]+".png"
         if not 'type' in contenuElement.keys():
           print "manque type !"
           contenuElement["type"] = "None"

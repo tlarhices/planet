@@ -80,6 +80,8 @@ class JoueurLocal(Joueur):
   def __init__(self, nom, couleur):
     Joueur.__init__(self, nom, couleur, True)
     self.type="local"
+    #Définit globalement qui est le joueur local
+    general.joueurLocal = proxy(self)
 
 class JoueurDistant(Joueur):
   """Un joueur qui provient du réseau, peut-être humain ou une IA qui est sur une autre machine"""
