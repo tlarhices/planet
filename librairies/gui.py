@@ -314,7 +314,7 @@ class Historique(MenuCirculaire):
         aVirer.append(self.messages[i])
       else:
         #Fait pulser
-        composant.alpha = abs(restant%2-1)
+        composant.color = (composant.color[0], composant.color[1], composant.color[2], abs(restant%2-1))
       self.messages[i] = (restant, type, message, composant)
       
     for message in aVirer:
@@ -508,7 +508,7 @@ class ListeUnite(MenuCirculaire):
         sprite = general.configuration.parseSprite(os.path.join(".","data","sprites", elem))
         if sprite["constructible"]:
           check = self.ajouteGauche(PictureRadio(sprite["icone-actif"], sprite["icone-inactif"], sprite["nom"].capitalize(), width=LARGEUR_BOUTON))
-          check.alpha = 0.5
+          check.color = (check.color[0], check.color[1], check.color[2], 0.5)
           check.style = "DEFAULT"
           check.callback = self.clic
     self.fabrique()
