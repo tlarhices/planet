@@ -10,7 +10,7 @@ import os
 import sha
 from imagetable import ImageTable
 
-import re
+import re, sys
 
 def getAllType(eggNode,eggType):
     """ find all type in egg """
@@ -205,8 +205,9 @@ class EggAtlasMaker:
 
     def doFonts(self,fonts):
         for font in fonts:
-            print "doing font:",font
+            print "Doing font:",font
             self.doFont(font)
+        print "End of fonts"
 
     def doFont(self,fontdef):
         
@@ -221,8 +222,6 @@ class EggAtlasMaker:
         
         PADDING = 0
         
-        open(fontdef.filename)
-        
         font = PNMTextMaker(fontdef.filename,0)
         font.setPixelsPerUnit(size)
         font.setPointSize(size)
@@ -232,31 +231,80 @@ class EggAtlasMaker:
         
         tmp = ConfigVariableFilename("model-cache-dir").getStringValue()
          
-        for i in range(32,128):
-            char = chr(i)
+        def dec(s):
+            return int(s, 16)
+         
+        unicodePlanes = [(-1, dec("00FF")), (dec("10000"), dec("1FFFF")), (dec("20000"), dec("2FFFF")), (dec("E0000"), dec("EFFFF"))]
+        #In order :
+        #Basic multilingual plane (BMP) Note : The start of -1 is to be sure to have an invalid character in the font creation
+        #Supplementary Multilingual Plane (SMP)
+        #Supplementary Ideographic Plane (SIP)
+        #Supplementary Special-purpose Plane (SSP)
+        # -- Skipped --
+        #Range 30000-3FFFF is Tertiary Ideographic Plane (TIP) but not yet in use in unicode
+        #Range 40000-DFFFF is unassigned
+        #Range F0000-FFFFF is Supplementary Private Use Area-A
+        #Range F0000-FFFFF is Supplementary Private Use Area-B
+        
+        def isGlyphValid(emptyGlyph, glyph):
+          #print glyph.getTop(), glyph.getBottom(), glyph.getRight(), glyph.getLeft()
+          if glyph.getHeight()!=emptyGlyph.getHeight():
+            return True
+          if glyph.getWidth()!=emptyGlyph.getWidth():
+            return True
+            
+          for x in range(0, glyph.getWidth()):
+            for y in range(0, glyph.getHeight()):
+              if glyph.getValue(x,y)!=emptyGlyph.getValue(x,y):
+                return True
+          return False
+         
+        emptyGlyph = font.getGlyph(-1)
+        hasBad = False
+        
+        for plane in unicodePlanes:
+          for i in range(*plane):
+            if i>-1:
+              char = unichr(i)
+            else:
+              char = "empty" #The "missing character" glyph case
+              
+            if i%1000==0:
+              print "Font :: unicode plane %i/%i :: %.2f%% : %s\r" %(unicodePlanes.index(plane)+1, len(unicodePlanes), (float(i)-plane[0])/float(plane[1]-plane[0])*100, char),
+              sys.stdout.flush()
             charName = name+str(i)
             #print i,charName,"'%s'"%char
             glyph = font.getGlyph(i)
-            w,h = glyph.getWidth(),glyph.getBottom()-glyph.getTop()
-            image = PNMImage(w+PADDING*2,h+PADDING*2)
-            image.addAlpha()
-            image.alphaFill()
-            #print "  ",w,h
             
-#            print glyph.getLeft(),glyph.getRight()
-#            print glyph.getTop(),glyph.getBottom()
-#            print glyph.getAdvance()
+            valid = isGlyphValid(emptyGlyph, glyph)
             
-            glyph.place(image,PADDING,glyph.getTop()+PADDING,color)
-            #image.write(tmp+"/%i.png"%i)
-            self.extents[charName] = (
-                glyph.getAdvance(),
-                glyph.getBottom()-2*glyph.getTop())
-            
-            self.it.add(charName,image)
+            if valid or not hasBad:
+                if not valid:
+                  #We had an invalid glyph to have the "missing character" glyph
+                  hasBad=True
+                  charName=name+"empty"
+                w,h = glyph.getWidth(),glyph.getBottom()-glyph.getTop()
+                image = PNMImage(w+PADDING*2,h+PADDING*2)
+                image.addAlpha()
+                image.alphaFill()
+                #print "  ",w,h
+                
+    #            print glyph.getLeft(),glyph.getRight()
+    #            print glyph.getTop(),glyph.getBottom()
+    #            print glyph.getAdvance()
+                
+                glyph.place(image,PADDING,glyph.getTop()+PADDING,color)
+                #image.write(tmp+"/%i.png"%i)
+                self.extents[charName] = (
+                    glyph.getAdvance(),
+                    glyph.getBottom()-2*glyph.getTop())
+                
+                self.it.add(charName,image)
+        print
+        print "Font done"
 
     def doImage(self,f):
-        """ process an iamge and put it into the atlas """ 
+        """ process an image and put it into the atlas """ 
         print "Doing image:",f
         i = PNMImage(f)
         i.addAlpha()

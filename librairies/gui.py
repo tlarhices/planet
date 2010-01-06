@@ -1157,7 +1157,7 @@ class Interface:
       else:
         print "["+str(type)+"]",texte
       if self.informations !=None:
-        self.informations.ajouteTexte(type, texte)
+        self.informations.ajouteTexte(type, texte.decode("UTF-8"))
         
     if forceRefresh:
       #On force le recalcul du GUI

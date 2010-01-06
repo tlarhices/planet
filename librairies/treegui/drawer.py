@@ -168,7 +168,7 @@ class Drawer:
             maxh = omaxh  
                 
             for c in line:
-                code = ord(c)            
+                code = ord(unicode(c))
                 if code <= 32:
                     u,v,w,h,e = self.atlas.getChar(name + str(77))
                     x += e[0]
@@ -176,7 +176,7 @@ class Drawer:
                 try:
                   u,v,w,h,e = self.atlas.getChar(name + str(code))
                 except KeyError:
-                  u,v,w,h,e = self.atlas.getChar(name + str(ord("?")))
+                  u,v,w,h,e = self.atlas.getChar(name + "empty")
                 build.append((x,y+e[1],u,v,w,h))
                 x += e[0]
                 maxh = max(maxh,h-e[1])
@@ -211,7 +211,7 @@ class Drawer:
                      build.append((x-w/2,y+e[1],u,v,w,h))
                 char_count += 1 
                 
-                code = ord(c)            
+                code = ord(unicode(c))
                 if code <= 32:
                     u,v,w,h,e = self.atlas.getChar(name + str(77))
                     x += e[0]
@@ -219,7 +219,7 @@ class Drawer:
                 try:
                   u,v,w,h,e = self.atlas.getChar(name + str(code))
                 except KeyError:
-                  u,v,w,h,e = self.atlas.getChar(name + str(ord("?")))
+                  u,v,w,h,e = self.atlas.getChar(name + "empty")
                 build.append((x,y+e[1],u,v,w,h))
                 x += e[0]
                 maxh = max(maxh,h-e[1])
