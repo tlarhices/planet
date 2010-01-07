@@ -5,6 +5,7 @@
 #Copyright (C) 2009 Clerc Mathias
 #See the license file in the docs folder for more details
 
+import random
 import sys
 import shutil
 import getopt
@@ -22,11 +23,11 @@ general.TODO("Sélection des unités")
 general.TODO("Groupement des unités")
 general.TODO("Formations des groupements d'unités")
 
-from planete import *
-from configuration import *
-from ai import *
-from joueur import *
-from gui import *
+from planete import Planete
+from configuration import Configuration
+import ai
+from joueur import JoueurLocal, JoueurIA
+from gui import Interface
 from cartographie import Cartographie
 from weakref import proxy
 
@@ -74,7 +75,7 @@ class Start:
     general.cartographie = Cartographie()
     
     #Gère les types de comportements d'IA
-    general.aiPlugin = AIPlugin()
+    general.aiPlugin = ai.AIPlugin()
     general.aiPlugin.scan()
     
     

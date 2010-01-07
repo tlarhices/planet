@@ -15,12 +15,10 @@ import zipfile
 
 from weakref import proxy
 
-from element import *
-from ai import *
-from sprite import *
-from joueur import *
+from element import Element
+import sprite
 
-#from pandac.PandaModules import *
+from pandac.PandaModules import *
 
 class Geoide:
   tesselation = None #Le niveau de subdivision que l'on souhaite obtenir
@@ -520,7 +518,7 @@ class Geoide:
       taille = float(general.configuration.getConfiguration("planete", "nuages", "taille", "0.15"))
       quantite = int(general.configuration.getConfiguration("planete", "nuages", "quantite", "80"))
       for i in range(0, quantite):
-        a = Nuage(densite, taille)
+        a = sprite.Nuage(densite, taille)
         a.fabriqueModel().reparentTo(nuages)
         general.planete.sprites.append(a)
       nuages.reparentTo(self.modeleCiel)

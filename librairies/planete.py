@@ -14,16 +14,15 @@ import os
 import zipfile
 import time
 
-from ai import AINavigation
+import ai
 from geoide import Geoide
-from sprite import Sprite, Nuage
-from joueur import *
+from sprite import Sprite
 
 import ImageDraw
 import ImageFilter
 import Image
 
-#from pandac.PandaModules import *
+from pandac.PandaModules import *
 
 class Planete:
   aiNavigation = None #Le bout d'AI qui contient le graphe de navigation qui est commun a toute entité de la planète
@@ -62,7 +61,7 @@ class Planete:
     
     self.fini = False
     #On calcule la navigation pour l'intelligence artificielle
-    self.aiNavigation = AINavigation()
+    self.aiNavigation = ai.AINavigation()
     taskMgr.add(self.ping, "BouclePrincipale-planete")
     
   def detruit(self):

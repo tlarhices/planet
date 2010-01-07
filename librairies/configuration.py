@@ -35,7 +35,7 @@ class Configuration:
     fichier = open(fichier, "r")
     for ligne in fichier:
       ligne = ligne.strip().lower() #On passe tout en minuscule
-      if len(ligne)>0 and ligne[0]!="#": #On saut les lignes vides ou commençant par #
+      if ligne and ligne[0]!="#": #On saut les lignes vides ou commençant par #
         if ligne.startswith("[[") and ligne.endswith("]]"): #Si la ligne est de la forme [[****]] alors c'est une section
           section = ligne[2:-2].strip()
           soussection = None
@@ -186,7 +186,7 @@ class Configuration:
     dansSection=False
     for ligne in fichier:
       ligne = ligne.strip().split("#")[0].strip().decode("utf-8")
-      if len(ligne)>0:
+      if ligne:
         if ligne[0]!="#":
           if ligne.startswith("[") and ligne.endswith("]"):
             sections.append([ligne[1:-1],[],{}])

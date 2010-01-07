@@ -40,7 +40,7 @@ class AIPlugin:
     """Retourne le plugin d'IA demandé s'il existe ou None"""
     if not type in self.plugins.keys():
       print "Erreur AIPlugin :: Plugin d'IA '"+str(type)+"' inexistant ou invalide"
-      if len(self.plugins)>0:
+      if self.plugins:
         print "Plugins chargés :"
         for element in self.plugins.keys():
           print "-",element
@@ -176,7 +176,7 @@ class AINavigation:
     f[deb] = g[deb]+h[deb] # == h[deb] ;)
     
     #On boucle tant que l'on a des sommets à parcourir
-    while len(afaire) > 0:
+    while afaire:
       #On cherche le sommet qui a un f minimal (celui qui a fait le plus court chemin et qui a potentiellement la plus courte distance à parcourir)
       x=afaire[0]
       minf = f[x]
@@ -415,7 +415,7 @@ class SuitChemin(AIComportementUnitaire):
         #self.nettoieChemin()
       return
       
-    if len(self.chemin) < 1:
+    if not self.chemin:
       #On est arrivé au bout du chemin
       self.supprime()
       return
@@ -547,7 +547,7 @@ class Routine(AIComportementUnitaire):
         self.courant.fini = True
         self.courant = None
       return
-    if len(self.elements)<1:
+    if not self.elements:
       #on a rien à faire
       self.supprime()
       if self.courant!=None:
@@ -601,7 +601,7 @@ class AIComportement:
   def sauvegarde(self):
     out = ""
     out += "aicomportement-steeringforce:"+self.ai.sprite.id+":"+str(self.steeringForce[0])+":"+str(self.steeringForce[1])+":"+str(self.steeringForce[2])+":\r\n"
-    if len(self.recrues)>0:
+    if self.recrues:
       out += "aicomportement-recrues:"
       for element in self.recrues:
         out += element.id+":"
@@ -648,7 +648,7 @@ class AIComportement:
       print self.ai.sprite.id,"steering force", facteurs
       
     #On met à jour les hook de l'IA
-    if len(self.comportements)<=0:
+    if not self.comportements:
       self.ennui = True
       if self.ai.bulbe != None:
         if self.ai.bulbe.ennui():
@@ -867,9 +867,9 @@ class AIComportement:
     self._cherche = None
     self._routine = None
     self._suitChemin = None
-    if len(self.recrues)>1:
+    if self.recrues:
       leader = self.recrues[0]
-      leader.dissolution()
-      for ai in self.recrues:
+      leader.leader=None
+      for ai in self.recrues[1:]:
         leader.recrute(ai)
     self.dissolution()
