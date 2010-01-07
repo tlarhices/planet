@@ -358,18 +358,17 @@ class Sprite:
   def miseAJourPosition(self, position):
     """Change la position de l'objet"""
     self.position = position
-      
-    self.altCarre = self.position.lengthSquared()
-    if self.altCarre < general.planete.geoide.niveauEau*general.planete.geoide.niveauEau:
-      if self.aquatique:
-        #Nage
-        pass
-      else:
-        #Se noie
-        self.tue("noyade")
     if self.modele != None:
       self.pointeRacineSol()
-    pass
+      
+      self.altCarre = self.rac.getPos(general.planete.geoide.racine).lengthSquared()
+      if self.altCarre < general.planete.geoide.niveauEau*general.planete.geoide.niveauEau:
+        if self.aquatique:
+          #Nage
+          pass
+        else:
+          #Se noie
+          self.tue("noyade")
       
   def tue(self, type, silence=False):
     """Gère la mort du sprite"""

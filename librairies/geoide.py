@@ -406,6 +406,14 @@ class Geoide:
         
     compte=0
     for sommet in self.sommets:
+      noeud = NodePath(FadeLODNode('lod'))
+      noeud.reparentTo(self.vegetation)
+      noeud.setPos(sommet)
+      
+      insertion = NodePath("insert")
+      insertion.reparentTo(noeud)
+      noeud.node().addSwitch(1.0, 0.0) 
+      
       if compte%250==0:
         general.planete.afficheTexte("Ajout de la végétation : %.2f%%" %((compte*1.0)/len(self.sommets)*100))
       compte+=1
@@ -428,12 +436,13 @@ class Geoide:
                 
                 p = sommet*r1+s2*r2+s3*r3
                 alt = p.length()#self.altitude(p)
+                p=p-sommet
               if alt>self.niveauEau:
                 #p.normalize()
                 #p=p*alt
                 typeVegetation = random.choice(vegetation[h1])
                 sprite = general.planete.ajouteSprite(typeVegetation, p, typeVegetation)
-                sprite.rac.reparentTo(self.vegetation)
+                sprite.rac.reparentTo(insertion)
                 sprite.racine.flattenStrong()
                   
                 #On tourne les arbres un peu aléatoirement et on change d'échelle pour varier un peu plus
@@ -441,6 +450,7 @@ class Geoide:
                 sprite.racine.setR(random.random()*7)
                 sprite.echelle = sprite.echelle*(1.0-random.random()/8)
                 sprite.racine.setScale(sprite.echelle)
+                sprite.racine.flattenStrong()
 
   def animEau(self, time):
     #change z component of vertices in water plane
