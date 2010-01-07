@@ -206,7 +206,8 @@ class EggAtlasMaker:
 #                letters[name] = (uv1,uv2,extendVec)
 #        self.fonts[texture] = letters
 #        
-
+    fontcharMap={}
+    
     def doFonts(self,fonts):
         for font in fonts:
             print "Doing font:",font
@@ -214,7 +215,12 @@ class EggAtlasMaker:
         print "End of fonts"
 
     def doFont(self,fontdef):
-        
+        import time
+        deb = time.time()
+        testedFont = fontdef.filename in self.fontcharMap.keys()
+        if not testedFont:
+          self.fontcharMap[fontdef.filename]=[]
+          
         color = Vec4(0,0,0,1)
         color.setX(fontdef.color[0])
         color.setZ(fontdef.color[1])
@@ -276,9 +282,16 @@ class EggAtlasMaker:
                 sys.stdout.flush()
             charName = name+str(i)
             #print i,charName,"'%s'"%char
-            glyph = font.getGlyph(i)
             
-            valid = isGlyphValid(emptyGlyph, glyph)
+            if testedFont:
+              valid = i in self.fontcharMap[fontdef.filename]
+              if valid or not hasBad:
+                glyph = font.getGlyph(i)
+            else:
+              glyph = font.getGlyph(i)
+              valid = isGlyphValid(emptyGlyph, glyph)
+              if valid:
+                self.fontcharMap[fontdef.filename].append(i)
             
             if valid or not hasBad:
                 if not valid:
@@ -303,7 +316,7 @@ class EggAtlasMaker:
                 
                 self.it.add(charName,image)
         print
-        print "Font done"
+        print "Font done", time.time()-deb
 
     def doImage(self,f):
         """ process an image and put it into the atlas """ 

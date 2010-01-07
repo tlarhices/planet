@@ -15,6 +15,7 @@ from treegui.customwidgets import *
 from treegui.core import Gui
 import theme
 import os
+import zipfile
 
 PAD = 4 #Taille de l'espace entre les composants
 HAUTEUR_BOUTON = 28 #Hauteur d'un bouton
@@ -724,6 +725,11 @@ class MenuPrincipal(MenuCirculaire):
     MenuCirculaire.__init__(self, gui)
     self.besoinRetour = False
     
+    if not os.path.exists(os.path.join(".", "sauvegardes")):
+      os.makedirs(os.path.join(".", "sauvegardes"))
+    if not os.path.join(".", "data", "planetes"):
+      os.makedirs(os.path.join(".", "data", "planetes"))
+
     self.enJeu = isinstance(self.gui.menuCourant, EnJeu)
     
     if not self.enJeu:
@@ -734,18 +740,15 @@ class MenuPrincipal(MenuCirculaire):
       for fich in os.listdir(os.path.join(".", "data", "planetes")):
         if fich.endswith(".pln"):
           cpt+=1
-      if cpt==0:
-        self.ajouteGauche(Label(u"Utiliser un planète vierge", width=LARGEUR_BOUTON))
-      else:
+      if cpt>0:
         self.ajouteGauche(Button(u"Utiliser un planète vierge", self.gui.planeteVierge, width=LARGEUR_BOUTON))
+      
       
     cpt = 0
     for fich in os.listdir(os.path.join(".", "sauvegardes")):
       if fich.endswith(".pln"):
         cpt+=1
-    if cpt==0:
-      self.ajouteGauche(Label(u"Charger une partie", width=LARGEUR_BOUTON))
-    else:
+    if cpt>0:
       self.ajouteGauche(Button(u"Charger une partie", self.gui.chargerPartie, width=LARGEUR_BOUTON))
       
     if self.enJeu:
@@ -1017,8 +1020,37 @@ class MenuCharge(MenuCirculaire):
     i=0
     for elem in self.liste:
 #      if i<len(self.liste)/2:
-      check = self.ajouteGauche(PictureRadio("theme/icones/diskette-over.png", "theme/icones/diskette.png", elem[0].capitalize(), width=LARGEUR_BOUTON))
-#      else:
+      #Lecture depuis le zip
+      zip = zipfile.ZipFile(os.path.join(".", "sauvegardes",elem[1]), "r")
+      if zip.testzip()!=None:
+        print "Charge :: Erreur : Fichier de sauvegarde corrompu !"
+      data = zip.read(os.path.basename(elem[1]))
+      zip.close()
+      lignes = data.split("\r\n")
+
+      date = ""
+      nomPlanete = ""
+      for ligne in lignes:
+        if ligne.lower().strip().startswith("details:"):
+          type, infos, inutile = ligne.lower().strip().split(":")[1:]
+          if type=="datesauvegarde":
+            date = infos.replace("-",":")
+          elif type=="nomplanete":
+            nomPlanete = infos.capitalize()
+            
+      nom = elem[0].capitalize()
+      
+      if nomPlanete != "":
+        nom = nomPlanete
+      if date != "":
+        nom += " "+date
+            
+      check = self.ajouteGauche(PictureRadio("theme/icones/diskette-over.png", "theme/icones/diskette.png", nom, width=LARGEUR_BOUTON))
+      check.style = "button"
+      check.upStyle = "button"
+      check.overStyle = "button_over"
+      check.downStyle = "button_down"
+      #      else:
 #        check = self.ajouteDroite(PictureRadio("theme/icones/diskette-over.png", "theme/icones/diskette.png", elem[0].capitalize(), width=LARGEUR_BOUTON))
       check.callback = self.clic
       i+=1

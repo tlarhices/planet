@@ -603,7 +603,7 @@ class Nuage(Sprite):
     self.taille = taille
     self.vie=100
     
-  def tue(self, type):
+  def tue(self, type, silence=False):
     """Un nuage ne peut pas mourrir"""
     return
     #if type=="noyade":

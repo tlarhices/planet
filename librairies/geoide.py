@@ -598,10 +598,10 @@ class Geoide:
       
     #On sauvegarde dans un fichier temporaire
     out = ""
-    out += "O:tesselation:"+str(tess)+":\r\n"
-    out += "O:delta:"+str(self.delta)+":\r\n"
-    out += "O:niveauEau:"+str(self.niveauEau)+":\r\n"
-    out += "O:niveauCiel:"+str(self.niveauCiel)+":\r\n"
+    out += "parametres:tesselation:"+str(tess)+":\r\n"
+    out += "parametres:delta:"+str(self.delta)+":\r\n"
+    out += "parametres:niveauEau:"+str(self.niveauEau)+":\r\n"
+    out += "parametres:niveauCiel:"+str(self.niveauCiel)+":\r\n"
     for point in self.sommets:
       out += "P:"+str(point[0])+":"+str(point[1])+":"+str(point[2])+":\r\n"
     for element in self.elements:
@@ -653,7 +653,7 @@ class Geoide:
       elements = ligne.strip().lower().split(":")
       type = elements[0]
       elements = elements[1:]
-      if type=="o":
+      if type=="parametres":
         if elements[0]=="tesselation":
           #Attrapage des infos de tesselation
           self.tesselation = int(elements[1])

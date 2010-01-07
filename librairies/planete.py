@@ -12,6 +12,7 @@ import math
 import sys
 import os
 import zipfile
+import time
 
 from ai import AINavigation
 from geoide import Geoide
@@ -43,11 +44,13 @@ class Planete:
   geoide = None
   fini = False
   
+  nom = None #Le nom de la planète (et/ou du niveau)
+  
   # Initialisation -----------------------------------------------------
-  def __init__(self):
+  def __init__(self, nom="sans nom"):
     """Constructeur, initialise les tableaux"""
     self.geoide = Geoide()
-    
+    self.nom = nom
     self.sprites = [] #Pas d'objets sur la planète
     self.joueurs = []
     
@@ -113,8 +116,11 @@ class Planete:
       
     #On sauvegarde dans un fichier temporaire
     fichier = open(os.path.join(".", "data", "cache", "save.tmp"), "w")
-    fichier.write("O:distanceSoleil:"+str(self.distanceSoleil)+":\r\n")
-    fichier.write("O:angleSoleil:"+str(self.angleSoleil)+":\r\n")
+    fichier.write("details:dateSauvegarde:"+time.strftime("%Y/%m/%d %H-%M")+":\r\n")
+    fichier.write("details:nomPlanete:"+self.nom+":\r\n")
+    fichier.write("details:fichierCapture:None:\r\n")
+    fichier.write("parametres:distanceSoleil:"+str(self.distanceSoleil)+":\r\n")
+    fichier.write("parametres:angleSoleil:"+str(self.angleSoleil)+":\r\n")
     for joueur in self.joueurs:
       fichier.write(joueur.sauvegarde()) #j
     for sprite in self.sprites:
@@ -164,7 +170,7 @@ class Planete:
       elements = ligne.strip().lower().split(":")
       type = elements[0]
       elements = elements[1:]
-      if type=="o":
+      if type=="parametres":
         if elements[0]=="distancesoleil":
           #Attrapage des infos de distanceSoleil
           self.distanceSoleil = float(elements[1])
@@ -173,6 +179,12 @@ class Planete:
           self.angleSoleil = float(elements[1])
         else:
           print "Donnée inconnue : ",element[0]
+      if type=="details":
+        if elements[0]=="nomplanete":
+          #Attrapage des infos de distanceSoleil
+          self.nom = elements[1]
+        else:
+          print "Détail inconnu : ",element[0]
       elif type=="joueur":
         #Création d'un joueur
         type, nom, couleur, estJoueur, vide = elements
