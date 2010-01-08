@@ -31,7 +31,7 @@ class i18n:
       
       #Regarde si c'est un id de sprite
       if texte.lower().startswith("{s:"):
-        return self.utf8ise(texte)"""
+        return self.utf8ise(texte)
 
       out = ""
       for element in texte.split("\n"):

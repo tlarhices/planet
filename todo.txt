@@ -30,4 +30,3 @@
 ./planet.py::??::modifieAltitude > Déplacer la modification d'altitude dans general.io
 ./planet.py::??::start > Donner des gugusses aux joueurs de façon non aléatoire
 ./planet.py::??::start > Faire la création des joueurs comme il faut et pas hardcodé
-./planet.py::??::start > Passer le pointeur sur joueur local dans general
