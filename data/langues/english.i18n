@@ -1,0 +1,20 @@
+parsage des infos... %(a)i/%(b)i|^|Parsing data... %(a)i/%(b)i
+calcul du voisinage... %(a)i/%(b)i|^|Computing neighborhood... %(a)i/%(b)i
+perturbation de la surface... %(a)i/%(b)i|^|Perturbating surface... %(a)i/%(b)i
+flouification... %(a)i/%(b)i|^|Bluring... %(a)i/%(b)i
+normalisation...|^|Normalisation...
+normalisation... %(a)i/%(b)i|^|Normalisation... %(a)i/%(b)i
+création du graphe de déplacement... %(a)i/%(b)i|^|Creating navigation graph... %(a)i/%(b)i
+création du modèle... %(a)i/%(b)i|^|Creating model... %(a)i/%(b)i
+création des vectrices : %(a).2f%%|^|Creating vectrices : %(a).2f%%
+ajout de la végétation : %(f).2f%%|^|Adding vegetation : %(f).2f%%
+rendu de la heightmap : %(a).2f%%|^|Rendering heightmap : %(a).2f%%
+rendu de la minimap : %(a).2f%%|^|Rendering minimap : %(a).2f%%
+supression de la planète du menu : %(nom)s|^|Removing menu's planet : %(nom)s
+sans nom|^|no name
+sauvegarde automatique en cours...|^|Autosaving game...
+sauvegarde en cours...|^|Saving game...
+sauvegarde terminée|^|Game saved
+%(a)s est mort par %(b)s|^|%(a)s is dead by %(b)s
+ressources épuisées|^|No more ressources
+noyade|^|drowning

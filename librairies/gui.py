@@ -259,13 +259,16 @@ class Historique(MenuCirculaire):
   
   #Liste des icones pour chaque type de message
   icones = {
-  "inconnu":"theme/icones/q.png",
-  "mort":"theme/icones/skull.png",
-  "chat":"theme/icones/phone.png",
-  "obscurite":"theme/icones/clock.png",
-  "info":"theme/icones/info.png",
-  "avertissement":"theme/icones/caution.png",
-  "sauvegarde":"theme/icones/diskette.png"
+  "inconnu": "icones/q.png",
+  "mort": "icones/skull.png",
+  "ai": "icones/reinforcement.png",
+  "carte": "icones/stealth2.png",
+  "construction": "icones/armor1.png",
+  "chat": "icones/phone.png",
+  "obscurite": "icones/clock.png",
+  "info": "icones/info.png",
+  "avertissement": "icones/caution.png",
+  "sauvegarde": "icones/diskette.png"
   }
   
   def __init__(self, gui):
@@ -295,7 +298,9 @@ class Historique(MenuCirculaire):
     message : le message associé
     """
     if type not in self.icones.keys():
+      general.TODO("Il manque l'icone "+type+" pour l'affichage des message")
       type="inconnu"
+
     return Icon(self.icones[type])
     
   def MAJ(self, temps):
@@ -1179,16 +1184,29 @@ class Interface:
     self.gui.remove(self.chargement)
     self.chargement = None
     
+  def getText(self, texte):
+    return general.i18n.getText(texte)
+    
+  def alerte(self, message, parametres, type, coord):
+    """Ajoute un nouveau message"""
+    message = general.i18n.getText(message)
+    message = message %parametres
+    self.historique.ajouteMessage(type, message, coord)
+    self.gui.informations.ajouteTexte(type, message)
+    
   def afficheTexte(self, texte, parametres, type="normal", forceRefresh=False):
     """Affiche le texte sur l'écran, si texte==None, alors efface le dernier texte affiché"""
-    texte = general.i18n.getText(texte)
+    texte = self.getText(texte)
+    parametres = self.getText(parametres)
+    
     texte = texte %parametres
     if texte!=None:
       #On affiche une ligne dans le log
       if type == None:
-        print texte
+        print general.i18n.utf8ise(texte).encode("UTF-8")
       else:
-        print "["+str(type)+"]",texte
+        chaine = u"["+general.i18n.utf8ise(type)+u"]"+" "+general.i18n.utf8ise(texte)
+        print chaine.encode("UTF-8")
       if self.informations !=None:
         self.informations.ajouteTexte(type, texte)
         

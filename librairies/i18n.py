@@ -24,11 +24,37 @@ class i18n:
     
   def getText(self, texte):
     """Retourne le texte traduit dans la langue souhaitée"""
-    out = ""
-    for element in texte.split("\n"):
-      out+=self.__getText__(texte=element.strip())+"\r\n"
-    return out.strip()
-    
+    if isinstance(texte, (float, int)):
+      return texte
+      
+    if isinstance(texte, (unicode, str)):
+      
+      #Regarde si c'est un id de sprite
+      match = re.search("[*]*-*", texte)
+      if match != None:
+        return self.utf8ise(texte)
+
+      out = ""
+      for element in texte.split("\n"):
+        out+=self.__getText__(texte=element.strip())+"\r\n"
+      return out.strip()
+      
+    if isinstance(texte, dict):
+      clef=texte.keys()
+      contenu=self.getText(texte.values())
+      texte = dict(zip(clef,contenu))
+      return texte
+      
+    if isinstance(texte, list):
+      out=[]
+      for element in texte:
+        out.append(self.getText(element))
+      return out
+      
+    general.TODO("Ajouter i18n pour type "+str(type(texte)))
+    print texte, "non géré par i18n"
+    return texte
+      
   def changeLangue(self, langue):
     self.langue=langue
     self.traductions = {}
@@ -97,7 +123,7 @@ class i18n:
             self.traductions[original.strip().lower()]=traduction.strip()
             return self.utf8ise(traduction.strip())
         except ValueError:
-          print "Ligne mal formée dans le fichier de langue "+self.langue+" : "+ligne
+          print u"Ligne mal formée dans le fichier de langue "+self.langue+u" : "+ligne
     fichierTrad.close()
     return None
     

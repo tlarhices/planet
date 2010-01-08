@@ -200,7 +200,8 @@ class AINavigation:
       for y in self.noeudsVoisins(x, angleSolMax):
         if not y in fait:
           #Si on ne l'a pas déjà parcourut
-          tmpG = g[x] + self.angle(x, y)
+          angle = self.angle(x, y)
+          tmpG = g[x] + angle
           
           if not y in afaire:
             #S'il n'est pas en attente, on l'y met
@@ -217,7 +218,7 @@ class AINavigation:
             #On met a jour les infos de parcours pour ce point
             promenade[y] = x
             g[y] = tmpG
-            h[y] = (general.planete.geoide.sommets[y] - general.planete.geoide.sommets[fin]).lengthSquared()
+            h[y] = angle
             f[y] = g[y] + h[y]
             
     general.interface.afficheTexte("Impossible de trouver une trajectoire pour aller de %(a)s à %(b)s.", parametres={"a": deb, "b":fin}, type="avertissement")

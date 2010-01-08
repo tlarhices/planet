@@ -81,12 +81,12 @@ class Sprite:
     general.TODO("Faire dépendre la vitesse du sprite selon l'angle du sol sur lequel il se déplace")
     general.TODO("Gestion des barres de vie")
     general.TODO("Gestion d'une icone pour indiquer les activité (glandage, construction, baston, ...)")
-    
     if joueur !=None:
       self.joueur = proxy(joueur)
     else:
       self.joueur = None
     self.id = id
+    
     self.miseAJourPosition(position)
     
     self.modele = None
@@ -368,7 +368,7 @@ class Sprite:
     general.TODO("Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...")
     general.TODO("Ajouter les ruines et les cadavres")
     if not silence:
-      general.interface.afficheTexte("%(a)s est mort par %(b)s", parametres={"a": self.id, "b": type}, type="mort")
+      general.interface.afficheTexte("%(a)s est mort par %(b)s", parametres={"a": general.i18n.utf8ise(self.id), "b": general.i18n.utf8ise(type)}, type="mort")
     self.vie = 0
     self.typeMort = type
     if self.rac!=None:

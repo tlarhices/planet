@@ -58,9 +58,10 @@ class Joueur:
     self.sprites.append(sprite)
     
   def spriteMort(self, sprite):
-    general.interface.menuCourant.alerte("mort", sprite.id+" est mort par "+sprite.typeMort, sprite.position)
     if sprite.typeMort=="obscurite":
-      general.interface.menuCourant.alerte("obscurite", sprite.id+" est mort par "+sprite.typeMort, sprite.position)
+      general.interface.alerte(message="%(a)s est mort par %(b)s", parametres={"a":sprite.id, "b":sprite.typeMort}, type="obscurite", coord=sprite.position)
+    else:
+      general.interface.alerte(message="%(a)s est mort par %(b)s", parametres={"a":sprite.id, "b":sprite.typeMort}, type="mort", coord=sprite.position)
     self.sprites.remove(sprite)
     
   def detruit(self):
