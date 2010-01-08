@@ -63,11 +63,11 @@ class Configuration:
       return str(valeur)
       
     fichier = open(fichier, "w")
-    for section in self.configuration.keys(): #Sauve les sections
+    for section in sorted(self.configuration.keys()): #Sauve les sections
       fichier.write("[["+str(section)+"]]\r\n")
-      for soussection in self.configuration[section].keys(): #Sauve les sous-sections
+      for soussection in sorted(self.configuration[section].keys()): #Sauve les sous-sections
         fichier.write(str(soussection)+":\r\n")
-        for element in self.configuration[section][soussection].keys(): #Sauve les clefs
+        for element in sorted(self.configuration[section][soussection].keys()): #Sauve les clefs
           fichier.write(str(element)+" = "+versStr(self.configuration[section][soussection][element])+"\r\n")
         fichier.write("\r\n")
     fichier.write("\r\n")

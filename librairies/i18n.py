@@ -30,9 +30,8 @@ class i18n:
     if isinstance(texte, (unicode, str)):
       
       #Regarde si c'est un id de sprite
-      match = re.search("[*]*-*", texte)
-      if match != None:
-        return self.utf8ise(texte)
+      if texte.lower().startswith("{s:"):
+        return self.utf8ise(texte)"""
 
       out = ""
       for element in texte.split("\n"):
@@ -64,7 +63,6 @@ class i18n:
     Cherche une ligne de texte dans la langue souhaitée
     À ne pas utiliser directement, utilisez getText qui va faire le boulot
     """
-    
     self.langue = self.utf8ise(self.langue)
     self.default = self.utf8ise(self.default)
     texte = self.utf8ise(texte)
@@ -84,7 +82,7 @@ class i18n:
       
     #On l'a pas, on affiche un avertissement et on temporise dans le fichier de la langue
     #print "Avertissement :: i18n :: Pas de traduction pour \""+texte+"\"."+self.langue
-    if not general.configuration.getConfiguration("affichage", "langue", "traductionAuto","T")=="T":
+    if not general.configuration.getConfiguration("affichage", "langue", "traductionAuto","F")!="T":
       self.ajouterAuFichier(texte=texte, traduction=texte)
       return self.utf8ise(texte)
     else:
@@ -151,5 +149,6 @@ class i18n:
     content = page.read()
     page.close()
     match = re.search("<span id=result_box class=\"short_text\">(.*?)</span>", content)
-    value = match.groups()[0]
-    return value
+    value = match.groups()[0].split("onmouseout=\"this.style.backgroundColor='#fff'\">")[1].replace("% (f) .2 f%%", "%(f).2f%%").replace("% (a) .2 f%%", "%(a).2f%%")
+    print value
+    return u"AutoTrans : "+value

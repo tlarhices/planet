@@ -52,7 +52,7 @@ class Joueur:
     fichier = os.path.join(".","data","sprites",type+".spr")
     if not os.path.exists(fichier):
       print "Sprite inconnu",type, "->", fichier
-    id = "["+self.nom+"]"+id+"-"+str(len(self.sprites)+1)
+    id = "{S:"+self.nom+"}"+id+"-"+str(len(self.sprites)+1)
     sprite = Sprite(id=id, position=position, fichierDefinition=fichier, joueur=self)
     general.planete.sprites.append(sprite)
     self.sprites.append(sprite)

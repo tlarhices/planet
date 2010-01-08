@@ -11,7 +11,7 @@ ajout de la végétation : %(f).2f%%|^|Adding vegetation : %(f).2f%%
 rendu de la heightmap : %(a).2f%%|^|Rendering heightmap : %(a).2f%%
 rendu de la minimap : %(a).2f%%|^|Rendering minimap : %(a).2f%%
 supression de la planète du menu : %(nom)s|^|Removing menu's planet : %(nom)s
-sans nom|^|no name
+sans nom|^|unnamed
 sauvegarde automatique en cours...|^|Autosaving game...
 sauvegarde en cours...|^|Saving game...
 sauvegarde terminée|^|Game saved
