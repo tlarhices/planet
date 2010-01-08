@@ -126,7 +126,7 @@ class AINavigation:
     for source in general.planete.geoide.voisinage.keys():
       if general.DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION:
         if cpt%250==0:
-          general.planete.afficheTexte("Création du graphe de déplacement... %i/%i" %(cpt,totclef))
+          general.planete.afficheTexte("Création du graphe de déplacement... %(a)i/%(b)i", parametres={"a": cpt, "b": totclef}, type="ai")
       for voisin in general.planete.geoide.voisinage[source]:
         if source!=voisin:
           self.ajouteNoeud(source, voisin)
@@ -220,7 +220,7 @@ class AINavigation:
             h[y] = (general.planete.geoide.sommets[y] - general.planete.geoide.sommets[fin]).lengthSquared()
             f[y] = g[y] + h[y]
             
-    general.interface.afficheTexte("Impossible de trouver une trajectoire pour aller de "+str(deb)+" à "+str(fin), "avertissement")
+    general.interface.afficheTexte("Impossible de trouver une trajectoire pour aller de %(a)s à %(b)s.", parametres={"a": deb, "b":fin}, type="avertissement")
     general.stopChrono("AINavigation::aStar")
     #On a rien trouvé
     return None

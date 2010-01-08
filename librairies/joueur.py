@@ -58,7 +58,6 @@ class Joueur:
     self.sprites.append(sprite)
     
   def spriteMort(self, sprite):
-    #general.interface.afficheTexte("Joueur "+self.nom+" dit : :'( :'( pauvre "+sprite.id, "chat")
     general.interface.menuCourant.alerte("mort", sprite.id+" est mort par "+sprite.typeMort, sprite.position)
     if sprite.typeMort=="obscurite":
       general.interface.menuCourant.alerte("obscurite", sprite.id+" est mort par "+sprite.typeMort, sprite.position)

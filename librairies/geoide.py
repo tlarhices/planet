@@ -66,7 +66,7 @@ class Geoide:
     for sommet in range(0, totSommets):
       if general.DEBUG_GENERE_PLANETE:
         if sommet%250==0:
-          general.planete.afficheTexte("Calcul du voisinage... %i/%i" %(sommet, totSommets))
+          general.planete.afficheTexte("Calcul du voisinage... %(a)i/%(b)i", parametres={"a":sommet, "b":totSommets}, type="construction")
       faces = self.sommetDansFace[sommet]
       for face in faces:
         if face.enfants == None: #On ne considère que les faces les plus subdivisées
@@ -145,7 +145,7 @@ class Geoide:
         for element in self.elements:
           cpt+=1
           if general.DEBUG_GENERE_PLANETE:
-            general.planete.afficheTexte("Tesselation en cours... %i/%i::%i/%i" %(i+1, self.tesselation, cpt, tot))
+            general.planete.afficheTexte("Tesselation en cours... %(a)i/%(b)i::%(c)i/%(d)i", parametres={"a": i+1, "b": self.tesselation, "c": cpt, "d": tot}, type="construction")
           element.tesselate()
         self.tesselation = int(tesselation)
         self.delta = float(delta)
@@ -289,7 +289,7 @@ class Geoide:
       cpt+=1.0
       if general.DEBUG_GENERE_PLANETE:
         if i%250==0:
-          general.planete.afficheTexte("Perturbation de la surface... %i/%i" %(i, totlen))
+          general.planete.afficheTexte("Perturbation de la surface... %(a)i/%(b)i", parametres={"a": i, "b": totlen}, type="construction")
       #On pousse chaque sommet aléatoirement
       rn = (random.random()-0.5)*self.delta + 1.0
       #On n'utilise pas self.changeCoordPoint car tout le modèle sera changé
@@ -301,7 +301,7 @@ class Geoide:
     Étend la gamme des valeurs aléatoires pour les ramener dans l'échelle [1.0-delta;1.0+delta]
     """
     if general.DEBUG_GENERE_PLANETE:
-      general.planete.afficheTexte("Normalisation...")
+      general.planete.afficheTexte("Normalisation...", parametres={}, type="construction")
     A=self.sommets[0].length()
     B=A
     
@@ -318,7 +318,7 @@ class Geoide:
     for i in range(0, len(self.sommets)):
       if general.DEBUG_GENERE_PLANETE:
         if i%250==0:
-          general.planete.afficheTexte("Normalisation... %i/%i" %(i, totlen))
+          general.planete.afficheTexte("Normalisation... %(a)i/%(b)i", parametres={"a": i, "b": totlen}, type="construction")
       V=self.sommets[i].length()
       V=(V-A)/facteur+C
       som = Vec3(self.sommets[i])
@@ -334,7 +334,7 @@ class Geoide:
     for sommet in self.voisinage.keys():
       if general.DEBUG_GENERE_PLANETE:
         if cpt%250==0:
-          general.planete.afficheTexte("Flouification... %i/%i" %(cpt, totclefs))
+          general.planete.afficheTexte("Flouification... %(a)i/%(b)i", parametres={"a": cpt, "b": totclefs}, type="construction")
       cpt+=1.0
       old = self.sommets[sommet]
       
@@ -371,7 +371,7 @@ class Geoide:
     for element in self.elements:
       cpt+=1.0
       if general.DEBUG_GENERE_PLANETE:
-        general.planete.afficheTexte("Création du modèle... %i/%i" %(cpt, totlen))
+        general.planete.afficheTexte("Création du modèle... %(a)i/%(b)i", parametres={"a": cpt, "b": totlen}, type="construction")
       #Ce sont les faces qui vont se charger de faire le modèle pour nous
       element.fabriqueModel()
     
@@ -406,16 +406,8 @@ class Geoide:
         
     compte=0
     for sommet in self.sommets:
-      noeud = NodePath(FadeLODNode('lod'))
-      noeud.reparentTo(self.vegetation)
-      noeud.setPos(sommet)
-      
-      insertion = NodePath("insert")
-      insertion.reparentTo(noeud)
-      noeud.node().addSwitch(1.0, 0.0) 
-      
       if compte%250==0:
-        general.planete.afficheTexte("Ajout de la végétation : %.2f%%" %((compte*1.0)/len(self.sommets)*100))
+        general.planete.afficheTexte("Ajout de la végétation : %(f).2f%%", parametres={"f": (compte*1.0)/len(self.sommets)*100}, type="construction")
       compte+=1
       if sommet.length()>self.niveauEau:
         h1 = self.elements[0].couleurSommet(sommet)[2]
@@ -436,13 +428,12 @@ class Geoide:
                 
                 p = sommet*r1+s2*r2+s3*r3
                 alt = p.length()#self.altitude(p)
-                p=p-sommet
               if alt>self.niveauEau:
                 #p.normalize()
                 #p=p*alt
                 typeVegetation = random.choice(vegetation[h1])
                 sprite = general.planete.ajouteSprite(typeVegetation, p, typeVegetation)
-                sprite.rac.reparentTo(insertion)
+                sprite.rac.reparentTo(self.vegetation)
                 sprite.racine.flattenStrong()
                   
                 #On tourne les arbres un peu aléatoirement et on change d'échelle pour varier un peu plus
@@ -450,7 +441,6 @@ class Geoide:
                 sprite.racine.setR(random.random()*7)
                 sprite.echelle = sprite.echelle*(1.0-random.random()/8)
                 sprite.racine.setScale(sprite.echelle)
-                sprite.racine.flattenStrong()
 
   def animEau(self, time):
     #change z component of vertices in water plane
@@ -628,6 +618,15 @@ class Geoide:
       os.remove(os.path.join(".", "data", "cache", "save.tmp"))
     else:
       return out
+      
+  def __repr__(self):
+    return self.sauvegarde()
+    
+  _repr = None
+  def _syncCheck(self):
+    if self._repr == None:
+      self._repr = self.__repr__()
+    return self._repr
     
   def charge(self, fichier, simple=False):
     """Charge le géoïde depuis un fichier"""
@@ -655,7 +654,7 @@ class Geoide:
     for i in range(0, tot):
       if general.DEBUG_CHARGE_PLANETE:
         if i%500==0:
-          general.planete.afficheTexte("Parsage des infos... %i/%i" %(i, tot))
+          general.planete.afficheTexte("Parsage des infos... %(a)i/%(b)i", parametres={"a": i, "b": tot}, type="sauvegarde")
       ligne = lignes[i]
         
       elements = ligne.strip().lower().split(":")
@@ -917,7 +916,7 @@ class Geoide:
     cpt = 0
     for sommet in self.sommets:
       if cpt%250==0:
-        general.planete.afficheTexte("Création des vectrices : %.2f%%" %((cpt*1.0)/len(self.sommets)*100))
+        general.planete.afficheTexte("Création des vectrices : %(a).2f%%", parametres={"a":(cpt*1.0)/len(self.sommets)*100}, type="construction")
       cpt+=1
       self.ajouteVertex(sommet, self.vdata, vWriter, nWriter, tWriter, cWriter)
       
@@ -954,7 +953,7 @@ class Geoide:
   def modifieVertex(self, indice):
     if self.vdata == None:
       return
-      
+    self._repr = self.__repr__()
     #On bouge le point
     vWriter = GeomVertexWriter(self.vdata, 'vertex')
     vWriter.setRow(indice)

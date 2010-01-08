@@ -29,6 +29,8 @@ import ai
 from joueur import JoueurLocal, JoueurIA
 from gui import Interface
 from cartographie import Cartographie
+from i18n import i18n
+
 from weakref import proxy
 
 try:
@@ -99,7 +101,7 @@ class Start:
         joueur = None
         def __init__(self):
           general.io = DUMMYIO()
-        def afficheTexte(self, texte, type="normal", forceRefresh=False):
+        def afficheTexte(self, texte, parametres, type="normal", forceRefresh=False):
           print "[",type,"]",texte
         def ajouteJoueur(self, joueur):
           pass
@@ -162,7 +164,7 @@ class Start:
     general.planete.fabriqueModel()
     
     #On retire la planete qui servait de fond de menu
-    general.planete.afficheTexte("Supression de la planète du menu")
+    general.planete.afficheTexte("Supression de la planète du menu : %(nom)s", parametres={"nom":general.tmp.nom})
     general.tmp.detruit()
     general.tmp = None
     
@@ -327,6 +329,8 @@ if __name__=="__main__":
   else:
     #Si on a un fichier de config donné par ligne de commande, on l'utilise
     general.configuration.charge(fichierConfig, erreurSiExistePas=True)
+    
+  general.i18n = i18n(langue=general.configuration.getConfiguration("affichage","langue", "langue", "french"))
 
   from pandac.PandaModules import *
 

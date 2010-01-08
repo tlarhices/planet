@@ -1179,9 +1179,10 @@ class Interface:
     self.gui.remove(self.chargement)
     self.chargement = None
     
-    
-  def afficheTexte(self, texte, type="normal", forceRefresh=False):
+  def afficheTexte(self, texte, parametres, type="normal", forceRefresh=False):
     """Affiche le texte sur l'écran, si texte==None, alors efface le dernier texte affiché"""
+    texte = general.i18n.getText(texte)
+    texte = texte %parametres
     if texte!=None:
       #On affiche une ligne dans le log
       if type == None:
@@ -1189,7 +1190,7 @@ class Interface:
       else:
         print "["+str(type)+"]",texte
       if self.informations !=None:
-        self.informations.ajouteTexte(type, texte.decode("UTF-8"))
+        self.informations.ajouteTexte(type, texte)
         
     if forceRefresh:
       #On force le recalcul du GUI

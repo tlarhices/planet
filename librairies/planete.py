@@ -24,6 +24,8 @@ import Image
 
 from pandac.PandaModules import *
 
+import hashlib
+
 class Planete:
   aiNavigation = None #Le bout d'AI qui contient le graphe de navigation qui est commun a toute entité de la planète
   sprites = None #La liste des objets du monde dérivant de la classe sprite
@@ -79,11 +81,23 @@ class Planete:
       sprite.tue("destruction de la planète", silence=True)
     self.sprites = []
     self.joueurs = []
+    
+  def _syncCheck(self):
+    check = ""
+    check+=self.geoide._syncCheck()
+    for joueur in self.joueurs:
+      check+=joueur._syncCheck()
+    for sprite in self.sprites:
+      check+=sprite._syncCheck()
+    return check
+    
+  def hash(self):
+    return hashlib.sha256(self._syncCheck()).hexdigest()
   # Fin Initialisation -------------------------------------------------
     
-  def afficheTexte(self, texte, type=None):
-    """Affiche le texte sur l'écran, si texte==None, alors efface le dernier texte affiché"""
-    general.interface.afficheTexte(texte, type, True)
+  def afficheTexte(self, texte, parametres, type=None):
+    """Affiche le texte sur l'écran"""
+    general.interface.afficheTexte(texte=texte, parametres=parametres, type=type, forceRefresh=True)
     
   # Constructions géométriques -----------------------------------------
   def fabriqueNouvellePlanete(self, tesselation, delta):
@@ -109,7 +123,7 @@ class Planete:
   # Import / Export ----------------------------------------------------
   def sauvegarde(self, fichier, tess=None):
     """Sauvegarde la planète dans un fichier"""
-    self.afficheTexte("Sauvegarde en cours...", "sauvegarde")
+    self.afficheTexte("Sauvegarde en cours...", parametres={}, type="sauvegarde")
     
     nomFichier = fichier
       
@@ -133,18 +147,18 @@ class Planete:
     zip.close()
     #On enlève le fichier temporaire
     os.remove(os.path.join(".", "data", "cache", "save.tmp"))
-    self.afficheTexte("Sauvegarde terminée", "sauvegarde")
+    self.afficheTexte("Sauvegarde terminée", parametres={}, type="sauvegarde")
     
   def charge(self, fichier, simple=False):
     """Charge le géoïde depuis un fichier"""
-    self.afficheTexte("Chargement en cours...", "sauvegarde")
+    self.afficheTexte("Chargement en cours...", parametres={}, type="sauvegarde")
     
     self.detruit()
     self.sprites = []
     self.joueurs = []
 
     if general.DEBUG_CHARGE_PLANETE:
-      self.afficheTexte("Lecture du fichier...")
+      self.afficheTexte("Lecture du fichier...", parametres={}, type="sauvegarde")
 
     #Lecture depuis le zip
     zip = zipfile.ZipFile(fichier, "r")
@@ -155,7 +169,7 @@ class Planete:
     lignes = data.split("\r\n")
 
     if general.DEBUG_CHARGE_PLANETE:
-      self.afficheTexte("Parsage des infos...")
+      self.afficheTexte("Parsage des infos...", parametres={}, type="sauvegarde")
       
     lignes = self.geoide.charge(lignes, simple)
     tot = len(lignes)
@@ -163,7 +177,7 @@ class Planete:
     for i in range(0, tot):
       if general.DEBUG_CHARGE_PLANETE:
         if i%500==0:
-          self.afficheTexte("Parsage des infos... %i/%i" %(i, tot))
+          self.afficheTexte("Parsage des infos... %{a}i/%{b}i", parametres={"a":i, "b":tot}, type="sauvegarde")
       ligne = lignes[i]
         
       elements = ligne.strip().lower().split(":")
@@ -231,7 +245,7 @@ class Planete:
         print "Avertissement : Planete::charge, type de ligne inconnue :", type,"sur la ligne :\r\n",ligne.strip()
         general.TODO("Ajouter la prise en charge du chargement de "+type)
         
-    self.afficheTexte("Chargement terminé", "sauvegarde")
+    self.afficheTexte("Chargement terminé", parametres={}, type="sauvegarde")
   # Fin Import / Export ------------------------------------------------
       
   # Mise à jour --------------------------------------------------------
@@ -295,6 +309,7 @@ class Planete:
   lastPing=None
   def ping(self, task):
     """Fonction appelée a chaque image, temps indique le temps écoulé depuis l'image précédente"""
+    
     if self.lastPing==None:
       self.lastPing = task.time-1.0/60
     temps = task.time-self.lastPing
@@ -303,7 +318,7 @@ class Planete:
     #Sauvegarde automatique
     self.lastSave += temps
     if self.seuilSauvegardeAuto != -1 and self.lastSave > self.seuilSauvegardeAuto:
-      self.afficheTexte("Sauvegarde automatique en cours...", "sauvegarde")
+      self.afficheTexte("Sauvegarde automatique en cours...", parametres={}, type="sauvegarde")
       self.sauvegarde(os.path.join(".","sauvegardes","sauvegarde-auto.pln"))
       self.lastSave = 0
 

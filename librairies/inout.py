@@ -258,11 +258,9 @@ class IO:
             idsommet = general.planete.geoide.trouveSommet(coord)
             planete.geoide.survol = idsommet
         elif objet.getPythonTag('type') == "sprite":
-            general.interface.afficheTexte("Clic sur le sprite : "+str(objet.getPythonTag('id'))+" cliquez sur le sol où vous voulez qu'il aille", "info")
+            general.interface.afficheTexte("Clic sur le sprite : %(a)s cliquez sur le sol où vous voulez qu'il aille", parametres={"a": str(objet.getPythonTag('id'))}, type="info")
             self.select = objet.getPythonTag('instance')
-        elif objet.getPythonTag('type') == "eau":
-            general.interface.afficheTexte("clic dans l'eau", "info")
         else:
-          general.interface.afficheTexte("Clic sur un objet au tag inconnu : "+str(objet.getPythonTag('type')), "info")
+          general.interface.afficheTexte("Clic sur un objet au tag inconnu : %(a)s", parametres={"a": str(objet.getPythonTag('type'))}, type="info")
       else:
         planete.geoide.survol = None

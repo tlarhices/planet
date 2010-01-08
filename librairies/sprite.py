@@ -344,38 +344,31 @@ class Sprite:
     
     vecteurDeplacement = sp * self.vitesse*temps
     
-    #Affiche le déplacement un personnage sur l'écran
-    #top = general.planete.geoide.racine.attachNewNode(self.dessineLigne((random.random(),random.random(),random.random()), self.position, (self.position[0] + vecteurDeplacement[0], self.position[1] + vecteurDeplacement[1], self.position[2] + vecteurDeplacement[2])))
-    #top.setBin('fixed', -1)
-    #top.setDepthTest(False)
-    #top.setDepthWrite(False)
-    #top.setLightOff()
-    
     self.position = (self.position[0] + vecteurDeplacement[0], self.position[1] + vecteurDeplacement[1], self.position[2] + vecteurDeplacement[2])
-    #general.planete.afficheTexte(self.id+" marche vers "+str(cible))
     self.miseAJourPosition(self.position)
       
   def miseAJourPosition(self, position):
     """Change la position de l'objet"""
     self.position = position
+      
+    self.altCarre = self.position.lengthSquared()
+    if self.altCarre < general.planete.geoide.niveauEau*general.planete.geoide.niveauEau:
+      if self.aquatique:
+        #Nage
+        pass
+      else:
+        #Se noie
+        self.tue("noyade")
     if self.modele != None:
       self.pointeRacineSol()
-      
-      self.altCarre = self.rac.getPos(general.planete.geoide.racine).lengthSquared()
-      if self.altCarre < general.planete.geoide.niveauEau*general.planete.geoide.niveauEau:
-        if self.aquatique:
-          #Nage
-          pass
-        else:
-          #Se noie
-          self.tue("noyade")
+    pass
       
   def tue(self, type, silence=False):
     """Gère la mort du sprite"""
     general.TODO("Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...")
     general.TODO("Ajouter les ruines et les cadavres")
     if not silence:
-      general.interface.afficheTexte(self.id+" est mort par "+type, "mort")
+      general.interface.afficheTexte("%(a)s est mort par %(b)s", parametres={"a": self.id, "b": type}, type="mort")
     self.vie = 0
     self.typeMort = type
     if self.rac!=None:
@@ -412,6 +405,16 @@ class Sprite:
       for element in self.contenu.keys():
         out += "sprite-contenu:"+self.id+":"+element+":"+str(self.contenu[element])+":\r\n"
     return out
+    
+  def __repr__(self):
+    """"""
+    nom = "none"
+    if self.joueur != None:
+      nom = self.joueur.nom
+    print "sprite:"+self.id+":"+nom+":"+self.fichierModele+":"+self.fichierSymbole+":"+str(self.position)+":"+str(self.vitesse)+":"+str(self.vie)+":"+str(self.bouge)+":"+str(self.aquatique)
+    
+  def _syncCheck(self):
+    return self.sauvegarde()
     
   def marcheVers(self, cible):
     """Calcule la trajectoire pour aller du point actuel à la cible"""
@@ -710,3 +713,11 @@ class Nuage(Sprite):
   def sauvegarde(self):
     """Les nuages ne sont là que pour faire joli"""
     return "\r\n"
+    
+  def __repr__(self):
+    """"""
+    return "nuage"
+    
+  def _syncCheck(self):
+    return ""
+

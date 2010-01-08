@@ -128,7 +128,7 @@ class Cartographie:
           
     cpt = 0
     for element in listeElements:
-      general.planete.afficheTexte("Rendu de la heightmap : %.2f%%" %((cpt*1.0)/len(listeElements)*100))
+      general.planete.afficheTexte("Rendu de la heightmap : %(a).2f%%", parametres={"a": (cpt*1.0)/len(listeElements)*100}, type="carte")
       self.procedeRenduElement(element, (tailleHeightMap, tailleHeightMap), draw, True)
       cpt+=1
 
@@ -180,7 +180,7 @@ class Cartographie:
         compte=0
         for element in listeElements:
           if listeElements == general.planete.geoide.elements:
-            general.planete.afficheTexte("Rendu de la minimap : %.2f%%" %((compte*1.0)/len(listeElements)*100))
+            general.planete.afficheTexte("Rendu de la minimap : %(a).2f%%", parametres={"a": (compte*1.0)/len(listeElements)*100}, type="carte")
           compte+=1
           self.procedeRenduElement(element, taille, draw, False)
     del draw
