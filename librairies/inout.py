@@ -200,7 +200,7 @@ class IO:
         tch=touche
         touche = "+".join(sorted(self.touchesControles))+"-"+touche
         #Si jamais la touche avec les modificateurs appliquee n'est pas dans la config, on teste sans
-        if not touche in self.configClavier.keys()::
+        if not touche in self.configClavier.keys():
           touche=tch
 
       #On regarde si clique pas sur l'interface

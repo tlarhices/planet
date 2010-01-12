@@ -713,6 +713,11 @@ class Geoide:
     if general.configuration.getConfiguration("affichage","general", "animation-eau","t")=="t":
       if self.modeleEau!=None:
         self.animEau(task.time)
+        
+    """rnd = random.choice(range(0, len(self.sommets)))
+    self.montagne(rnd, 2, self.delta/10)
+    rnd = random.choice(range(0, len(self.sommets)))
+    self.montagne(rnd, 2, -self.delta/10)"""
     
     #if self.azure != None:
     #  if general.planete.soleil!=None:
@@ -901,6 +906,21 @@ class Geoide:
 
     general.planete.aiNavigation.maj(idx)
     
+  def montagne(self, idxSommetCentre, rayon, delta):
+    delta = delta/10
+    voisins = []
+    #On ajoute les voisins directes
+    for element in self.voisinage[idxSommetCentre]:
+      if (not element in voisins):
+        voisins.append(element)
+        self.elevePoint(element, delta)#*float(distance)/rayon
+    for i in range(0, rayon):
+      for idx in voisins[:]:
+        for element in self.voisinage[idx]:
+          if (not element in voisins):
+            voisins.append(element)
+            self.elevePoint(element, delta*(float(i)/rayon)*(float(i)/rayon))#*float(distance)/rayon
+      
   def elevePoint(self, idx, delta):
     """Déplace le sommet d'indice idx de delta unité et met à jour la géométrie qui en a besoin"""
     norme = self.sommets[idx].length()
