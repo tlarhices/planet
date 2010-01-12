@@ -153,12 +153,18 @@ class Start:
         sommet = random.choice(general.planete.geoide.sommets)
         OK = sommet.length()>general.planete.geoide.niveauEau
       j1.ajouteSprite("test", sommet, "test")
+    j1.ajouteSprite("ressource", sommet, "ressource")
+    j1.ajouteSprite("ressource", sommet, "ressource")
+    j1.ajouteSprite("ressource", sommet, "ressource")
     for i in range(0, 5):
       OK=False
       while not OK:
         sommet = random.choice(general.planete.geoide.sommets)
         OK = sommet.length()>general.planete.geoide.niveauEau
       j2.ajouteSprite("test", sommet, "test")
+    j2.ajouteSprite("ressource", sommet, "ressource")
+    j2.ajouteSprite("ressource", sommet, "ressource")
+    j2.ajouteSprite("ressource", sommet, "ressource")
 
     #On construit le modèle 3D de la planète
     general.planete.fabriqueModel()
@@ -328,7 +334,7 @@ if __name__=="__main__":
     general.configuration.charge(os.path.join(".","configuration","utilisateur.cfg"), erreurSiExistePas=False)
   else:
     #Si on a un fichier de config donné par ligne de commande, on l'utilise
-    general.configuration.charge(fichierConfig, erreurSiExistePas=True)
+    general.configuration.charge(fichierConfig, erreurSiExistePas=False)
     
   general.i18n = i18n(langue=general.configuration.getConfiguration("affichage","langue", "langue", "french"))
 

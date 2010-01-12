@@ -8,6 +8,7 @@
 ./librairies/ai/bucheron.py::??::ennui > ajouter une icone 'je réfléchit' au dessus des sprites qui calculent des trucs
 ./librairies/ai/bucheron.py::??::ennui > créer les stocks de matières premières
 ./librairies/ai/bucheron.py::??::ennui > vider les poches
+./librairies/ai/standard.py::??::sauvegarde > Sauvegarde du bulbevehicule
 ./librairies/cartographie.py::??::point3DVersCarte > voir pourquoi type=1 fait des jolies cartes et un mauvais texturage alors que type=0 a un texturage parfait, mais des cartes moches
 ./librairies/geoide.py::??::ajouteTextures > Finir le texturage via heightmap
 ./librairies/sprite.py::??::__init__ > Ajouter des sprites qui ne vivent que durant un certain temps (utile pour faire des cadavres et autres trucs qui disparaissent après un moment)

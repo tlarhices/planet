@@ -130,6 +130,7 @@ class Configuration:
     sprite["echelle"] = config(sprite, "echelle", float, 1.0)
     sprite["nourr"] = config(sprite, "nourr", float, 0.0)
     sprite["constr"] = config(sprite, "constr", float, 0.0)
+    sprite["stock"] = config(sprite, "stock", str, "f")=="t"
     sprite["vitesseDePillage"] = config(sprite, "vitesseDePillage", float, 1.0)
     sprite["faciliteDePillage"] = config(sprite, "faciliteDePillage", float, 1.0)
     self.dicoDefinitionsSprite[fichier] = sprite

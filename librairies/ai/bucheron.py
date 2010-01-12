@@ -31,10 +31,16 @@ class Bulbe(std):
             if spr.id==spriteid:
               sprite=spr
           if sprite!=None:
-            print self.sprite.id,"va couper l'arbre",sprite.id
-            self.dernierArbre = sprite
-            self.sprite.marcheVers(sprite.position)
-            self.sprite.ai.comportement.piller(sprite, 0.75)
+            if sprite.stock:
+              print self.sprite.id,"va se vider les poches à",sprite.id
+              self.dernierStock = sprite
+              self.sprite.marcheVers(sprite.position)
+              self.sprite.ai.comportement.videPoches(sprite, 0.75)
+            else:
+              print self.sprite.id,"va couper l'arbre",sprite.id
+              self.dernierArbre = sprite
+              self.sprite.marcheVers(sprite.position)
+              self.sprite.ai.comportement.piller(sprite, 0.75)
         self.rechercheSprite = None
       
   def sauvegarde(self):
@@ -48,9 +54,7 @@ class Bulbe(std):
       return False #On cherche un sprite, on ne change donc pas d'activité
 
     if self.sprite.taillePoches["construction"]<=self.sprite.contenu["construction"]:
-      print "poches pleines"
-      general.TODO("vider les poches")
-      general.TODO("créer les stocks de matières premières")
+      self.rechercheSprite = self.sprite.ai.comportement.chercheSpriteProche(True, -1, self.sprite.joueur, False)
       for type in self.sprite.contenu.keys():
         self.sprite.contenu[type] = 0.0
       return True
@@ -69,5 +73,5 @@ class Bulbe(std):
     else:
       self.dernierArbre = None
       self.dernierePositionArbre = None
-      self.rechercheSprite = self.sprite.ai.comportement.chercheSpriteProche(-1, ["construction"], None, False)
+      self.rechercheSprite = self.sprite.ai.comportement.chercheSpriteProche(False, ["construction"], None, False)
     return True

@@ -34,6 +34,7 @@ class Sprite:
   vitesse = None #La vitesse maximale du sprite en unité/s
   
   joueur = None #Le joueur qui possède cet objet
+  stock = None #Le sprite est un contenant à ressource
   contenu = None #Ce qui se trouve dans l'objet
   taillePoches = None #Les seuils maximaux de ce que peut promener un sprite
   vie = None #L'état dans lequel se trouve l'objet
@@ -130,6 +131,7 @@ class Sprite:
       self.echelleOriginelle = definition["echelle"]
       self.contenu["nourriture"] = definition["nourr"]
       self.contenu["construction"] = definition["constr"]
+      self.stock = definition["stock"]
       self.taillePoches["nourriture"] = 50.0
       self.taillePoches["construction"] = 30.0
       self.vitesseDePillage = definition["vitesseDePillage"]
@@ -233,6 +235,44 @@ class Sprite:
       print "pillé :",miam
       print "poches :",self.contenu
       print "restantes :",sprite.contenu
+      if peutContinuer:
+        return 1
+      else:
+        return -1
+    else:
+      return 0
+      
+  def videPoches(self, sprite, temps):
+    """Dépose ses ressources dans le sprite"""
+    #On regarde si on a atteint la cible à pic poquetter
+    if (self.position - sprite.position).length()<=self.distanceProche:
+      depot = {}
+      peutContinuer=False
+      print "Dépot :"
+      for type in self.contenu.keys():
+        stop=False
+        
+        #Le temps passer * la vitesse de récupération * le facteur de facilité de récupérage donne le volume récupéré pour le moment
+        depot[type] = self.vitesseDePillage*sprite.faciliteDePillage*temps
+        if self.contenu[type]<depot[type]:
+          depot[type] = self.contenu[type]
+          stop=True
+          
+        if sprite.taillePoches[type]<depot[type]+sprite.contenu[type]:
+          depot[type] = sprite.taillePoches[type]-sprite.contenu[type]
+          stop=True
+          
+        #Si on a pas totalement remplit le stock ou vidé ses poches
+        if not stop:
+          peutContinuer=True
+          
+        self.contenu[type]-=depot[type]
+        sprite.contenu[type]+=depot[type]
+      
+      print "déposée :",depot
+      print "poches :",self.contenu
+      print "contenues :",sprite.contenu
+      raw_input("pose vide poche")
       if peutContinuer:
         return 1
       else:
