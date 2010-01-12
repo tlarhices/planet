@@ -163,7 +163,8 @@ class Geoide:
     self.fabriqueSol()
     
     #On applique un flou sur le sol pour faire des collines arrondies
-    self.flouifieSol(3)
+    for i in range(0, self.tesselation*0.5):
+      self.flouifieSol(3)
     
     #On étend la gamme d'altitudes
     self.normaliseSol()
@@ -439,7 +440,7 @@ class Geoide:
                 #On tourne les arbres un peu aléatoirement et on change d'échelle pour varier un peu plus
                 sprite.racine.setH(random.random()*5)
                 sprite.racine.setR(random.random()*7)
-                sprite.echelle = sprite.echelle*(1.0-random.random()/8)
+                sprite.echelle = sprite.echelle*(1.0-random.random()/8)*10.0
                 sprite.racine.setScale(sprite.echelle)
 
   def animEau(self, time):

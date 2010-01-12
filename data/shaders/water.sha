@@ -19,12 +19,13 @@ void vshader( in float4 vtx_position : POSITION,
     vtx_position = vtx_position;
     l_position = mul( mat_modelproj, vtx_position );
     
-    float2 k_water1 = (20.00005, 20.00012);
-    float2 k_water2 = (20.00018, 20.00002);
+    float2 k_water1 = (0.1200005, 0.1200012);
+    float2 k_water2 = (0.0200018, 0.0200002);
     
     // texcoords
-    l_texcoord0.xy = vtx_texcoord0.xy * k_water1.xy * sin(k_time.x/20);
-    l_texcoord1.xy = vtx_texcoord0.xy * k_water2.xy * cos(k_time.x/20);
+    l_texcoord0.x = vtx_position.x * k_water1.x * sin(k_time.x/20);
+    l_texcoord0.y = vtx_position.y * k_water1.y * cos(k_time.x/20);
+    l_texcoord1.xy = vtx_texcoord0.xy;
     
     l_time=k_time.x;
     

@@ -54,7 +54,7 @@ class Bulbe(std):
       return False #On cherche un sprite, on ne change donc pas d'activité
 
     if self.sprite.taillePoches["construction"]<=self.sprite.contenu["construction"]:
-      self.rechercheSprite = self.sprite.ai.comportement.chercheSpriteProche(True, -1, self.sprite.joueur, False)
+      self.rechercheSprite = self.sprite.ai.comportement.chercheSpriteProche(True, ["construction"], self.sprite.joueur, False)
       for type in self.sprite.contenu.keys():
         self.sprite.contenu[type] = 0.0
       return True

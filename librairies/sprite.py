@@ -122,7 +122,7 @@ class Sprite:
       self.seuilToucheSol = definition["seuilToucheSol"]
       self.constanteGravitationelle = definition["constanteGravitationelle"]
       self.vitesse = definition["vitesse"]
-      self.distanceSymbole = definition["distancesymbole"]
+      self.distanceSymbole = definition["distancesymbole"]*6.0
       self.bouge = definition["bouge"]
       self.aquatique = definition["aquatique"]
       self.seuilRecalculPhysique = definition["seuilrecalculphysique"]
@@ -272,7 +272,7 @@ class Sprite:
       print "déposée :",depot
       print "poches :",self.contenu
       print "contenues :",sprite.contenu
-      raw_input("pose vide poche")
+      
       if peutContinuer:
         return 1
       else:

@@ -20,7 +20,8 @@ class IO:
   cameraAngleSurface = 50 #L'angle de la caméra à la surface
   
   #Gestion du clavier
-  touches = None #Liste des touches pressées en ce moment 
+  touches = None #Liste des touches pressées en ce moment
+  touchesControles = None #Liste des alt, control, shift, ...
   configClavier = None #Dictionnaire des affectations de commandes
                        #De la forme ["nom de touche"]="action"
                        #Par exemple ["escape"]="quitter"
@@ -37,6 +38,7 @@ class IO:
     
     #On associe des touches à des actions
     self.touches = []
+    self.touchesControles = []
     self.configClavier = general.configuration.getConfigurationClavier()
 
     #On place la caméra dans un noeud facile à secouer
@@ -179,27 +181,39 @@ class IO:
     if general.interface.gui.hoveringOver and touche.startswith("mouse"):
       return
     self.touches.append(touche)
+    if touche in ["alt", "shift", "control"]:#, "lalt", "lshift", "lcontrol", "ralt", "rshift", "rcontrol"]:
+      self.touchesControles.append(touche)
     self.gereTouche()
     
   def relacheTouche(self, touche):
     """Une touche a été relâchée, on l'enlève de la liste des touches"""
     while self.touches.count(touche)>0:
       self.touches.remove(touche)
-      
+    while self.touchesControles.count(touche)>0:
+      self.touchesControles.remove(touche)
+            
   def gereTouche(self):
     """Gère les touches clavier"""
     for touche in self.touches:
+      #On ajoute les touches de modifications dans l'ordre alphabétique genre alt+shit-r indique que les touche alt, shift et r sont pressées en même temps
+      if self.touchesControles:
+        tch=touche
+        touche = "+".join(sorted(self.touchesControles))+"-"+touche
+        #Si jamais la touche avec les modificateurs appliquee n'est pas dans la config, on teste sans
+        if not touche in self.configClavier.keys()::
+          touche=tch
+
       #On regarde si clique pas sur l'interface
       if not (general.interface.gui.hoveringOver and touche.startswith("mouse")):
         #La touche est configurée
         if touche in self.configClavier.keys():
-          action = self.configClavier[touche]
-          if action not in self.actions.keys():
-            #La touche a été configurée pour faire un truc mais on saît pas ce que c'est
-            print "Type d'action inconnue : ", action
-          else:
-            #On lance la fonction
-            self.appelFonction(*self.actions[action])
+          for controle in self.touchesControles:
+            if action not in self.actions.keys():
+              #La touche a été configurée pour faire un truc mais on saît pas ce que c'est
+              print "Type d'action inconnue : ", action
+            else:
+              #On lance la fonction
+              self.appelFonction(*self.actions[action])
       
   def lierActionsFonctions(self):
     """On donne des noms gentils à des appels de fonction moins sympas"""

@@ -686,11 +686,16 @@ class AIComportement:
       distanceA = None
       
       #Regarde si les ressources correspondent à la requète
-      def testeRessources(trouver, contenu, strict=False):
+      def testeRessources(trouver, sprite, stock, strict=False):
+        contenu=sprite.contenu
         for element in trouver:
           if element in contenu.keys():
-            if not strict:
-              return True #Pas strict et on en a un
+            if (stock and contenu[element]<sprite.taillePoches[element]) or (not stock and contenu[element]>0):
+              if not strict:
+                return True #Pas strict et on en a un
+            else:
+              if strict:
+                return False #Strict et il en manque au moin 1
           else:
             if strict:
               return False #Strict et il en manque au moin 1
@@ -701,7 +706,7 @@ class AIComportement:
         if stock==-1 or stock==sprite.stock:
           if joueur==-1 or sprite.joueur==joueur or sprite.joueur.nom==joueur:
             if joueur==-1 or sprite.joueur==joueur or sprite.joueur.nom==joueur:
-              if ressources==-1 or testeRessources(ressources, sprite.contenu, strict):
+              if ressources==-1 or testeRessources(ressources, sprite, stock, strict):
                 dist = (self.ai.sprite.position - sprite.position).length()
                 if distance==None or distance>dist:
                   distA = general.planete.aiNavigation.aStar(general.planete.geoide.trouveSommet(self.ai.sprite.position), general.planete.geoide.trouveSommet(sprite.position))
