@@ -36,45 +36,25 @@ void fshader( in float4 l_position : POSITION,
               in uniform sampler2D tex_0 : TEXUNIT0,
               in uniform sampler2D tex_1 : TEXUNIT1,
               in uniform sampler2D tex_2 : TEXUNIT2,
-              in uniform sampler2D tex_3 : TEXUNIT3,
-              in uniform sampler2D tex_4 : TEXUNIT4,
-              in uniform sampler2D tex_5 : TEXUNIT5,
-              in uniform sampler2D tex_6 : TEXUNIT6,
 
               out float4 o_color : COLOR )
 {
-    float4 subsubaquatique = tex2D( tex_0, l_texcoord0 );
-    float4 subaquatique = tex2D( tex_1, l_texcoord0 );
-    float4 sable = tex2D( tex_2, l_texcoord0 );
-    float4 herbe = tex2D( tex_3, l_texcoord0 );
-    float4 feuillesc = tex2D( tex_4, l_texcoord0 );
-    float4 cailloux = tex2D( tex_5, l_texcoord0 );
-    float4 neige = tex2D( tex_6, l_texcoord0 );
+    float4 sable = tex2D( tex_0, l_texcoord0 );
+    float4 herbe = tex2D( tex_1, l_texcoord0 );
+    float4 neige = tex2D( tex_2, l_texcoord0 );
     
     float a,b,sw;
-    
+    float4 sousEau=(0.7,0.7,0.8,1.0);
     // texture blending
-    o_color = subsubaquatique;
+    o_color = sable*sousEau;
     a=0.1f;
-    b=0.3f;
-    sw=clamp((l_altitude-a)/(b-a), 0.0f, 1.0f);
-    o_color =  lerp(o_color,  subaquatique, sw);
-    a=0.2f;
     b=0.5f;
     sw=clamp((l_altitude-a)/(b-a), 0.0f, 1.0f);
     o_color =  lerp(o_color,  sable, sw);
     a=0.4f;
-    b=0.6f;
+    b=0.8f;
     sw=clamp((l_altitude-a)/(b-a), 0.0f, 1.0f);
     o_color =  lerp(o_color,  herbe, sw);
-    a=0.6f;
-    b=0.8f;
-    sw=clamp((l_altitude-a)/(b-a), 0.0f, 1.0f);
-    o_color =  lerp(o_color,  feuillesc, sw);
-    a=0.7f;
-    b=0.8f;
-    sw=clamp((l_altitude-a)/(b-a), 0.0f, 1.0f);
-    o_color =  lerp(o_color,  cailloux, sw);
     a=0.75f;
     b=0.95f;
     sw=clamp((l_altitude-a)/(b-a), 0.0f, 1.0f);

@@ -122,7 +122,7 @@ class Sprite:
       self.seuilToucheSol = definition["seuilToucheSol"]
       self.constanteGravitationelle = definition["constanteGravitationelle"]
       self.vitesse = definition["vitesse"]
-      self.distanceSymbole = definition["distancesymbole"]*6.0
+      self.distanceSymbole = definition["distancesymbole"]
       self.bouge = definition["bouge"]
       self.aquatique = definition["aquatique"]
       self.seuilRecalculPhysique = definition["seuilrecalculphysique"]
@@ -141,6 +141,10 @@ class Sprite:
         self.ai = AI(self)
         #Charge un comportement tout fait
         self.ai.choisitComportement(definition["ai"])
+        
+  def stop(self):
+    """Stoppe toutes les activités du sprite"""
+    self.ai.stop()
     
   def pointeRacineSol(self):
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""

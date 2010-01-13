@@ -49,3 +49,6 @@ class Bulbe:
   def detruit(self):
     pass
     
+  def stop(self):
+    pass
+    

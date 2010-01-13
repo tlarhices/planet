@@ -278,6 +278,12 @@ class AI:
     #Prépare les moulinettes de base
     self.comportement = AIComportement(self)
     
+  def stop(self):
+    """Stoppe toutes les actions de l'IA"""
+    self.comportement.stop()
+    if self.bulbe != None:
+      self.bulbe.stop()
+    
   def choisitComportement(self, type):
     """Choisit un type de comportement pour cette IA"""
     #On charge un nouveau type de comportement depuis le plugin
@@ -340,6 +346,9 @@ class AIComportementUnitaire:
     
   def ping(self, temps):
     self.supprime()
+    
+  def stop(self):
+    pass
     
   def supprime(self):
     self.comportement = None
@@ -598,6 +607,11 @@ class AIComportement:
     self.steeringForce = Vec3(0.0, 0.0, 0.0)
     self.comportements = []
     self.ennui = False
+    
+  def stop(self):
+    for comportement in self.comportements:
+      comportement.stop()
+    self.comportements = []
     
   def sauvegarde(self):
     out = ""

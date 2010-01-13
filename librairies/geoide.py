@@ -440,7 +440,7 @@ class Geoide:
                 #On tourne les arbres un peu aléatoirement et on change d'échelle pour varier un peu plus
                 sprite.racine.setH(random.random()*5)
                 sprite.racine.setR(random.random()*7)
-                sprite.echelle = sprite.echelle*(1.0-random.random()/8)*10.0
+                sprite.echelle = sprite.echelle*(1.0-random.random()/8)
                 sprite.racine.setScale(sprite.echelle)
 
   def animEau(self, time):
@@ -887,7 +887,7 @@ class Geoide:
     point.normalize()
     return point * self.altitude(point)
 
-  def changeCoordPoint(self, oldCoord, newCoord):
+  def changeCoordPoint(self, oldCoord, newCoord, MAJ=True):
     """
     Change les coordonnées du point connu par ses anciennes coordonnées vers de nouvelles coordonnées
     Met à jour la géométrie qui en a besoin
@@ -897,29 +897,37 @@ class Geoide:
       raw_input()
     idx = self.sommets.index(oldCoord)
     self.sommets[idx] = Vec3(*general.floatise(newCoord))
-    self.modifieVertex(idx)
+    self.modifieVertex(idx, MAJ=MAJ)
     
     elements = self.sommetDansFace[idx]
         
     for element in elements:
       element.normale = None #On a bougé un point, donc sa normale a changée
-
-    general.planete.aiNavigation.maj(idx)
+      
+    if MAJ:
+      general.planete.aiNavigation.maj(idx)
     
   def montagne(self, idxSommetCentre, rayon, delta):
     delta = delta/10
     voisins = []
+    deltas = {}
+    
     #On ajoute les voisins directes
     for element in self.voisinage[idxSommetCentre]:
       if (not element in voisins):
         voisins.append(element)
-        self.elevePoint(element, delta)#*float(distance)/rayon
+        deltas[element]=deltas.get(element, 0.0)+delta
     for i in range(0, rayon):
       for idx in voisins[:]:
         for element in self.voisinage[idx]:
           if (not element in voisins):
             voisins.append(element)
-            self.elevePoint(element, delta*(float(i)/rayon)*(float(i)/rayon))#*float(distance)/rayon
+            deltas[element]=deltas.get(element, 0.0)+delta*(float(i)/rayon)*(float(i)/rayon)
+    for sommet in deltas:
+      delta=deltas[sommet]
+      self.elevePoint(sommet, delta, MAJ=False)
+    for sommet in deltas:
+      general.planete.aiNavigation.maj(idx)
       
   def elevePoint(self, idx, delta):
     """Déplace le sommet d'indice idx de delta unité et met à jour la géométrie qui en a besoin"""
@@ -971,10 +979,10 @@ class Geoide:
     tWriter.addData2f(ci1)
     cWriter.addData4f(*c1)
       
-  def modifieVertex(self, indice):
+  def modifieVertex(self, indice, MAJ=True):
     if self.vdata == None:
       return
-    self._repr = self.__repr__()
+    #self._repr = self.__repr__()
     #On bouge le point
     vWriter = GeomVertexWriter(self.vdata, 'vertex')
     vWriter.setRow(indice)
@@ -991,57 +999,58 @@ class Geoide:
     cWriter.setData4f(self.elements[0].couleurSommet(self.sommets[indice])[0])
       
     #On met à jour la minimap
-    general.cartographie.calculMiniMap((256, 128),self.sommetDansFace[indice])
+    if MAJ:
+      general.cartographie.calculMiniMap((256, 128),self.sommetDansFace[indice])
       
   def ajouteTextures(self):
     general.TODO("Finir le texturage via heightmap")
     
     if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
-      tex0 = loader.loadTexture( 'data/textures/subsubaquatique.png' )
-      tex0.setMinfilter( Texture.FTLinearMipmapLinear )
-      tex0.setMagfilter( Texture.FTLinearMipmapLinear )
-      tex1 = loader.loadTexture( 'data/textures/subaquatique.png' )
-      tex1.setMinfilter( Texture.FTLinearMipmapLinear )
-      tex1.setMagfilter( Texture.FTLinearMipmapLinear )
+      #tex0 = loader.loadTexture( 'data/textures/subsubaquatique.png' )
+      #tex0.setMinfilter( Texture.FTLinearMipmapLinear )
+      #tex0.setMagfilter( Texture.FTLinearMipmapLinear )
+      #tex1 = loader.loadTexture( 'data/textures/subaquatique.png' )
+      #tex1.setMinfilter( Texture.FTLinearMipmapLinear )
+      #tex1.setMagfilter( Texture.FTLinearMipmapLinear )
       tex2 = loader.loadTexture( 'data/textures/sable.png' )
       tex2.setMinfilter( Texture.FTLinearMipmapLinear )
       tex2.setMagfilter( Texture.FTLinearMipmapLinear )
       tex3 = loader.loadTexture( 'data/textures/herbe.png' )
       tex3.setMinfilter( Texture.FTLinearMipmapLinear )
       tex3.setMagfilter( Texture.FTLinearMipmapLinear )
-      tex4 = loader.loadTexture( 'data/textures/herbe_2.jpg' )
-      tex4.setMinfilter( Texture.FTLinearMipmapLinear )
-      tex4.setMagfilter( Texture.FTLinearMipmapLinear )
-      tex5 = loader.loadTexture( 'data/textures/cailloux.png' )
-      tex5.setMinfilter( Texture.FTLinearMipmapLinear )
-      tex5.setMagfilter( Texture.FTLinearMipmapLinear )
+      #tex4 = loader.loadTexture( 'data/textures/herbe_2.jpg' )
+      #tex4.setMinfilter( Texture.FTLinearMipmapLinear )
+      #tex4.setMagfilter( Texture.FTLinearMipmapLinear )
+      #tex5 = loader.loadTexture( 'data/textures/cailloux.png' )
+      #tex5.setMinfilter( Texture.FTLinearMipmapLinear )
+      #tex5.setMagfilter( Texture.FTLinearMipmapLinear )
       tex6 = loader.loadTexture( 'data/textures/neige.png' )
       tex6.setMinfilter( Texture.FTLinearMipmapLinear )
       tex6.setMagfilter( Texture.FTLinearMipmapLinear )
       
-      ts0 = TextureStage( 'subsubaquatique' )
-      ts1 = TextureStage( 'subaquatique' )
+      #ts0 = TextureStage( 'subsubaquatique' )
+      #ts1 = TextureStage( 'subaquatique' )
       ts2 = TextureStage( 'sable' )
       ts3 = TextureStage( 'herbe' )
-      ts4 = TextureStage( 'feuillesc' )
-      ts5 = TextureStage( 'cailloux' )
+      #ts4 = TextureStage( 'feuillesc' )
+      #ts5 = TextureStage( 'cailloux' )
       ts6 = TextureStage( 'neige' )
 
-      self.racineModel.setTexture( ts0, tex0, 5 )
-      self.racineModel.setTexture( ts1, tex1, 10 )
+      #self.racineModel.setTexture( ts0, tex0, 5 )
+      #self.racineModel.setTexture( ts1, tex1, 10 )
       self.racineModel.setTexture( ts2, tex2, 15 )
       self.racineModel.setTexture( ts3, tex3, 20 )
-      self.racineModel.setTexture( ts4, tex4, 25 )
-      self.racineModel.setTexture( ts5, tex5, 30 )
+      #self.racineModel.setTexture( ts4, tex4, 25 )
+      #self.racineModel.setTexture( ts5, tex5, 30 )
       self.racineModel.setTexture( ts6, tex6, 35 )
       self.racineModel.setTag( 'Normal', 'True' )
       self.racineModel.setTag( 'Clipped', 'True' )
-      self.racineModel.setTexScale(ts0, 256, 256)
-      self.racineModel.setTexScale(ts1, 256, 256)
+      #self.racineModel.setTexScale(ts0, 256, 256)
+      #self.racineModel.setTexScale(ts1, 256, 256)
       self.racineModel.setTexScale(ts2, 256, 256)
       self.racineModel.setTexScale(ts3, 256, 256)
-      self.racineModel.setTexScale(ts4, 256, 256)
-      self.racineModel.setTexScale(ts5, 256, 256)
+      #self.racineModel.setTexScale(ts4, 256, 256)
+      #self.racineModel.setTexScale(ts5, 256, 256)
       self.racineModel.setTexScale(ts6, 256, 256)
       
     elif general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="flat":

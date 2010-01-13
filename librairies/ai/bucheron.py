@@ -75,3 +75,8 @@ class Bulbe(std):
       self.dernierePositionArbre = None
       self.rechercheSprite = self.sprite.ai.comportement.chercheSpriteProche(False, ["construction"], None, False)
     return True
+    
+  def stop(self):
+    self.rechercheSprite = None
+    self.dernierArbre = None
+    self.dernierePositionArbre = None

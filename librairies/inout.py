@@ -8,7 +8,6 @@ import math
 
 class IO:
   preImage = None #L'heure à laquelle la précédente image a été rendue
-  select = None #Le sprite sélectionné
   
   #Gestion de la caméra
   camera = None
@@ -32,7 +31,12 @@ class IO:
                  #X peut être une liste [a, g]...
                  #X peut être un dictionnaire {"nom parametre":valeur, ...}
                  
+  selection = None #Ce que le joueur a sélectionné
+                 
   def __init__(self):
+    #On a rien de sélectionné
+    self.selection = None
+    
     #On donne des alias à certaines fonctions
     self.lierActionsFonctions()
     
@@ -189,6 +193,14 @@ class IO:
     """Une touche a été relâchée, on l'enlève de la liste des touches"""
     while self.touches.count(touche)>0:
       self.touches.remove(touche)
+      if touche+"-off" in self.configClavier.keys():
+        action = self.configClavier[touche+"-off"]
+        if action not in self.actions.keys():
+          #La touche a été configurée pour faire un truc mais on saît pas ce que c'est
+          print "Type d'action inconnue : ", action
+        else:
+          #On lance la fonction
+          self.appelFonction(*self.actions[action])
     while self.touchesControles.count(touche)>0:
       self.touchesControles.remove(touche)
             
@@ -202,18 +214,17 @@ class IO:
         #Si jamais la touche avec les modificateurs appliquee n'est pas dans la config, on teste sans
         if not touche in self.configClavier.keys():
           touche=tch
-
       #On regarde si clique pas sur l'interface
       if not (general.interface.gui.hoveringOver and touche.startswith("mouse")):
         #La touche est configurée
         if touche in self.configClavier.keys():
-          for controle in self.touchesControles:
-            if action not in self.actions.keys():
-              #La touche a été configurée pour faire un truc mais on saît pas ce que c'est
-              print "Type d'action inconnue : ", action
-            else:
-              #On lance la fonction
-              self.appelFonction(*self.actions[action])
+          action = self.configClavier[touche]
+          if action not in self.actions.keys():
+            #La touche a été configurée pour faire un truc mais on saît pas ce que c'est
+            print "Type d'action inconnue : ", action
+          else:
+            #On lance la fonction
+            self.appelFonction(*self.actions[action])
       
   def lierActionsFonctions(self):
     """On donne des noms gentils à des appels de fonction moins sympas"""
@@ -225,10 +236,34 @@ class IO:
     self.actions["tournecameraverslebas"] = (self.tourneCamera,(0.0,self.cameraPasRotation))
     self.actions["zoomplus"] = (self.zoomPlus,None)
     self.actions["zoommoins"] = (self.zoomMoins,None)
-    self.actions["modifiealtitude+"] = (general.start.modifieAltitude,(1.0,))
-    self.actions["modifiealtitude-"] = (general.start.modifieAltitude,(-1.0,))
-    self.actions["affichestat"] = (general.start.afficheStat,None)
-    self.actions["screenshot"] = (general.start.screenShot,None)
+    self.actions["modifiealtitude+"] = (self.modifieAltitude,(1.0,))
+    self.actions["modifiealtitude-"] = (self.modifieAltitude,(-1.0,))
+    self.actions["fabriquegroupe1"] = (self.fabriqueGroupe,(1,))
+    self.actions["fabriquegroupe2"] = (self.fabriqueGroupe,(2,))
+    self.actions["fabriquegroupe3"] = (self.fabriqueGroupe,(3,))
+    self.actions["fabriquegroupe4"] = (self.fabriqueGroupe,(4,))
+    self.actions["fabriquegroupe5"] = (self.fabriqueGroupe,(5,))
+    self.actions["fabriquegroupe6"] = (self.fabriqueGroupe,(6,))
+    self.actions["fabriquegroupe7"] = (self.fabriqueGroupe,(7,))
+    self.actions["fabriquegroupe8"] = (self.fabriqueGroupe,(8,))
+    self.actions["fabriquegroupe9"] = (self.fabriqueGroupe,(9,))
+    self.actions["fabriquegroupe0"] = (self.fabriqueGroupe,(0,))
+    self.actions["appelgroupe1"] = (self.appelGroupe,(1,))
+    self.actions["appelgroupe2"] = (self.appelGroupe,(2,))
+    self.actions["appelgroupe3"] = (self.appelGroupe,(3,))
+    self.actions["appelgroupe4"] = (self.appelGroupe,(4,))
+    self.actions["appelgroupe5"] = (self.appelGroupe,(5,))
+    self.actions["appelgroupe6"] = (self.appelGroupe,(6,))
+    self.actions["appelgroupe7"] = (self.appelGroupe,(7,))
+    self.actions["appelgroupe8"] = (self.appelGroupe,(8,))
+    self.actions["appelgroupe9"] = (self.appelGroupe,(9,))
+    self.actions["appelgroupe0"] = (self.appelGroupe,(0,))
+    self.actions["debclic"] = (self.debClic,None)
+    self.actions["finclic"] = (self.finClic,None)
+    self.actions["affichestat"] = (self.afficheStat,None)
+    self.actions["screenshot"] = (self.screenShot,None)
+    self.actions["selectionne"] = (self.selectionne,None)
+    self.actions["dragdrop"] = (self.dragDrop,None)
     
   def appelFonction(self, fonction, parametres):
     """Appel la fonction fonction en lui passant les paramètres décris"""
@@ -247,34 +282,180 @@ class IO:
     """Quitte l'application"""
     general.interface.quitter()
   
-  def testeSouris(self):
+  def testeSouris(self, coords=None):
     """Teste ce qui se trouve sous le curseur de la souris"""
-    
+    self.selection = []
     planete = general.planete
     
-    if base.mouseWatcherNode.hasMouse():
-      mpos=base.mouseWatcherNode.getMouse()
-      x=mpos.getX()
-      y=mpos.getY()
-      
-      #Test du survol de la souris  
-      self.pickerRay.setFromLens(base.camNode, mpos.getX(), mpos.getY())
-      base.cTrav.traverse(render)
-      if self.myHandler.getNumEntries() > 0:
-        self.myHandler.sortEntries()
-        objet = self.myHandler.getEntry(0).getIntoNodePath().findNetPythonTag('type')
-        if objet.getPythonTag('type') == "sol":
-          coord = self.myHandler.getEntry(0).getSurfacePoint(planete.geoide.racine)
-          if self.select != None:
-            self.select.marcheVers(coord)
-            self.select = None
-          else:
-            idsommet = general.planete.geoide.trouveSommet(coord)
-            planete.geoide.survol = idsommet
-        elif objet.getPythonTag('type') == "sprite":
-            general.interface.afficheTexte("Clic sur le sprite : %(a)s cliquez sur le sol où vous voulez qu'il aille", parametres={"a": str(objet.getPythonTag('id'))}, type="info")
-            self.select = objet.getPythonTag('instance')
-        else:
-          general.interface.afficheTexte("Clic sur un objet au tag inconnu : %(a)s", parametres={"a": str(objet.getPythonTag('type'))}, type="info")
+    if coords==None:
+      if base.mouseWatcherNode.hasMouse():
+        mpos=base.mouseWatcherNode.getMouse()
+        x=mpos.getX()
+        y=mpos.getY()
       else:
-        planete.geoide.survol = None
+        #La souris n'est pas sur l'écran
+        return
+    else:
+      x,y=coords
+      
+    #Test du survol de la souris  
+    self.pickerRay.setFromLens(base.camNode, x, y)
+    base.cTrav.traverse(render)
+    if self.myHandler.getNumEntries() > 0:
+      self.myHandler.sortEntries()
+      objet = self.myHandler.getEntry(0).getIntoNodePath().findNetPythonTag('type')
+      if objet.getPythonTag('type') == "sol":
+        coord = self.myHandler.getEntry(0).getSurfacePoint(planete.geoide.racine)
+        if self.selection:
+          for sprite in self.selection:
+            sprite.stop()
+            sprite.marcheVers(coord)
+          print self.selection,"va vers", coord
+        else:
+          idsommet = general.planete.geoide.trouveSommet(coord)
+          planete.geoide.survol = idsommet
+      elif objet.getPythonTag('type') == "sprite":
+          self.selection = [objet.getPythonTag('instance'),]
+      else:
+        general.interface.afficheTexte("Clic sur un objet au tag inconnu : %(a)s", parametres={"a": str(objet.getPythonTag('type'))}, type="info")
+    else:
+      planete.geoide.survol = None
+        
+        
+        
+        
+        
+        
+  ### Autres -----------------------------------------------------------
+  
+  posClic = None
+  isDragging = False
+  seuilDrag = 100
+  
+  def debClic(self):
+    """Le bouton gauche de la souris a été pressé"""
+    if self.posClic==None:
+      if base.mouseWatcherNode.hasMouse():
+        mpos=base.mouseWatcherNode.getMouse()
+        x=mpos.getX()+1.0
+        y=mpos.getY()+1.0
+        self.posClic=(x*base.win.getXSize()/2,y*base.win.getYSize()/2)
+      else:
+        print "pas souris deb"
+    else:
+      if not self.isDragging: #Si on sait qu'on fait du d&d
+        if base.mouseWatcherNode.hasMouse():
+          mpos=base.mouseWatcherNode.getMouse()
+          x=mpos.getX()+1.0
+          y=mpos.getY()+1.0
+          newPos=(x*base.win.getXSize()/2,y*base.win.getYSize()/2)
+          d = (newPos[0]-self.posClic[0])*(newPos[0]-self.posClic[0]), (newPos[1]-self.posClic[1])*(newPos[1]-self.posClic[1])
+          if d[0]>self.seuilDrag or d[1]>self.seuilDrag:
+            self.isDragging = True
+    
+  def finClic(self):
+    """Le bouton gauche de la souris a été relâché"""
+    touche = None
+    params = None
+    
+    #Si on draggais
+    if self.isDragging:
+      self.isDragging = False
+      #On regarde si on a un truc à faire à la fin du drag
+      if "drag-off" in self.configClavier.keys():
+        touche = "drag-off"
+        newPos=None
+        if base.mouseWatcherNode.hasMouse():
+          mpos=base.mouseWatcherNode.getMouse()
+          x=mpos.getX()+1.0
+          y=mpos.getY()+1.0
+          newPos=(x*base.win.getXSize()/2,y*base.win.getYSize()/2)
+        if newPos==None:
+          #Le drag & drop est sorti de l'écran
+          self.posClic=None
+          return
+        params = (self.posClic, newPos)
+      else:
+        self.posClic=None
+        return
+    else:
+      #On regarde si on a un truc à faire pour un clic normal
+      if "clic" in self.configClavier.keys():
+        touche = "clic"
+        params = (self.posClic,)
+      else:
+        self.posClic=None
+        return
+      
+    action = self.configClavier[touche]
+    if action not in self.actions.keys():
+      #La touche a été configurée pour faire un truc mais on saît pas ce que c'est
+      print "Type d'action inconnue : ", action
+    else:
+      fonction, parametres = self.actions[action]
+      if params!=None:
+        if parametres==None:
+          parametres = []
+        for param in params:
+          parametres.append(param)
+      #On lance la fonction
+      self.appelFonction(fonction, parametres)
+      
+    self.posClic=None
+    
+  def pointEcranVersRender2D(self, point):
+    """Passe un point en pixels dans le champ [-1:1][-1:1] de render2D"""
+    return (point[0]/base.win.getXSize()*2-1.0, point[1]/base.win.getYSize()*2-1.0)
+    
+  def selectionne(self, coordSouris):
+    """Fait un clic"""
+    self.testeSouris(self.pointEcranVersRender2D(coordSouris))
+   
+  def dragDrop(self, coordDeb, coordFin):
+    """Gère le drag&drop"""
+    if general.joueurLocal == None:
+      #on a pas de joueur
+      return
+      
+    self.selection = []
+    
+    #On normalise les coordonnées du rectangle de sélection
+    minx = min(coordDeb[0], coordFin[0])
+    miny = min(coordDeb[1], coordFin[1])
+    maxx = max(coordDeb[0], coordFin[0])
+    maxy = max(coordDeb[1], coordFin[1])
+    pt1 = self.pointEcranVersRender2D((minx,miny))
+    pt2 = self.pointEcranVersRender2D((maxx,maxy))
+    
+    for sprite in general.planete.sprites:
+      #On ne prend en compte que les sprites du joueur local
+      if sprite.joueur == general.joueurLocal:
+        pos = general.map3dToRender2d(sprite.rac, Vec3(0.0,0.0,0.0))
+        if pos!=None:
+          if pos[0]>=pt1[0] and pos[0]<=pt2[0]:
+            if pos[1]>=pt1[1] and pos[1]<=pt2[1]:
+              if general.ligneCroiseSphere(sprite.position, self.camera.getPos(), (0.0,0.0,0.0), 1.0) == None:
+                self.selection.append(sprite)
+  
+  def afficheStat(self):
+    #Affiche le contenu du chronomètre
+    general.afficheStatChrono()
+    
+  def fabriqueGroupe(self, idGroupe):
+    general.TODO("Faire le groupage des unités")
+    
+  def appelGroupe(self, idGroupe):
+    general.TODO("Faire le groupage des unités")
+
+  def modifieAltitude(self, direction):
+    """Change l'altitude d'un point, si direction>0 alors l'altitude sera accrue sinon diminuée"""
+    self.testeSouris()
+    if general.planete.geoide.survol == None:
+      return
+    
+    ndelta = general.planete.geoide.delta * direction * 0.01
+    general.planete.geoide.elevePoint(general.planete.geoide.survol, ndelta)
+    
+  def screenShot(self):
+    base.screenshot("test")
+  ### Fin autres -------------------------------------------------------  

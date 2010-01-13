@@ -125,6 +125,7 @@ class Start:
     general.planete.seuilSauvegardeAuto = -1
     general.planete.fabriqueNouvellePlanete(tesselation=3, delta=0.2)
     general.planete.fabriqueModel()
+    general.joueurLocal = None
     
     #general.io est crée par l'interface
     #Place la caméra dans l'arbre de rendu
@@ -178,10 +179,6 @@ class Start:
     general.io.positionneCamera()
     
 
-  def afficheStat(self):
-    #Affiche le contenu du chronomètre
-    general.afficheStatChrono()
-
   def ping(self, task):
     """Fonction exécutée à chaque image"""
     #On met à jour l'heure actuelle pour les calculs dans les shaders
@@ -224,24 +221,6 @@ class Start:
       general.planete = None
   ### Fin gestion de la planète ----------------------------------------
       
-  ### Autres -----------------------------------------------------------
-  def modifieAltitude(self, direction):
-    """Change l'altitude d'un point, si direction>0 alors l'altitude sera accrue sinon diminuée"""
-    general.TODO("Déplacer la modification d'altitude dans general.io")
-    general.io.testeSouris()
-    
-    if general.planete.geoide.survol == None:
-      return
-    
-    ndelta = general.planete.geoide.delta * direction * 0.01
-    general.planete.geoide.elevePoint(general.planete.geoide.survol, ndelta)
-    
-  def screenShot(self):
-    base.screenshot("test")
-  ### Fin autres -------------------------------------------------------
-
-
-    
 print """
 
 Planet, Copyright (C) 2009 Clerc Mathias
