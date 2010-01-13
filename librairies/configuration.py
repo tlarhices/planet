@@ -157,7 +157,7 @@ class Configuration:
     if section not in self.configuration.keys():
       print self.configuration.keys()
       print "getConfiguration::section pas dans le fichier de configuration ::",section
-      raw_input("pause_configuration")
+      #raw_input("pause_configuration")
       self.configuration[section]={}
       self.configuration[section][soussection]={}
       self.configuration[section][soussection][champ]=defaut
@@ -165,13 +165,13 @@ class Configuration:
     if soussection not in self.configuration[section].keys():
       print self.configuration.keys()
       print "getConfiguration::sous-section pas dans le fichier de configuration ::",section, soussection
-      raw_input("pause_configuration")
+      #raw_input("pause_configuration")
       self.configuration[section][soussection]={}
       self.configuration[section][soussection][champ]=defaut
       return defaut
     if champ not in self.configuration[section][soussection].keys():
       print "getConfiguration::champ pas dans le fichier de configuration ::",section, soussection, champ
-      raw_input("pause_configuration")
+      #raw_input("pause_configuration")
       self.configuration[section][soussection][champ]=defaut
       return defaut
       

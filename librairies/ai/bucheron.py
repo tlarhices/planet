@@ -28,7 +28,7 @@ class Bulbe(std):
         else:
           spriteid, cheminstr = self.rechercheSprite.recv().split("||")
           
-        if chemin.lower()!="none":
+        if cheminstr.lower()!="none":
           cheminstr=cheminstr[1:-1].split(",")
           chemin=[self.sprite.position]
           for elem in cheminstr:

@@ -405,10 +405,14 @@ class IO:
     
   def pointEcranVersRender2D(self, point):
     """Passe un point en pixels dans le champ [-1:1][-1:1] de render2D"""
+    if point==None:
+      return None
     return (point[0]/base.win.getXSize()*2-1.0, point[1]/base.win.getYSize()*2-1.0)
     
   def selectionne(self, coordSouris):
     """Fait un clic"""
+    if coordSouris==None:
+      return
     self.testeSouris(self.pointEcranVersRender2D(coordSouris))
    
   def dragDrop(self, coordDeb, coordFin):

@@ -696,14 +696,14 @@ class Nuage(Sprite):
       return
     #Modele est centré sur la planète, donc les rotations le promènent un peu tout autour
     f = random.random()*3 -1.0
-    self.modele.setH(self.modele.getH()+random.random()*temps*f)
-    self.modele.setP(self.modele.getP()+random.random()*temps*f)
-    self.modele.setR(self.modele.getR()+random.random()*temps*f)
+    self.modele.setH(self.modele.getH()+random.random()*temps*f/30)
+    self.modele.setP(self.modele.getP()+random.random()*temps*f/30)
+    self.modele.setR(self.modele.getR()+random.random()*temps*f/30)
     #Faire tourner la racine change le profile du nuage présenté à la caméra et donc sa forme pour donner l'impression qu'il évolue
     f=2.5
-    self.racine.setH(self.racine.getH()+random.random()*temps*f)
-    self.racine.setP(self.racine.getP()+random.random()*temps*f)
-    self.racine.setR(self.racine.getR()+random.random()*temps*f)
+    self.racine.setH(self.racine.getH()+random.random()*temps*f/30)
+    self.racine.setP(self.racine.getP()+random.random()*temps*f/30)
+    self.racine.setR(self.racine.getR()+random.random()*temps*f/30)
     self.position = self.n1.getPos(general.planete.geoide.racine)
     
   def fabriqueModel(self):
