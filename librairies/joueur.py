@@ -54,7 +54,7 @@ class Joueur:
       print "Sprite inconnu",type, "->", fichier
     id = "{S:"+self.nom+"}"+id+"-"+str(len(self.sprites)+1)
     sprite = Sprite(id=id, position=position, fichierDefinition=fichier, joueur=self)
-    general.planete.sprites.append(sprite)
+    general.planete.spritesJoueur.append(sprite)
     self.sprites.append(sprite)
     
   def spriteMort(self, sprite):

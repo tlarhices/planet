@@ -27,7 +27,10 @@ class Bulbe(std):
         
         if spriteid != None:
           sprite=None
-          for spr in general.planete.sprites:
+          for spr in general.planete.spritesJoueur:
+            if spr.id==spriteid:
+              sprite=spr
+          for spr in general.planete.spritesNonJoueur:
             if spr.id==spriteid:
               sprite=spr
           if sprite!=None:
@@ -65,7 +68,7 @@ class Bulbe(std):
         print self.sprite.id,"retourne vers l'arbre",self.dernierArbre.id
         self.sprite.marcheVers(self.dernierArbre.position)
       #On lui dit de couper l'arbre
-      if general.planete.sprites.count(self.dernierArbre)>0:
+      if general.planete.spritesNonJoueur.count(self.dernierArbre)>0:
         self.sprite.ai.comportement.piller(self.dernierArbre, 0.75)
       else:
         #Cet arbre n'est plus, on va devoir en couper un autre

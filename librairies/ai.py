@@ -696,7 +696,6 @@ class AIComportement:
     """A ne pas appeler directement, utiliser chercheSpriteProche"""
     try:
       proche = None
-      distance = None
       distanceA = None
       
       #Regarde si les ressources correspondent à la requète
@@ -715,21 +714,28 @@ class AIComportement:
               return False #Strict et il en manque au moin 1
         return True #Strict et on a tout trouvé
         
-      #On cherche dans tous les sprites le sprite le plus proche (en longueur de chemin et pas à vol d'oiseau) qui correspond à la requète
-      for sprite in general.planete.sprites:
+      def testeSprite(sprite, stock, joueur, ressources, strict):
         if stock==-1 or stock==sprite.stock:
           if joueur==-1 or sprite.joueur==joueur or sprite.joueur.nom==joueur:
-            if joueur==-1 or sprite.joueur==joueur or sprite.joueur.nom==joueur:
-              if ressources==-1 or testeRessources(ressources, sprite, stock, strict):
-                dist = (self.ai.sprite.position - sprite.position).length()
-                if distance==None or distance>dist:
-                  distA = general.planete.aiNavigation.aStar(general.planete.geoide.trouveSommet(self.ai.sprite.position), general.planete.geoide.trouveSommet(sprite.position))
-                  if distA!=None:
-                    distA=len(distA)
-                  if distA!=None and (distanceA==None or distanceA>distA):
-                    proche = sprite
-                    distanceA = distA
-                    distance = dist
+            if ressources==-1 or testeRessources(ressources, sprite, stock, strict):
+              return general.planete.aiNavigation.aStar(general.planete.geoide.trouveSommet(self.ai.sprite.position), general.planete.geoide.trouveSommet(sprite.position))
+
+        
+      #On cherche dans tous les sprites le sprite le plus proche (en longueur de chemin et pas à vol d'oiseau) qui correspond à la requète
+      for sprite in general.planete.spritesJoueur:
+        distA = testeSprite(sprite, stock, joueur, ressources, strict)
+        if distA!=None:
+          distA=len(distA)
+        if distA!=None and (distanceA==None or distanceA>distA):
+          proche = sprite
+          distanceA = distA      
+      for sprite in general.planete.spritesNonJoueur:
+        distA = testeSprite(sprite, stock, joueur, ressources, strict)
+        if distA!=None:
+          distA=len(distA)
+        if distA!=None and (distanceA==None or distanceA>distA):
+          proche = sprite
+          distanceA = distA       
       if proche!=None:
         conn.send(proche.id)
       else:

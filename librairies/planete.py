@@ -28,7 +28,8 @@ import hashlib
 
 class Planete:
   aiNavigation = None #Le bout d'AI qui contient le graphe de navigation qui est commun a toute entité de la planète
-  sprites = None #La liste des objets du monde dérivant de la classe sprite
+  spritesJoueur = None #La liste des objets du monde dérivant de la classe sprite
+  spritesNonJoueur = None #La liste des objets du monde dérivant de la classe sprite
   joueurs = None
   
   #Paramètres éclairage
@@ -52,7 +53,8 @@ class Planete:
     """Constructeur, initialise les tableaux"""
     self.geoide = Geoide()
     self.nom = nom
-    self.sprites = [] #Pas d'objets sur la planète
+    self.spritesJoueur = [] #Pas d'objets sur la planète
+    self.spritesNonJoueur = [] #Pas d'objets sur la planète
     self.joueurs = []
     
     self.distanceSoleil = float(general.configuration.getConfiguration("planete", "Univers", "distanceSoleil","10.0"))
@@ -77,9 +79,12 @@ class Planete:
     self.fini = True
     for joueur in self.joueurs:
       joueur.detruit()
-    for sprite in self.sprites:
+    for sprite in self.spritesJoueur:
       sprite.tue("destruction de la planète", silence=True)
-    self.sprites = []
+    for sprite in self.spritesNonJoueur:
+      sprite.tue("destruction de la planète", silence=True)
+    self.spritesJoueur = []
+    self.spritesNonJoueur = []
     self.joueurs = []
     
   def _syncCheck(self):
@@ -87,7 +92,9 @@ class Planete:
     check+=self.geoide._syncCheck()
     for joueur in self.joueurs:
       check+=joueur._syncCheck()
-    for sprite in self.sprites:
+    for sprite in self.spritesJoueur:
+      check+=sprite._syncCheck()
+    for sprite in self.spritesNonJoueur:
       check+=sprite._syncCheck()
     return check
     
@@ -110,7 +117,8 @@ class Planete:
       self.geoide=Geoide()
       
     self.geoide.fabriqueNouveauGeoide(tesselation, delta)
-    self.sprites = [] #Pas d'objets sur la planète
+    self.spritesJoueur = [] #Pas d'objets sur la planète
+    self.spritesNonJoueur = [] #Pas d'objets sur la planète
     self.joueurs = [] 
     self.angleSoleil = 0.0
     
@@ -136,7 +144,9 @@ class Planete:
     fichier.write("parametres:angleSoleil:"+str(self.angleSoleil)+":\r\n")
     for joueur in self.joueurs:
       fichier.write(joueur.sauvegarde()) #j
-    for sprite in self.sprites:
+    for sprite in self.spritesJoueur:
+      fichier.write(sprite.sauvegarde()) #s
+    for sprite in self.spritesNonJoueur:
       fichier.write(sprite.sauvegarde()) #s
     fichier.write(self.geoide.sauvegarde(None, tess))
     fichier.close()
@@ -154,7 +164,8 @@ class Planete:
     self.afficheTexte("Chargement en cours...", parametres={}, type="sauvegarde")
     
     self.detruit()
-    self.sprites = []
+    self.spritesJoueur = []
+    self.spritesNonJoueur = []
     self.joueurs = []
 
     if general.DEBUG_CHARGE_PLANETE:
@@ -232,12 +243,18 @@ class Planete:
         sprite.vitesse = float(vitesse)
         sprite.bouge = bouge.lower().strip()=="true"
         sprite.aquatique = aquatique.lower().strip()=="true"
-        self.sprites.append(sprite)
-        joueur.sprites.append(sprite)
+        if joueur!=None:
+          self.spritesJoueur.append(sprite)
+          joueur.sprites.append(sprite)
+        else:
+          self.spritesNonJoueur.append(sprite)
       elif type=="sprite-contenu":
         id, type, valeur = elements
         valeur = float(valeur)
-        for sprite in self.sprites:
+        for sprite in self.spritesJoueur:
+          if sprite.id.lower().strip() == id.lower().strip():
+            sprite.contenu[type]=valeur
+        for sprite in self.spritesNonJoueur:
           if sprite.id.lower().strip() == id.lower().strip():
             sprite.contenu[type]=valeur
       elif ligne.strip()!="":
@@ -301,12 +318,15 @@ class Planete:
     fichier = os.path.join(".","data","sprites",type+".spr")
     if not os.path.exists(fichier):
       print "Sprite inconnu",type, "->", fichier
-    id = "{S:neutre}"+id+"-"+str(len(self.sprites)+1)
+    id = "{S:neutre}"+id+"-"+str(len(self.spritesNonJoueur)+1)
     sprite = Sprite(id=id, position=position, fichierDefinition=fichier, joueur=None)
-    self.sprites.append(sprite)
+    self.spritesNonJoueur.append(sprite)
     return sprite
 
   lastPing=None
+  compteurMAJSpriteNonJoueur=0.0
+  seuilMAJSpriteNonJoueur=3.0
+  
   def ping(self, task):
     """Fonction appelée a chaque image, temps indique le temps écoulé depuis l'image précédente"""
     
@@ -365,15 +385,28 @@ class Planete:
       joueur.ping(temps)
       
     #Met à jour les états des sprites
-    for sprite in self.sprites[:]:
-#      if general.ligneCroiseSphere(sprite.position, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
-#        if not sprite.nocturne:
-#          sprite.tue("obscurite")
+    for sprite in self.spritesJoueur[:]:
+      if False:
+        if general.ligneCroiseSphere(sprite.position, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
+          if not sprite.nocturne:
+            sprite.tue("obscurite")
       if not sprite.ping(temps):
         if sprite.joueur !=None:
           sprite.joueur.spriteMort(sprite)
-        while sprite in self.sprites:
-          self.sprites.remove(sprite)
+        while sprite in self.spritesJoueur:
+          self.spritesJoueur.remove(sprite)
+    self.compteurMAJSpriteNonJoueur+=temps
+    if self.compteurMAJSpriteNonJoueur>self.seuilMAJSpriteNonJoueur:
+      for sprite in self.spritesNonJoueur[:]:
+        if False:
+          if general.ligneCroiseSphere(sprite.position, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
+            if not sprite.nocturne:
+              sprite.tue("obscurite")
+        if not sprite.ping(self.compteurMAJSpriteNonJoueur):
+          if sprite.joueur !=None:
+            sprite.joueur.spriteMort(sprite)
+          while sprite in self.spritesNonJoueur:
+            self.spritesNonJoueur.remove(sprite)
         
     if general.configuration.getConfiguration("affichage","minimap","affichesoleil","t")=="t":
       #Met à jour la carte du soleil

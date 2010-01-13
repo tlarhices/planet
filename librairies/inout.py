@@ -427,7 +427,7 @@ class IO:
     pt1 = self.pointEcranVersRender2D((minx,miny))
     pt2 = self.pointEcranVersRender2D((maxx,maxy))
     
-    for sprite in general.planete.sprites:
+    for sprite in general.planete.spritesJoueur:
       #On ne prend en compte que les sprites du joueur local
       if sprite.joueur == general.joueurLocal:
         pos = general.map3dToRender2d(sprite.rac, Vec3(0.0,0.0,0.0))

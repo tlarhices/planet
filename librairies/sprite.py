@@ -157,6 +157,11 @@ class Sprite:
     Appelé à chaque image, met à jour l'état de l'objet
     temps : le nombre de secondes depuis la dernière mise à jour
     """
+    if general.io.selection!=None:
+      if self in general.io.selection:
+        #Le sprite est selectionné, afficher sa barre de vie
+        general.TODO("Afficher la barre de vie sur les unités sélectionnées")
+        
     #On se casse pas la tête si le sprite est mort
     if self.vie<=0:
       return False
@@ -433,8 +438,10 @@ class Sprite:
     if self.ai != None:
       self.ai.clear()
       self.ai = None
-    while general.planete.sprites.count(self)>0:
-      general.planete.sprites.remove(self)
+    while general.planete.spritesNonJoueur.count(self)>0:
+      general.planete.spritesNonJoueur.remove(self)
+    while general.planete.spritesJoueur.count(self)>0:
+      general.planete.spritesJoueur.remove(self)
     
   def sauvegarde(self):
     """Retoune une chaine qui représente l'objet"""
