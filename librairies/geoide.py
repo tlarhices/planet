@@ -163,7 +163,7 @@ class Geoide:
     self.fabriqueSol()
     
     #On applique un flou sur le sol pour faire des collines arrondies
-    for i in range(0, self.tesselation*0.5):
+    for i in range(0, int(self.tesselation*0.5+0.5)):
       self.flouifieSol(3)
     
     #On étend la gamme d'altitudes

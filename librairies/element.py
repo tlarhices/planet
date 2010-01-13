@@ -195,40 +195,39 @@ class Element:
     self.vegetation = NodePath("vegetation")#RigidBodyCombiner("vegetation"))
     self.vegetation.reparentTo(self.modeleReal)
         
-    for sommet in self.sommets:
-      sommet = general.planete.geoide.sommets[sommet]
-      if sommet.length()>general.planete.geoide.niveauEau:
-        h1 = self.couleurSommet(sommet)[2]
-        if h1>0:
+        
+    s1 = general.planete.geoide.sommets[self.sommets[0]]
+    s2 = general.planete.geoide.sommets[self.sommets[0]]
+    s3 = general.planete.geoide.sommets[self.sommets[0]]
+    if (s1.length()+s2.length()+s3.length())/3>general.planete.geoide.niveauEau:
+        h1 = self.couleurSommet(s1)[2]
+        h2 = self.couleurSommet(s2)[2]
+        h3 = self.couleurSommet(s3)[2]
+        if h1>0 and h2>0 and h3>0:
           for i in range(0, int(random.random()*int(general.configuration.getConfiguration("planete","Generation", "nombre-bosquet","2")))):
             if random.random()>1.0-float(general.configuration.getConfiguration("planete","Generation", "densite-bosquet","0.8")):
-              alt=-1
-              cpt=0
-              while alt<=general.planete.geoide.niveauEau and cpt<10:
-                cpt+=1
-                r1=random.random()
-                r2=random.random()
-                if r1+r2>1.0:
-                  r2=1.0-r1
-                r3=1.0-(r1+r2)
-                s2 = general.planete.geoide.sommets[random.choice(general.planete.geoide.voisinage[general.planete.geoide.sommets.index(sommet)])]
-                s3 = general.planete.geoide.sommets[random.choice(general.planete.geoide.voisinage[general.planete.geoide.sommets.index(sommet)])]
-                
-                p = sommet*r1+s2*r2+s3*r3
-                alt = p.length()#self.altitude(p)
+              r1=random.random()
+              r2=random.random()
+              if r1+r2>1.0:
+                r2=1.0-r1
+              r3=1.0-(r1+r2)
+              
+              p = s1*r1+s2*r2+s3*r3
+              alt = p.length()
               if alt>general.planete.geoide.niveauEau:
                 #p.normalize()
                 #p=p*alt
-                typeVegetation = random.choice(vegetation[h1])
+                type=int((float(h1)+float(h2)+float(h3))/3.0+0.5)
+                typeVegetation = random.choice(vegetation[type])
                 sprite = general.planete.ajouteSprite(typeVegetation, p, typeVegetation)
                 sprite.rac.reparentTo(self.vegetation)
                 sprite.racine.flattenStrong()
-                  
-                #On tourne les arbres un peu aléatoirement et on change d'échelle pour varier un peu plus
-                sprite.racine.setH(random.random()*5)
-                sprite.racine.setR(random.random()*7)
+                #on change d'échelle aléatoirement pour varier un peu
                 sprite.echelle = sprite.echelle*(1.0-random.random()/8)
                 sprite.racine.setScale(sprite.echelle)
+                sprite.fabriqueModel()
+                #On tourne les arbres aléatoirement pour plus de variation
+                sprite.modele.setH(random.random()*360)
     #self.vegetation.node().collect()
                 
         

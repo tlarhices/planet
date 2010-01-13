@@ -18,3 +18,4 @@ sauvegarde terminée|^|Game saved
 %(a)s est mort par %(b)s|^|%(a)s is dead by %(b)s
 ressources épuisées|^|No more ressources
 noyade|^|drowning
+impossible de trouver une trajectoire pour aller de %(a)s à %(b)s.|^|Unable to find a path to go from %(a)s to %(b)s.

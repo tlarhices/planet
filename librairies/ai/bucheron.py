@@ -22,28 +22,38 @@ class Bulbe(std):
   def ping(self, temps):
     std.ping(self, temps)
     if self.rechercheSprite!=None:
-      if self.rechercheSprite.poll():
-        spriteid = self.rechercheSprite.recv()
-        
-        if spriteid != None:
-          sprite=None
-          for spr in general.planete.spritesJoueur:
-            if spr.id==spriteid:
-              sprite=spr
-          for spr in general.planete.spritesNonJoueur:
-            if spr.id==spriteid:
-              sprite=spr
-          if sprite!=None:
-            if sprite.stock:
-              print self.sprite.id,"va se vider les poches à",sprite.id
-              self.dernierStock = sprite
-              self.sprite.marcheVers(sprite.position)
-              self.sprite.ai.comportement.videPoches(sprite, 0.75)
-            else:
-              print self.sprite.id,"va couper l'arbre",sprite.id
-              self.dernierArbre = sprite
-              self.sprite.marcheVers(sprite.position)
-              self.sprite.ai.comportement.piller(sprite, 0.75)
+      if isinstance(self.rechercheSprite, str) or self.rechercheSprite.poll():
+        if isinstance(self.rechercheSprite, str):
+          spriteid, cheminstr = self.rechercheSprite.split("||")
+        else:
+          spriteid, cheminstr = self.rechercheSprite.recv().split("||")
+          
+        if chemin.lower()!="none":
+          cheminstr=cheminstr[1:-1].split(",")
+          chemin=[self.sprite.position]
+          for elem in cheminstr:
+            chemin.append(int(elem))
+          
+          if spriteid != None:
+            sprite=None
+            for spr in general.planete.spritesJoueur:
+              if spr.id==spriteid:
+                sprite=spr
+            for spr in general.planete.spritesNonJoueur:
+              if spr.id==spriteid:
+                sprite=spr
+            if sprite!=None:
+              chemin.append(sprite.position)
+              if sprite.stock:
+                print self.sprite.id,"va se vider les poches à",sprite.id,"en suivant",chemin
+                self.dernierStock = sprite
+                self.sprite.suitChemin(chemin, sprite.position)
+                self.sprite.ai.comportement.videPoches(sprite, 0.75)
+              else:
+                print self.sprite.id,"va couper l'arbre",sprite.id,"en suivant",chemin
+                self.dernierArbre = sprite
+                self.sprite.suitChemin(chemin, sprite.position)
+                self.sprite.ai.comportement.piller(sprite, 0.75)
         self.rechercheSprite = None
       
   def sauvegarde(self):

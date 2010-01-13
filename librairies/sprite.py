@@ -366,6 +366,7 @@ class Sprite:
     if self.inertie.lengthSquared()>self.terminalVelocity*self.terminalVelocity:
       self.inertie.normalize()
       self.inertie = self.inertie * self.terminalVelocity
+    self.regardeVers(self.position+(self.inertie*temps+self.inertieSteering)*2)
     self.miseAJourPosition(self.position+self.inertie*temps+self.inertieSteering)
     self.inertieSteering = Vec3(0.0,0.0,0.0)
     self.inertie=self.inertie*0.7
@@ -467,6 +468,12 @@ class Sprite:
   def _syncCheck(self):
     return self.sauvegarde()
     
+  def regardeVers(self, cible):
+    h,p,r = self.modele.getHpr()
+    self.modele.lookAt(*self.versCoord(cible))
+    h=self.modele.getH()
+    self.modele.setHpr(h,p,r)
+    
   def marcheVers(self, cible):
     """Calcule la trajectoire pour aller du point actuel à la cible"""
     
@@ -474,6 +481,13 @@ class Sprite:
     if self.ai==None:
       return
     self.ai.comportement.calculChemin(self.position, cible, 0.75)
+    
+  def suitChemin(self, chemin, fin):
+    """Suit un chemin"""
+    #Si y a pas d'ai, on a pas besoin de perdre son temps avec ^^
+    if self.ai==None:
+      return
+    self.ai.comportement.suitChemin(chemin, fin, 0.75)
     
   def fabriqueModel(self):
     """Produit le modèle ou le sprite"""

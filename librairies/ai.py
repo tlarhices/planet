@@ -156,7 +156,7 @@ class AINavigation:
   # Fin création d'infos -----------------------------------------------
   
   # Recherche d'itinéraire ---------------------------------------------
-  def aStar(self, deb, fin, angleSolMax=None):
+  def aStar(self, deb, fin, angleSolMax=None, horizonAStar=1):
     """
     Calcule la trajectoire la plus courte allant du sommet deb vers le sommet fin selon le graphe self.graph
     Prend en compte les changements d'élévation et la présence d'eau.
@@ -174,6 +174,8 @@ class AINavigation:
     g[deb] = 0 #On a pas bougé, donc ce cout vaut 0
     h[deb] = (general.planete.geoide.sommets[deb] - general.planete.geoide.sommets[fin]).lengthSquared() #L'estimation se fait selon la distance euclidienne (on utilise le carré car sqrt est trop lent et c'est juste pour une comparaison)
     f[deb] = g[deb]+h[deb] # == h[deb] ;)
+    
+    atteindHorizon = False
     
     #On boucle tant que l'on a des sommets à parcourir
     while afaire:
@@ -195,36 +197,39 @@ class AINavigation:
       afaire.remove(x)
       #On l'ajoute dans ceux que l'on a testé
       fait.append(x)
-      
-      #On parcours la liste des noeuds voisins
-      for y in self.noeudsVoisins(x, angleSolMax):
-        if not y in fait:
-          #Si on ne l'a pas déjà parcourut
-          angle = self.angle(x, y)
-          tmpG = g[x] + angle
-          
-          if not y in afaire:
-            #S'il n'est pas en attente, on l'y met
-            afaire.append(y)
-            mieux = True
-          elif tmpG < g[y]:
-            #S'il est en attente et a une meilleure statistique en passant par ici (g plus petit)
-            mieux = True
-          else:
-            #On peut atteindre ce sommet par un chemin plus court
-            mieux = False
+      if f[x]>horizonAStar*float(general.configuration.getConfiguration("ai","navigation","profondeurmax","0.2")):
+        #On coupe la branche car elle est trop longue
+        atteindHorizon = True
+      else:
+        #On parcours la liste des noeuds voisins
+        for y in self.noeudsVoisins(x, angleSolMax):
+          if not y in fait:
+            #Si on ne l'a pas déjà parcourut
+            angle = self.angle(x, y)
+            tmpG = g[x] + angle*(general.planete.geoide.sommets[x]-general.planete.geoide.sommets[y]).lengthSquared()
             
-          if mieux:
-            #On met a jour les infos de parcours pour ce point
-            promenade[y] = x
-            g[y] = tmpG
-            h[y] = angle
-            f[y] = g[y] + h[y]
+            if not y in afaire:
+              #S'il n'est pas en attente, on l'y met
+              afaire.append(y)
+              mieux = True
+            elif tmpG < g[y]:
+              #S'il est en attente et a une meilleure statistique en passant par ici (g plus petit)
+              mieux = True
+            else:
+              #On peut atteindre ce sommet par un chemin plus court
+              mieux = False
+              
+            if mieux:
+              #On met a jour les infos de parcours pour ce point
+              promenade[y] = x
+              g[y] = tmpG
+              h[y] = angle*(general.planete.geoide.sommets[x]-general.planete.geoide.sommets[y]).lengthSquared()
+              f[y] = g[y] + h[y]
             
-    general.interface.afficheTexte("Impossible de trouver une trajectoire pour aller de %(a)s à %(b)s.", parametres={"a": deb, "b":fin}, type="avertissement")
+    #general.interface.afficheTexte("Impossible de trouver une trajectoire pour aller de %(a)s à %(b)s.", parametres={"a": deb, "b":fin}, type="avertissement")
     general.stopChrono("AINavigation::aStar")
     #On a rien trouvé
-    return None
+    return atteindHorizon
     
   def angle(self, x, y):
     """Calcul l'angle pour passer du sommet x au sommet y"""
@@ -364,8 +369,9 @@ class SuitChemin(AIComportementUnitaire):
     AIComportementUnitaire.__init__(self, comportement, priorite)
     self.chemin = chemin
     self.cible = cible
-    if isinstance(self.chemin, list):
-      self.nettoieChemin()
+    
+    #if isinstance(self.chemin, list):
+    #  self.nettoieChemin()
     
   def nettoieChemin(self):
     """Simplifie le début et la fin des chemins supprimant des points de passages inutiles"""
@@ -408,6 +414,7 @@ class SuitChemin(AIComportementUnitaire):
     
   def ping(self, temps):
     """Boucle de calcul"""
+    
     if self.chemin == None:
       #On a pas de chemin à suivre
       self.supprime()
@@ -599,6 +606,7 @@ class AIComportement:
   steeringForce = None #La force produite par l'IA (la direction et la vitesse à laquelle on y va)
   comportements = None #La liste de tous les bouts d'IA qu'il faut prendre en compte pour le calcul
   ennui = None #Vaut True si l'IA s'ennuie (elle n'a rien à faire) (hook vers le plugin)
+  horizonAStar = None #Cette valeur augmente à chaque fois qu'un chemin n'a pas été trouvé et que l'horizon de calcul de AStar a été atteint
   
   def __init__(self, AI):
     """Le centre de la partie steering de l'IA"""
@@ -607,6 +615,7 @@ class AIComportement:
     self.steeringForce = Vec3(0.0, 0.0, 0.0)
     self.comportements = []
     self.ennui = False
+    self.horizonAStar=1
     
   def stop(self):
     for comportement in self.comportements:
@@ -687,61 +696,77 @@ class AIComportement:
     strict : si True, alors le sprite retourné possédera tous les types de ressource demandé, sinon le plus proche qui en a au moins une
     DANGER : retourne une Socket
     """
-    parent_conn, child_conn = Pipe()
-    p = Process(target=self._chercheSpriteProche_thread, args=(child_conn, stock, ressources, joueur, strict))
-    p.start()
-    return parent_conn
+    if True: #Passer à False pour faciliter le debug (danger, fait toutes les recherches en bloquant)
+      parent_conn, child_conn = Pipe()
+      p = Process(target=self._chercheSpriteProche_thread, args=(child_conn, stock, ressources, joueur, strict))
+      p.start()
+      return parent_conn
+    else:
+      return self._chercheSpriteProche_thread(None, stock, ressources, joueur, strict)
 
   def _chercheSpriteProche_thread(self, conn, stock, ressources, joueur, strict):
     """A ne pas appeler directement, utiliser chercheSpriteProche"""
-    try:
-      proche = None
-      distanceA = None
-      
-      #Regarde si les ressources correspondent à la requète
-      def testeRessources(trouver, sprite, stock, strict=False):
-        contenu=sprite.contenu
-        for element in trouver:
-          if element in contenu.keys():
-            if (stock and contenu[element]<sprite.taillePoches[element]) or (not stock and contenu[element]>0):
-              if not strict:
-                return True #Pas strict et on en a un
-            else:
-              if strict:
-                return False #Strict et il en manque au moin 1
+    proche = None
+    distanceA = None
+    
+    #Regarde si les ressources correspondent à la requète
+    def testeRessources(trouver, sprite, stock, strict=False):
+      contenu=sprite.contenu
+      for element in trouver:
+        if element in contenu.keys():
+          if (stock and contenu[element]<sprite.taillePoches[element]) or (not stock and contenu[element]>0):
+            if not strict:
+              return True #Pas strict et on en a un
           else:
             if strict:
               return False #Strict et il en manque au moin 1
-        return True #Strict et on a tout trouvé
-        
-      def testeSprite(sprite, stock, joueur, ressources, strict):
-        if stock==-1 or stock==sprite.stock:
-          if joueur==-1 or sprite.joueur==joueur or sprite.joueur.nom==joueur:
-            if ressources==-1 or testeRessources(ressources, sprite, stock, strict):
-              return general.planete.aiNavigation.aStar(general.planete.geoide.trouveSommet(self.ai.sprite.position), general.planete.geoide.trouveSommet(sprite.position))
+        else:
+          if strict:
+            return False #Strict et il en manque au moin 1
+      return True #Strict et on a tout trouvé
+      
+    def testeSprite(sprite, stock, joueur, ressources, strict):
+      if stock==-1 or stock==sprite.stock:
+        if joueur==-1 or sprite.joueur==joueur or sprite.joueur.nom==joueur:
+          if ressources==-1 or testeRessources(ressources, sprite, stock, strict):
+            return general.planete.aiNavigation.aStar(general.planete.geoide.trouveSommet(self.ai.sprite.position), general.planete.geoide.trouveSommet(sprite.position), horizonAStar=self.horizonAStar)
 
-        
-      #On cherche dans tous les sprites le sprite le plus proche (en longueur de chemin et pas à vol d'oiseau) qui correspond à la requète
-      for sprite in general.planete.spritesJoueur:
-        distA = testeSprite(sprite, stock, joueur, ressources, strict)
-        if distA!=None:
-          distA=len(distA)
-        if distA!=None and (distanceA==None or distanceA>distA):
-          proche = sprite
-          distanceA = distA      
-      for sprite in general.planete.spritesNonJoueur:
-        distA = testeSprite(sprite, stock, joueur, ressources, strict)
-        if distA!=None:
-          distA=len(distA)
-        if distA!=None and (distanceA==None or distanceA>distA):
+      
+    #On cherche dans tous les sprites le sprite le plus proche (en longueur de chemin et pas à vol d'oiseau) qui correspond à la requète
+    for sprite in general.planete.spritesJoueur:
+      chemin = testeSprite(sprite, stock, joueur, ressources, strict)
+      if isinstance(chemin,list):
+        distA=len(chemin)
+      else:
+        if chemin:
+          #On a atteint l'horizon de recherche de chemin et rien trouvé, on l'étend
+          self.horizonAStar+=1
+        chemin=None
+      if chemin!=None:
+        if distanceA==None or distanceA>distA:
           proche = sprite
           distanceA = distA       
-      if proche!=None:
-        conn.send(proche.id)
+    for sprite in general.planete.spritesNonJoueur:
+      chemin = testeSprite(sprite, stock, joueur, ressources, strict)
+      if isinstance(chemin,list):
+        distA=len(chemin)
       else:
-        conn.send(None)
-    except Exception as inst:
-      self.afficheErreur(str(inst))
+        if chemin:
+          #On a atteint l'horizon de recherche de chemin et rien trouvé, on l'étend
+          self.horizonAStar+=1
+        chemin=None
+      if chemin!=None:
+        if distanceA==None or distanceA>distA:
+          proche = sprite
+          distanceA = distA       
+    if proche!=None:
+      self.horizonAStar=1
+      if conn!=None:
+        conn.send(proche.id+"||"+str(chemin))
+      else:
+        return proche.id+"||"+str(chemin)
+    else:
+      conn.send(None)
     
   def calculChemin(self, debut, fin, priorite):
     """
@@ -766,17 +791,27 @@ class AIComportement:
       else:
         idC = general.planete.geoide.trouveSommet(fin, tiensCompteDeLAngle=True)
       #Fait le calcul de navigation
-      chemin = general.planete.aiNavigation.aStar(idP, idC)
+      chemin = general.planete.aiNavigation.aStar(idP, idC, horizonAStar=self.horizonAStar)
       
       print "De",idP,"à",idC,":",
-      if chemin!=None:
+      if isinstance(chemin, list):
         print chemin
       else:
-        print "impossible"
+        if chemin:
+          #On a atteint l'horizon de recherche, on le repousse un peu pour la prochaine recherche
+          self.horizonAStar+=1
+          chemin = self._calculChemin_thread(None, debut, fin, priorite)
+          self.horizonAStar=1
+        else:
+          print "impossible"
+          chemin = None
       #Retourne le chemin
-      conn.send(str(chemin))
+      if conn!=None:
+        conn.send(str(chemin))
+      else:
+        return chemin
     except Exception as inst:
-      self.afficheErreur(str(inst))
+      self.afficheErreur(unicode(inst))
 
 
   def afficheErreur(self, texteErreur):
@@ -820,7 +855,7 @@ class AIComportement:
 
     #On affiche le message qu'on a eut en cadal
     print sys.exc_info()#[2].print_exc()
-    print ">>> "+str(texteErreur)
+    print ">>> "+str(general.i18n.utf8ise(texteErreur).encode("utf-8"))
     print "--- ERREUR"
     print
       
