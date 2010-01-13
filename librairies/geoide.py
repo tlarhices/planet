@@ -382,8 +382,6 @@ class Geoide:
     #On ajoute le ciel
     self.fabriqueCiel()
     
-    self.fabriqueVegetation()
-    
     general.cartographie.calculMiniMap((256, 128))
     
     if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="heightmap":
@@ -393,55 +391,6 @@ class Geoide:
 
     self.racine.reparentTo(render)
     self.racine.analyze()
-
-  def fabriqueVegetation(self):
-    vegetation=[]
-    vegetation.append([]) #Vide
-    vegetation.append(["palmier","banana","benjamina01","dypsis01","ficus01","ginger","greenhouse-palm-acai01","greenhouse-palm-acai02","greenhouse-palm-acai03","greenhouse-palm-cycas01","greenhouse-palm-jubaea01","howea01"]) #Sable/plage
-    vegetation.append(["herbe", "sapin1","cerisier","boulot1","boulot2","benjamina01","bougainvillier","dypsis01","eucalyptus","ginger", "howea01", "sophora", "rose"]) #Herbe/champ
-    vegetation.append(["herbe", "sapin2","cerisier","boulot1","boulot2","arbrerond","bougainvillier","dypsis01","eucalyptus","ginger", "greenhouse-if01", "greenhouse-if02", "greenhouse-if03", "howea01", "sophora"]) #Feuilluts
-    vegetation.append(["herbe", "sapin3","petitarbre","sapin2","sapin1","bougainvillier","ginger", "greenhouse-if01", "greenhouse-if02", "greenhouse-if03", "rose"]) #Altitude
-        
-    self.vegetation = NodePath("vegetation")
-    self.vegetation.reparentTo(self.racine)
-        
-    compte=0
-    for sommet in self.sommets:
-      if compte%250==0:
-        general.planete.afficheTexte("Ajout de la végétation : %(f).2f%%", parametres={"f": (compte*1.0)/len(self.sommets)*100}, type="construction")
-      compte+=1
-      if sommet.length()>self.niveauEau:
-        h1 = self.elements[0].couleurSommet(sommet)[2]
-        if h1>0:
-          for i in range(0, int(random.random()*int(general.configuration.getConfiguration("planete","Generation", "nombre-bosquet","2")))):
-            if random.random()>1.0-float(general.configuration.getConfiguration("planete","Generation", "densite-bosquet","0.8")):
-              alt=-1
-              cpt=0
-              while alt<=self.niveauEau and cpt<10:
-                cpt+=1
-                r1=random.random()
-                r2=random.random()
-                if r1+r2>1.0:
-                  r2=1.0-r1
-                r3=1.0-(r1+r2)
-                s2 = self.sommets[random.choice(self.voisinage[self.sommets.index(sommet)])]
-                s3 = self.sommets[random.choice(self.voisinage[self.sommets.index(sommet)])]
-                
-                p = sommet*r1+s2*r2+s3*r3
-                alt = p.length()#self.altitude(p)
-              if alt>self.niveauEau:
-                #p.normalize()
-                #p=p*alt
-                typeVegetation = random.choice(vegetation[h1])
-                sprite = general.planete.ajouteSprite(typeVegetation, p, typeVegetation)
-                sprite.rac.reparentTo(self.vegetation)
-                sprite.racine.flattenStrong()
-                  
-                #On tourne les arbres un peu aléatoirement et on change d'échelle pour varier un peu plus
-                sprite.racine.setH(random.random()*5)
-                sprite.racine.setR(random.random()*7)
-                sprite.echelle = sprite.echelle*(1.0-random.random()/8)
-                sprite.racine.setScale(sprite.echelle)
 
   def animEau(self, time):
     #change z component of vertices in water plane

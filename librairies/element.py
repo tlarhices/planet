@@ -168,9 +168,69 @@ class Element:
         mdl = enfant.fabriqueModel()
         mdl.reparentTo(self.modele)
         
+    self.modeleReal = self.modele
+    self.modele = NodePath("insertion")
+    insert = NodePath("insertion-inv")
+    self.modeleReal.reparentTo(insert)
+    insert.reparentTo(self.modele)
+    
+    self.modele.setPos(general.planete.geoide.sommets[self.sommets[0]])
+    insert.setPos(-general.planete.geoide.sommets[self.sommets[0]])
+        
     self.modele.reparentTo(self.planete.racineModel)
     self.modele.setPythonTag("type","sol")
+    
+    self.fabriqueVegetation()
     return self.modele
+    
+    
+  def fabriqueVegetation(self):
+    vegetation=[]
+    vegetation.append([]) #Vide
+    vegetation.append(["palmier","banana","benjamina01","dypsis01","ficus01","ginger","greenhouse-palm-acai01","greenhouse-palm-acai02","greenhouse-palm-acai03","greenhouse-palm-cycas01","greenhouse-palm-jubaea01","howea01"]) #Sable/plage
+    vegetation.append(["herbe", "sapin1","cerisier","boulot1","boulot2","benjamina01","bougainvillier","dypsis01","eucalyptus","ginger", "howea01", "sophora", "rose"]) #Herbe/champ
+    vegetation.append(["herbe", "sapin2","cerisier","boulot1","boulot2","arbrerond","bougainvillier","dypsis01","eucalyptus","ginger", "greenhouse-if01", "greenhouse-if02", "greenhouse-if03", "howea01", "sophora"]) #Feuilluts
+    vegetation.append(["herbe", "sapin3","petitarbre","sapin2","sapin1","bougainvillier","ginger", "greenhouse-if01", "greenhouse-if02", "greenhouse-if03", "rose"]) #Altitude
+        
+    self.vegetation = NodePath("vegetation")#RigidBodyCombiner("vegetation"))
+    self.vegetation.reparentTo(self.modeleReal)
+        
+    for sommet in self.sommets:
+      sommet = general.planete.geoide.sommets[sommet]
+      if sommet.length()>general.planete.geoide.niveauEau:
+        h1 = self.couleurSommet(sommet)[2]
+        if h1>0:
+          for i in range(0, int(random.random()*int(general.configuration.getConfiguration("planete","Generation", "nombre-bosquet","2")))):
+            if random.random()>1.0-float(general.configuration.getConfiguration("planete","Generation", "densite-bosquet","0.8")):
+              alt=-1
+              cpt=0
+              while alt<=general.planete.geoide.niveauEau and cpt<10:
+                cpt+=1
+                r1=random.random()
+                r2=random.random()
+                if r1+r2>1.0:
+                  r2=1.0-r1
+                r3=1.0-(r1+r2)
+                s2 = general.planete.geoide.sommets[random.choice(general.planete.geoide.voisinage[general.planete.geoide.sommets.index(sommet)])]
+                s3 = general.planete.geoide.sommets[random.choice(general.planete.geoide.voisinage[general.planete.geoide.sommets.index(sommet)])]
+                
+                p = sommet*r1+s2*r2+s3*r3
+                alt = p.length()#self.altitude(p)
+              if alt>general.planete.geoide.niveauEau:
+                #p.normalize()
+                #p=p*alt
+                typeVegetation = random.choice(vegetation[h1])
+                sprite = general.planete.ajouteSprite(typeVegetation, p, typeVegetation)
+                sprite.rac.reparentTo(self.vegetation)
+                sprite.racine.flattenStrong()
+                  
+                #On tourne les arbres un peu aléatoirement et on change d'échelle pour varier un peu plus
+                sprite.racine.setH(random.random()*5)
+                sprite.racine.setR(random.random()*7)
+                sprite.echelle = sprite.echelle*(1.0-random.random()/8)
+                sprite.racine.setScale(sprite.echelle)
+    #self.vegetation.node().collect()
+                
         
   texturesValides=["subsubaquatique", "subaquatique", "sable", "champ", "herbe",
   "feuillesa", "feuillesb", "feuillesc", "cailloux", "neige"]
