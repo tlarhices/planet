@@ -110,9 +110,9 @@ class Configuration:
         
     sprite["modele"] = config(sprite, "modele", str, "none")
     sprite["symbole"]  = config(sprite, "symbole", str, "none")
-    sprite["icone"] = config(sprite, "icone", str, "theme/icones/q.png")
-    sprite["icone-actif"] = config(sprite, "icone-actif", str, "theme/icones/q-over.png")
-    sprite["icone-inactif"] = config(sprite, "icone-inactif", str, "theme/icones/q.png")
+    sprite["icone"] = config(sprite, "icone", str, "icones/q.png")
+    sprite["icone-actif"] = config(sprite, "icone-actif", str, "icones/q-over.png")
+    sprite["icone-inactif"] = config(sprite, "icone-inactif", str, "icones/q.png")
     sprite["vie"] = config(sprite, "vie", float, 100.0)
     sprite["nocturne"] = config(sprite, "nocturne", str, "f")=="t"
     sprite["terminalvelocity"] = config(sprite, "terminalvelocity", float, 0.03)

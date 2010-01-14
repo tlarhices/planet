@@ -97,12 +97,8 @@ class EggAtlas:
             image = self.images[name]
             return image.x,image.y,image.w,image.h
         except KeyError:
-            for key in self.images.keys():
-                if key.endswith(name):
-                    image = self.images[key]
-                    return image.x,image.y,image.w,image.h
-            print "can't find",name,"in:",self.images.keys()
-            return None
+            print "can't find picture",name
+            return (0,0,0,0)
     
     def getChar(self,name):
         """
@@ -318,13 +314,17 @@ class EggAtlasMaker:
         print
         print "Font done", time.time()-deb
 
-    def doImage(self,f):
+    def doImage(self, f, themeFolder):
         """ process an image and put it into the atlas """ 
         print "Doing image:",f
         i = PNMImage(f)
         i.addAlpha()
-        self.it.add(f,i)
-        
+        short = f
+        if short.startswith(themeFolder):
+          short = f.replace(themeFolder,"",1)
+          while short[0] in ["/", "\\"]:
+            short = short[1:]
+        self.it.add(short,i)
         
     def doHash(self,folder):
         """ 
@@ -350,7 +350,7 @@ class EggAtlasMaker:
 #                self.files.append(f)
                 
             if ".png" in f or ".rgb" in f:
-                self.doImage(f)
+                self.doImage(f, folder)
                 self.files.append(f)
 
 

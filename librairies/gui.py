@@ -213,7 +213,7 @@ class MenuCirculaire:
       i+=1
       
     if self.besoinRetour:
-      self.retour = self.gui.add(Icon("theme/icones/rotate_node.png", x="center", y="bottom"))
+      self.retour = self.gui.add(Icon("icones/rotate_node.png", x="center", y="bottom"))
       self.retour.onClick = self.back
     else:
       self.retour = None
@@ -365,7 +365,7 @@ class FondCarte:
     self.tailleX, self.tailleY = tailleX, tailleY
     self.carte.setScale(self.tailleX, 1.0, self.tailleY)
     self.carte.setPos(0.0, 0.0, 0.0)
-    texture = loader.loadTexture("./theme/centre.png")
+    texture = loader.loadTexture("./centre.png")
     self.setImage(texture)
     taskMgr.add(self.resize,"resize",20)
     taskMgr.add(self.draw,"draw",40)
@@ -509,9 +509,9 @@ class MiniMap(Pane):
       self.derniereMAJ=task.time
       
     if self.camBlip==None:
-      self.camBlip = self.ajoutePoint3D(general.io.camera.getPos(),"theme/icones/camera.png",(1.0, 1.0, 1.0, 1.0))
+      self.camBlip = self.ajoutePoint3D(general.io.camera.getPos(),"icones/camera.png",(1.0, 1.0, 1.0, 1.0))
     else:
-      self.majBlip(self.camBlip, general.io.camera.getPos(),"theme/icones/camera.png",(1.0, 1.0, 1.0, 1.0))
+      self.majBlip(self.camBlip, general.io.camera.getPos(),"icones/camera.png",(1.0, 1.0, 1.0, 1.0))
     for id in self.points.keys():
       if id not in self.blips.keys():
         #Ce point n'a pas de représentation sur la carte, on en fabrique un nouveau
@@ -609,27 +609,27 @@ class Informations(Pane):
     y=0
     #On garde 6 lignes de texte
     self.l1 = self.add(Label("", x=20, y=0)) #Texte
-    self.i1 = self.add(Icon("theme/icones/blank.png", x=20, y=y)) #Icone
+    self.i1 = self.add(Icon("icones/blank.png", x=20, y=y)) #Icone
     self.i1.visable = False #On cache l'icone
     y+=HAUTEUR_TEXTE
     self.l2 = self.add(Label("", x=20, y=y))
-    self.i2 = self.add(Icon("theme/icones/blank.png", x=20, y=y))
+    self.i2 = self.add(Icon("icones/blank.png", x=20, y=y))
     self.i2.visable = False
     y+=HAUTEUR_TEXTE
     self.l3 = self.add(Label("", x=20, y=y))
-    self.i3 = self.add(Icon("theme/icones/blank.png", x=20, y=y))
+    self.i3 = self.add(Icon("icones/blank.png", x=20, y=y))
     self.i3.visable = False
     y+=HAUTEUR_TEXTE
     self.l4 = self.add(Label("", x=20, y=y))
-    self.i4 = self.add(Icon("theme/icones/blank.png", x=20, y=y))
+    self.i4 = self.add(Icon("icones/blank.png", x=20, y=y))
     self.i4.visable = False
     
     #Bare de défilement
-    self.plus = self.add(Icon("theme/icones/arrow-up.png", x="left", y="top"))
+    self.plus = self.add(Icon("icones/arrow-up.png", x="left", y="top"))
     self.plus.onClick = self.logHaut
-    self.plus = self.add(Icon("theme/icones/arrow-down.png", x="left", y="bottom"))
+    self.plus = self.add(Icon("icones/arrow-down.png", x="left", y="bottom"))
     self.plus.onClick = self.logBas
-    self.curseur = self.add(Icon("theme/icones/blank.png", x="left", y=HAUTEUR_TEXTE))
+    self.curseur = self.add(Icon("icones/blank.png", x="left", y=HAUTEUR_TEXTE))
     
     #On positionne la Form
     self.x = "left" 
@@ -693,13 +693,13 @@ class Informations(Pane):
 
     
   icones = {
-  "inconnu":"theme/icones/q.png",
-  "mort":"theme/icones/skull.png",
-  "chat":"theme/icones/phone.png",
-  "info":"theme/icones/info.png",
-  "obscurite":"theme/icones/clock.png",
-  "avertissement":"theme/icones/caution.png",
-  "sauvegarde":"theme/icones/diskette.png"
+  "inconnu":"icones/q.png",
+  "mort":"icones/skull.png",
+  "chat":"icones/phone.png",
+  "info":"icones/info.png",
+  "obscurite":"icones/clock.png",
+  "avertissement":"icones/caution.png",
+  "sauvegarde":"icones/diskette.png"
   }
     
   def MAJObjet(self, objeti, objett, type, texte):
@@ -861,12 +861,12 @@ class MenuDepuisFichier(MenuCirculaire):
             pr = PictureRadio(contenuElement["iconeactif"], contenuElement["iconeinactif"], contenuElement["nom"])
             btn.add(pr)
             #Le bouton moins
-            pr = Icon("theme/icones/minus.png", y=HAUTEUR_TEXTE+PAD)
+            pr = Icon("icones/minus.png", y=HAUTEUR_TEXTE+PAD)
             pr.callbackParams = {"bouton":"moins-"+contenuElement["nom"], "etat":True}
             pr.callback = self.clicValeur
             btn.add(pr)
             #Le bouton plus
-            pr = Icon("theme/icones/plus.png", y=HAUTEUR_TEXTE+PAD, x=HAUTEUR_TEXTE+PAD)
+            pr = Icon("icones/plus.png", y=HAUTEUR_TEXTE+PAD, x=HAUTEUR_TEXTE+PAD)
             pr.callbackParams = {"bouton":"plus-"+contenuElement["nom"], "etat":True}
             pr.callback = self.clicValeur
             btn.add(pr)
@@ -993,7 +993,7 @@ class MenuConfigurationPlanete(MenuDepuisFichier):
     
   def changeMenu(self, select):
     MenuDepuisFichier.changeMenu(self, select, fabrique=False)
-    btn = self.ajouteGauche(PictureRadio("plus-over.png", "plus.png", "Go !", width=LARGEUR_BOUTON))
+    btn = self.ajouteGauche(PictureRadio("icones/plus-over.png", "icones/plus.png", "Go !", width=LARGEUR_BOUTON))
     btn.callback = self.go
     btn.style = "button"
     btn.upStyle = "button"
@@ -1037,9 +1037,9 @@ class MenuVierge(MenuCirculaire):
     i=0
     for elem in self.liste:
       if i<len(self.liste)/2:
-        check = self.ajouteGauche(PictureRadio("theme/icones/news-over.png", "theme/icones/news.png", elem[0].capitalize()))
+        check = self.ajouteGauche(PictureRadio("icones/news-over.png", "icones/news.png", elem[0].capitalize()))
       else:
-        check = self.ajouteDroite(PictureRadio("theme/icones/news-over.png", "theme/icones/news.png", elem[0].capitalize()))
+        check = self.ajouteDroite(PictureRadio("icones/news-over.png", "icones/news.png", elem[0].capitalize()))
       check.callback = self.clic
       i+=1
       
@@ -1094,13 +1094,13 @@ class MenuCharge(MenuCirculaire):
       if date != "":
         nom += " "+date
             
-      check = self.ajouteGauche(PictureRadio("theme/icones/diskette-over.png", "theme/icones/diskette.png", nom, width=LARGEUR_BOUTON))
+      check = self.ajouteGauche(PictureRadio("icones/diskette-over.png", "icones/diskette.png", nom, width=LARGEUR_BOUTON))
       check.style = "button"
       check.upStyle = "button"
       check.overStyle = "button_over"
       check.downStyle = "button_down"
       #      else:
-#        check = self.ajouteDroite(PictureRadio("theme/icones/diskette-over.png", "theme/icones/diskette.png", elem[0].capitalize(), width=LARGEUR_BOUTON))
+#        check = self.ajouteDroite(PictureRadio("icones/diskette-over.png", "icones/diskette.png", elem[0].capitalize(), width=LARGEUR_BOUTON))
       check.callback = self.clic
       i+=1
       
@@ -1117,7 +1117,7 @@ class Interface:
     self.gui = Gui(theme = theme.Theme())
     general.io = IO()
     ##On place un bouton quitter en haut à droite de l'écran
-    #self.quit = self.gui.add(Icon("theme/icones/x.png", x="right", y="top"))
+    #self.quit = self.gui.add(Icon("icones/x.png", x="right", y="top"))
     #self.quit.onClick = sys.exit
     taskMgr.add(self.ping, "Boucle GUI", 10)
     self.makeMain()
