@@ -365,7 +365,7 @@ class FondCarte:
     self.tailleX, self.tailleY = tailleX, tailleY
     self.carte.setScale(self.tailleX, 1.0, self.tailleY)
     self.carte.setPos(0.0, 0.0, 0.0)
-    texture = loader.loadTexture("./centre.png")
+    texture = loader.loadTexture("./theme/centre.png")
     self.setImage(texture)
     taskMgr.add(self.resize,"resize",20)
     taskMgr.add(self.draw,"draw",40)
@@ -535,13 +535,14 @@ class ListeUnite(MenuCirculaire):
     self.clear()
     for sprite in self.liste:
       check = self.ajouteGauche(PictureRadio(sprite.definition["icone-actif"], sprite.definition["icone-inactif"], sprite.definition["nom"].capitalize()+" "+str(int(sprite.vie))+"%", width=LARGEUR_BOUTON))
-      check.color = (sprite.joueur.couleur[0], sprite.joueur.couleur[1], sprite.joueur.couleur[2], 0.5)
+      check.color = (sprite.joueur.couleur[0]*1.2, sprite.joueur.couleur[1]*1.2, sprite.joueur.couleur[2]*1.2, 0.5)
       check.style = "DEFAULT"
       check.callback = self.clic
     MenuCirculaire.fabrique(self)
             
   def anime(self, temps):
-    if self.liste!=general.io.selection:
+    if self.liste != general.io.selection:
+      self.liste = general.io.selection[:]
       print "la sélection a changée"
       self.fabrique()
     MenuCirculaire.anime(self, temps)
@@ -1036,10 +1037,39 @@ class MenuVierge(MenuCirculaire):
         self.liste.append((element.lower(), element))
     i=0
     for elem in self.liste:
+      
+      zip = zipfile.ZipFile(os.path.join(".", "data", "planetes", elem[1]), "r")
+      if zip.testzip()!=None:
+        print "Charge :: Erreur : Fichier de sauvegarde corrompu !"
+      data = zip.read(os.path.basename(elem[1]))
+      zip.close()
+      lignes = data.split("\r\n")
+
+      date = ""
+      nomPlanete = ""
+      for ligne in lignes:
+        if ligne.lower().strip().startswith("details:"):
+          type, infos, inutile = ligne.lower().strip().split(":")[1:]
+          if type=="datesauvegarde":
+            date = infos.replace("-",":")
+          elif type=="nomplanete":
+            nomPlanete = infos.capitalize()
+            
+      nom = elem[0].capitalize()
+      
+      if nomPlanete != "":
+        nom = nomPlanete
+      if date != "":
+        nom += " "+date
+      
       if i<len(self.liste)/2:
-        check = self.ajouteGauche(PictureRadio("icones/news-over.png", "icones/news.png", elem[0].capitalize()))
+        check = self.ajouteGauche(PictureRadio("icones/news-over.png", "icones/news.png", nom))
       else:
-        check = self.ajouteDroite(PictureRadio("icones/news-over.png", "icones/news.png", elem[0].capitalize()))
+        check = self.ajouteDroite(PictureRadio("icones/news-over.png", "icones/news.png", nom))
+      check.style = "button"
+      check.upStyle = "button"
+      check.overStyle = "button_over"
+      check.downStyle = "button_down"
       check.callback = self.clic
       i+=1
       

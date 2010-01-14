@@ -284,6 +284,7 @@ class IO:
     self.actions["appelgroupe8"] = (self.appelGroupe,(8,))
     self.actions["appelgroupe9"] = (self.appelGroupe,(9,))
     self.actions["appelgroupe0"] = (self.appelGroupe,(0,))
+    self.actions["selectionnetout"] = (self.selectionneTout, None)
     self.actions["debclic"] = (self.debClic,None)
     self.actions["finclic"] = (self.finClic,None)
     self.actions["affichestat"] = (self.afficheStat,None)
@@ -495,6 +496,12 @@ class IO:
       self.groupesUnites[idGroupe] = selection[:]
     
     print "sélection est maintenant :",self.selection
+    
+  def selectionneTout(self):
+    self.selection = []
+    for sprite in general.planete.spritesJoueur:
+      if sprite.joueur == general.joueurLocal:
+        self.selection.append(sprite)
 
   def modifieAltitude(self, direction):
     """Change l'altitude d'un point, si direction>0 alors l'altitude sera accrue sinon diminuée"""
