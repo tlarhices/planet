@@ -136,65 +136,57 @@ class MenuCirculaire:
     """Ajoute un bouton dans la colonne de droite"""
     self.boutons[3].append(bouton)
     return bouton
-
-  def cercle(self, centre, rayon, angleOuverture, nbelemsG, nbelemsD, nbelemsH, nbelemsB):
-    """
-    Calcul les positions des boutons à placer sur le cercle
-    centre : le centre du cercle
-    rayon : le rayon du cercle
-    angleOuverture : l'angle sur lequel les boutons l'étalent
-    nbelemS, bnelemsD : le nombre d'éléments dans la colonne de gauche / de droite
-    """
-    elements = [[],[],[],[]]
-    rayon=abs(rayon)
-    if nbelemsG==1:
-      angleG=angleOuverture
-    else:
-      angleG = abs(float(angleOuverture)/(nbelemsG-1))
-      
-    if nbelemsD==1:
-      angleD=angleOuverture
-    else:
-      angleD = abs(float(angleOuverture)/(nbelemsD-1))
-
-    if nbelemsH==1:
-      angleH=angleOuverture
-    else:
-      angleH = abs(float(angleOuverture)/(nbelemsH-1))
-      
-    if nbelemsB==1:
-      angleB=angleOuverture
-    else:
-      angleB = abs(float(angleOuverture)/(nbelemsB-1))
-
-    dep = -float(angleOuverture)/2.0
     
-    for i in range(0, max(nbelemsG, nbelemsD, nbelemsH, nbelemsB)):
-      if i==0 and nbelemsB==1:
-        x=rayon*math.cos((90.0)/180*math.pi)
-        y=rayon*math.sin((90.0)/180*math.pi)
-        elements[3].append((centre[0]+x,centre[1]+y))
-      elif i<nbelemsB:
-        x=rayon*math.cos((90 + angleB*(i-nbelemsB/2) - dep)/180*math.pi)
-        y=rayon*math.sin((90 + angleB*(i-nbelemsB/2) - dep)/180*math.pi)
-        elements[3].append((centre[0]+x,centre[1]+y))
-      if i==0 and nbelemsH==1:
-        x=rayon*math.cos((90.0)/180*math.pi)
-        y=rayon*math.sin((90.0)/180*math.pi)
-        elements[2].append((centre[0]-x,centre[1]-y))
-      elif i<nbelemsH:
-        x=rayon*math.cos((90 + angleH*(i-nbelemsH/2) - dep)/180*math.pi)
-        y=rayon*math.sin((90 + angleH*(i-nbelemsH/2) - dep)/180*math.pi)
-        elements[2].append((centre[0]-x,centre[1]-y))
-      if i<nbelemsD:
-        x=rayon*math.cos((dep + angleD*i)/180*math.pi)
-        y=rayon*math.sin((dep + angleD*i)/180*math.pi)
-        elements[1].append((centre[0]+x,centre[1]+y))
-      if i<nbelemsG:
-        x=rayon*math.cos((dep + angleG*i)/180*math.pi)
-        y=rayon*math.sin((dep + angleG*i)/180*math.pi)
-        elements[0].append((centre[0]-x,centre[1]+y))
+  def cercle(self, rayon, centre, angleOuvertureCercle, angleOuvertureElipse, boutons):
+    """Calcul les positions des boutons à placer sur le cercle"""
+    elements = [[],[],[],[]]
+    bg, bd, bh, bb = boutons
+    rayon=abs(rayon)
+    
+    ratio = float(centre[0])/float(centre[1])
+    
+    def calculAngles(taille, angleOuverture):
+      """Calcul l'angle entre 2 éléments (a) et l'angle à partir duquel on dessine (b)"""
+      a=0.0
+      b=0.0
+      if taille>1:
+        a = angleOuverture/(taille-1)
+        b = -angleOuverture/2
+      else:
+        a = angleOuverture
+        b = 0.0
+      return a, b
         
+    anglebg, angleObg = calculAngles(len(bg), angleOuvertureCercle)
+    anglebd, angleObd = calculAngles(len(bd), angleOuvertureCercle)
+    anglebh, angleObh = calculAngles(len(bh), angleOuvertureElipse)
+    anglebb, angleObb = calculAngles(len(bb), angleOuvertureElipse)
+      
+    def calculPosition(rayon, centre, angle, ratio):
+      """Calcul la valeur en x,y du point sur l'elipse decrite"""
+      x = rayon*math.cos(angle/180*math.pi)*ratio
+      y = rayon*math.sin(angle/180*math.pi)
+      return (centre[0]+x, centre[1]+y)
+      
+    #On calcul l'angle de chaque objet et sa position
+    for i in range(0, max(len(bg), len(bd), len(bh), len(bb))):
+      if i<len(bg):
+        angle = 180.0 + angleObg + anglebg*i
+        elements[0].append(calculPosition(rayon, centre, angle, 1.0))
+      if i<len(bd):
+        angle = angleObd + anglebd*i
+        elements[1].append(calculPosition(rayon, centre, angle, 1.0))
+      if i<len(bh):
+        angle = 270.0 + angleObh + anglebh*i
+        elements[2].append(calculPosition(rayon, centre, angle, ratio))
+      if i<len(bb):
+        angle = 90.0 + angleObb + anglebb*i
+        elements[3].append(calculPosition(rayon, centre, angle, ratio))
+        
+    elements[0].reverse()
+    elements[1].reverse()
+    elements[2].reverse()
+    elements[3].reverse()
     return elements
 
   def anime(self, temps):
@@ -212,12 +204,7 @@ class MenuCirculaire:
         else:
           self.gui.menuCourant = self.exit(self.gui)
 
-    bg, bd, bh, bb = self.boutons
-    nbBoutonsG = len(bg)
-    nbBoutonsD = len(bd)
-    nbBoutonsH = len(bh)
-    nbBoutonsB = len(bb)
-    coords = self.cercle(self.getCentre(), self.getRayon(), self.angleOuverture-abs(self.animation), nbBoutonsG, nbBoutonsD, nbBoutonsH, nbBoutonsB)
+    coords = self.cercle(self.getRayon(), self.getCentre(), self.angleOuverture-abs(self.animation), self.angleOuverture-abs(self.animation), self.boutons)
     
     for composant, indice, cote in self.composants:
       x, y = coords[cote][indice]
@@ -235,7 +222,6 @@ class MenuCirculaire:
     """Construit le menu et l'affiche"""
     if self.besoinRetour:
       self.retour = self.ajouteBas(Icon("icones/rotate_node.png", x="center", y="bottom"))
-      #self.retour = self.ajouteBas(Icon("icones/rotate_node.png", x="center", y="bottom"))
       self.retour.onClick = self.back
     else:
       self.retour = None
@@ -314,7 +300,7 @@ class MenuCirculaire:
       self.boutons[2].remove(composant)
     while self.boutons[3].count(composant)>0:
       self.boutons[3].remove(composant)
-    self.fabrique()
+    self.anime()
       
   def clear(self):
     """Supprime tous les composants"""
@@ -591,7 +577,7 @@ class ListeUnite(MenuCirculaire):
   def fabrique(self):
     self.clear()
     for sprite in self.liste:
-      check = self.ajouteGauche(PictureRadio(sprite.definition["icone-actif"], sprite.definition["icone-inactif"], sprite.definition["nom"].capitalize()+" "+str(int(sprite.vie))+"%", width=LARGEUR_BOUTON))
+      check = self.ajouteHaut(PictureRadio(sprite.definition["icone-actif"], sprite.definition["icone-inactif"], sprite.definition["nom"].capitalize()+" "+str(int(sprite.vie))+"%", width=LARGEUR_BOUTON))
       check.color = (sprite.joueur.couleur[0]*1.2, sprite.joueur.couleur[1]*1.2, sprite.joueur.couleur[2]*1.2, 0.5)
       check.style = "DEFAULT"
       check.callback = self.clic
@@ -600,7 +586,6 @@ class ListeUnite(MenuCirculaire):
   def anime(self, temps):
     if self.liste != general.io.selection:
       self.liste = general.io.selection[:]
-      print "la sélection a changée"
       self.fabrique()
     MenuCirculaire.anime(self, temps)
     for composant, indice, cote in self.composants:
