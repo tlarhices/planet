@@ -90,6 +90,7 @@ class MenuCirculaire:
   retour = None #Un bouton qui ramène au menu précédent
   besoinRetour = True #Si True, alors de l'appel à fabrique un bouton ramenant au menu précédent sera crée
   angleOuverture = None #L'angle sur lequel les boutons s'étalent (en degrés)
+  decalageOuverture = None
   
   animation = None #La position actuelle dans l'animation (en degrés)
   vitesseAnimation = None #Le nombre de degrés par seconde à parcourir
@@ -108,6 +109,7 @@ class MenuCirculaire:
     self.gui = gui
     #Par défaut les boutons s'étalent sur 120°
     self.angleOuverture = 80.0
+    self.decalageOuverture = 0.0
     self.animation = 80.0
     self.directionAnimation = -1
     self.exiting = False
@@ -171,19 +173,19 @@ class MenuCirculaire:
     #On calcul l'angle de chaque objet et sa position
     for i in range(0, max(len(bg), len(bd), len(bh), len(bb))):
       if i<len(bg):
-        angle = 180.0 + angleObg + anglebg*i
+        angle = 180.0 + angleObg + anglebg*i + self.decalageOuverture
         position = calculPosition(rayon, centre, angle, 1.0)
         elements[0].append((position[0], position[1]-HAUTEUR_BOUTON/2))
       if i<len(bd):
-        angle = angleObd + anglebd*i
+        angle = angleObd + anglebd*i + self.decalageOuverture
         position = calculPosition(rayon, centre, angle, 1.0)
         elements[1].append((position[0]-LARGEUR_BOUTON-PAD, position[1]-HAUTEUR_BOUTON/2))
       if i<len(bh):
-        angle = 270.0 + angleObh + anglebh*i
+        angle = 270.0 + angleObh + anglebh*i - self.decalageOuverture
         position = calculPosition(rayon, centre, angle, ratio)
-        elements[2].append((position[0]-50/2, position[1]+HAUTEUR_BOUTON/2))
+        elements[2].append((position[0]-90/2, position[1]+HAUTEUR_BOUTON/2))
       if i<len(bb):
-        angle = 90.0 + angleObb + anglebb*i
+        angle = 90.0 + angleObb + anglebb*i + self.decalageOuverture
         position = calculPosition(rayon, centre, angle, ratio)
         elements[3].append((position[0]-LARGEUR_BOUTON/2, position[1]-HAUTEUR_BOUTON-PAD))
         
@@ -590,27 +592,44 @@ class MiniMap(Pane):
 class ListeUnite(MenuCirculaire):
   select = None #L'unité sélctionnée en ce moment
   liste = None
+  dicoUnite = None
   
   def __init__(self, gui):
     MenuCirculaire.__init__(self, gui)
-    self.angleOuverture = 80.0
+    self.angleOuverture = 40.0
+    self.decalageOuverture = 20
     self.besoinRetour = False
     self.liste = []
+    self.dicoUnite = {}
     self.fabrique()
     
   def fabrique(self):
     self.clear()
-    for sprite in self.liste:
-      check = self.ajouteHaut(PictureRadio(sprite.definition["icone-actif"], sprite.definition["icone-inactif"], str(int(sprite.vie))+"%", width=50))
+    for nom in self.dicoUnite.keys():
+      type = self.dicoUnite[nom]
+      check = self.ajouteHaut(PictureRadio(type[0], type[0], str(type[1])+":"+str(type[2])+"/"+str(type[3]), width=90))
       #check.color = (sprite.joueur.couleur[0]*1.2, sprite.joueur.couleur[1]*1.2, sprite.joueur.couleur[2]*1.2, 0.5)
       check.style = "DEFAULT"
       check.width = 50
       check.callback = self.clic
     MenuCirculaire.fabrique(self)
+           
+  def calculDicoUnite(self):
+    self.dicoUnite = {}
+    for sprite in self.liste:
+      courant = self.dicoUnite.get(sprite.definition["nom"], [None, 0, 0, 0])
+      courant[0] = sprite.icone
+      courant[1] += 1
+      if sprite.vie>=50:
+        courant[2] += 1
+      else:
+        courant[3] += 1
+      self.dicoUnite[sprite.definition["nom"]]=courant
             
   def anime(self, temps):
     if self.liste != general.io.selection:
       self.liste = general.io.selection[:]
+      self.calculDicoUnite()
       self.fabrique()
     MenuCirculaire.anime(self, temps)
 
@@ -624,7 +643,7 @@ class ListeUnite(MenuCirculaire):
 
 class EnJeu():
   """Contient la liste des unitées que l'on peut construire"""
-  listeUnite = None #La liste des icone d'unités constructibles
+  listeUnite = None #La liste des icones des unités sélectionnées
   historique = None #La liste des icones d'information
   miniMap = None #La carte
   
@@ -646,6 +665,7 @@ class EnJeu():
   def efface(self, classe):
     self.clear()
     self.gui.menuCourant = classe(self.gui)
+    self.historique.efface()
     
   def clear(self):
     self.historique.clear()

@@ -440,10 +440,12 @@ class Sprite:
     if self.ai != None:
       self.ai.clear()
       self.ai = None
-    while general.planete.spritesNonJoueur.count(self)>0:
+    while self in general.planete.spritesNonJoueur:
       general.planete.spritesNonJoueur.remove(self)
-    while general.planete.spritesJoueur.count(self)>0:
+    while self in general.planete.spritesJoueur:
       general.planete.spritesJoueur.remove(self)
+    while self in general.io.selection:
+      general.io.selection.remove(self)
     
   def sauvegarde(self):
     """Retoune une chaine qui représente l'objet"""
