@@ -111,7 +111,7 @@ class MenuCirculaire:
     self.animation = 120.0
     self.directionAnimation = -1
     self.exiting = False
-    self.boutons=[[],[]]
+    self.boutons=[[],[],[],[]]
     self.composants = []
     self.lastDraw = None
     self.vitesseAnimation = general.configuration.getConfiguration("affichage", "General", "vitesseAnimationMenus", "75.0", float)
@@ -127,7 +127,17 @@ class MenuCirculaire:
     self.boutons[1].append(bouton)
     return bouton
 
-  def cercle(self, centre, rayon, angleOuverture, nbelemsG, nbelemsD):
+  def ajouteHaut(self, bouton):
+    """Ajoute un bouton dans la colonne de gauche"""
+    self.boutons[2].append(bouton)
+    return bouton
+    
+  def ajouteBas(self, bouton):
+    """Ajoute un bouton dans la colonne de droite"""
+    self.boutons[3].append(bouton)
+    return bouton
+
+  def cercle(self, centre, rayon, angleOuverture, nbelemsG, nbelemsD, nbelemsH, nbelemsB):
     """
     Calcul les positions des boutons à placer sur le cercle
     centre : le centre du cercle
@@ -135,19 +145,47 @@ class MenuCirculaire:
     angleOuverture : l'angle sur lequel les boutons l'étalent
     nbelemS, bnelemsD : le nombre d'éléments dans la colonne de gauche / de droite
     """
-    elements = [[],[]]
+    elements = [[],[],[],[]]
     rayon=abs(rayon)
     if nbelemsG==1:
       angleG=angleOuverture
     else:
       angleG = abs(float(angleOuverture)/(nbelemsG-1))
+      
     if nbelemsD==1:
       angleD=angleOuverture
     else:
       angleD = abs(float(angleOuverture)/(nbelemsD-1))
+
+    if nbelemsH==1:
+      angleH=angleOuverture
+    else:
+      angleH = abs(float(angleOuverture)/(nbelemsH-1))
+      
+    if nbelemsB==1:
+      angleB=angleOuverture
+    else:
+      angleB = abs(float(angleOuverture)/(nbelemsB-1))
+
     dep = -float(angleOuverture)/2.0
     
-    for i in range(0, max(nbelemsG, nbelemsD)):
+    for i in range(0, max(nbelemsG, nbelemsD, nbelemsH, nbelemsB)):
+      if i==0 and nbelemsB==1:
+        x=rayon*math.cos((90.0)/180*math.pi)
+        y=rayon*math.sin((90.0)/180*math.pi)
+        elements[3].append((centre[0]+x,centre[1]+y))
+      elif i<nbelemsB:
+        x=rayon*math.cos((90 + angleB*(i-nbelemsB/2) - dep)/180*math.pi)
+        y=rayon*math.sin((90 + angleB*(i-nbelemsB/2) - dep)/180*math.pi)
+        elements[3].append((centre[0]+x,centre[1]+y))
+      if i==0 and nbelemsH==1:
+        x=rayon*math.cos((90.0)/180*math.pi)
+        y=rayon*math.sin((90.0)/180*math.pi)
+        elements[2].append((centre[0]-x,centre[1]-y))
+      elif i<nbelemsH:
+        x=rayon*math.cos((90 + angleH*(i-nbelemsH/2) - dep)/180*math.pi)
+        y=rayon*math.sin((90 + angleH*(i-nbelemsH/2) - dep)/180*math.pi)
+        elements[2].append((centre[0]-x,centre[1]-y))
       if i<nbelemsD:
         x=rayon*math.cos((dep + angleD*i)/180*math.pi)
         y=rayon*math.sin((dep + angleD*i)/180*math.pi)
@@ -174,10 +212,13 @@ class MenuCirculaire:
         else:
           self.gui.menuCourant = self.exit(self.gui)
 
-    bg, bd = self.boutons
+    bg, bd, bh, bb = self.boutons
     nbBoutonsG = len(bg)
     nbBoutonsD = len(bd)
-    coords = self.cercle(self.getCentre(), self.getRayon(), self.angleOuverture-abs(self.animation), nbBoutonsG, nbBoutonsD)
+    nbBoutonsH = len(bh)
+    nbBoutonsB = len(bb)
+    coords = self.cercle(self.getCentre(), self.getRayon(), self.angleOuverture-abs(self.animation), nbBoutonsG, nbBoutonsD, nbBoutonsH, nbBoutonsB)
+    
     for composant, indice, cote in self.composants:
       x, y = coords[cote][indice]
       composant.doPlacement({"x":x, "y":y, "width":composant.width})
@@ -192,13 +233,22 @@ class MenuCirculaire:
     
   def fabrique(self):
     """Construit le menu et l'affiche"""
-    bg, bd = self.boutons
+    if self.besoinRetour:
+      self.retour = self.ajouteBas(Icon("icones/rotate_node.png", x="center", y="bottom"))
+      #self.retour = self.ajouteBas(Icon("icones/rotate_node.png", x="center", y="bottom"))
+      self.retour.onClick = self.back
+    else:
+      self.retour = None
+
+    bg, bd, bh, bb = self.boutons
     self.composants = []
     nbBoutonsG = len(bg)
     nbBoutonsD = len(bd)
+    nbBoutonsH = len(bh)
+    nbBoutonsB = len(bb)
     
     i=0
-    for i in range(0, max(nbBoutonsG, nbBoutonsD)):
+    for i in range(0, max(nbBoutonsG, nbBoutonsD, nbBoutonsH, nbBoutonsB)):
       if i<len(bg):
         bouton = bg[i]
         bouton.width = 190
@@ -210,13 +260,19 @@ class MenuCirculaire:
         bouton.width = 190
         self.gui.gui.add(bouton)
         self.composants.append((bouton, i, 1))
+
+      if i<len(bh):
+        bouton = bh[i]
+        bouton.width = 190
+        self.gui.gui.add(bouton)
+        self.composants.append((bouton, i, 2))
+        
+      if i<len(bb):
+        bouton = bb[i]
+        bouton.width = 190
+        self.gui.gui.add(bouton)
+        self.composants.append((bouton, i, 3))
       i+=1
-      
-    if self.besoinRetour:
-      self.retour = self.gui.add(Icon("icones/rotate_node.png", x="center", y="bottom"))
-      self.retour.onClick = self.back
-    else:
-      self.retour = None
       
     self.anime(0.0)
     
@@ -254,6 +310,10 @@ class MenuCirculaire:
       self.boutons[0].remove(composant)
     while self.boutons[1].count(composant)>0:
       self.boutons[1].remove(composant)
+    while self.boutons[2].count(composant)>0:
+      self.boutons[2].remove(composant)
+    while self.boutons[3].count(composant)>0:
+      self.boutons[3].remove(composant)
     self.fabrique()
       
   def clear(self):
@@ -261,10 +321,7 @@ class MenuCirculaire:
     for bouton, indice, cote in self.composants:
       self.gui.remove(bouton)
       
-    if self.retour!=None:
-      self.gui.remove(self.retour)
-      
-    self.boutons = [[],[]]
+    self.boutons = [[],[],[],[]]
     self.composants = []
     self.retour = None
     return True
