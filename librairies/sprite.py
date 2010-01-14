@@ -111,6 +111,7 @@ class Sprite:
     #Charge les propriétés de l'objet depuis le fichier de définition du sprite
     if fichierDefinition!=None:
       definition = general.configuration.parseSprite(fichierDefinition)
+      self.definition = definition
       self.fichierModele = definition["modele"]
       self.fichierSymbole = definition["symbole"]
       self.icone = definition["icone"]
@@ -463,7 +464,7 @@ class Sprite:
     nom = "none"
     if self.joueur != None:
       nom = self.joueur.nom
-    print "sprite:"+self.id+":"+nom+":"+self.fichierModele+":"+self.fichierSymbole+":"+str(self.position)+":"+str(self.vitesse)+":"+str(self.vie)+":"+str(self.bouge)+":"+str(self.aquatique)
+    return "sprite:"+self.id+":"+nom+":"+self.fichierModele+":"+self.fichierSymbole+":"+str(self.position)+":"+str(self.vitesse)+":"+str(self.vie)+":"+str(self.bouge)+":"+str(self.aquatique)
     
   def _syncCheck(self):
     return self.sauvegarde()

@@ -522,24 +522,28 @@ class MiniMap(Pane):
             
 class ListeUnite(MenuCirculaire):
   select = None #L'unité sélctionnée en ce moment
+  liste = None
   
   def __init__(self, gui):
     MenuCirculaire.__init__(self, gui)
     self.angleOuverture = 80.0
     self.besoinRetour = False
-    
-    tmp=os.listdir(os.path.join(".","data","sprites"))
-    for elem in tmp:
-      if elem.endswith(".spr"):
-        sprite = general.configuration.parseSprite(os.path.join(".","data","sprites", elem))
-        if sprite["constructible"]:
-          check = self.ajouteGauche(PictureRadio(sprite["icone-actif"], sprite["icone-inactif"], sprite["nom"].capitalize(), width=LARGEUR_BOUTON))
-          check.color = (check.color[0], check.color[1], check.color[2], 0.5)
-          check.style = "DEFAULT"
-          check.callback = self.clic
+    self.liste = []
     self.fabrique()
+    
+  def fabrique(self):
+    self.clear()
+    for sprite in self.liste:
+      check = self.ajouteGauche(PictureRadio(sprite.definition["icone-actif"], sprite.definition["icone-inactif"], sprite.definition["nom"].capitalize()+" "+str(int(sprite.vie))+"%", width=LARGEUR_BOUTON))
+      check.color = (sprite.joueur.couleur[0], sprite.joueur.couleur[1], sprite.joueur.couleur[2], 0.5)
+      check.style = "DEFAULT"
+      check.callback = self.clic
+    MenuCirculaire.fabrique(self)
             
   def anime(self, temps):
+    if self.liste!=general.io.selection:
+      print "la sélection a changée"
+      self.fabrique()
     MenuCirculaire.anime(self, temps)
     for composant, indice, cote in self.composants:
       composant.doPlacement({"x":composant.x-composant.width})
@@ -811,7 +815,7 @@ class MenuDepuisFichier(MenuCirculaire):
     #On ouvre le menu dans la première section
     self.changeMenu(self.menu[0][2]["nom"])
     
-  def changeMenu(self, select):
+  def changeMenu(self, select, fabrique=True):
     """Affiche le menu à la section "select" """
     
     #On garde une trace de quelle section on affiche en ce moment
@@ -884,8 +888,9 @@ class MenuDepuisFichier(MenuCirculaire):
           btn.overStyle = "button_over"
           btn.downStyle = "button_down"
       
-    #On construit les boutons
-    MenuCirculaire.fabrique(self)
+    if fabrique:
+      #On construit les boutons
+      MenuCirculaire.fabrique(self)
       
   def clicVide(self, bouton, etat):
     """Une fonction qui ne fait rien, permet de lancer de onClick sans pour autant activer le bouton"""
@@ -979,6 +984,25 @@ class MenuDepuisFichier(MenuCirculaire):
     for composant, indice, cote in self.composants:
       if cote==0:
         composant.doPlacement({"x":composant.x-composant.width})
+
+class MenuConfigurationPlanete(MenuDepuisFichier):
+  """Le menu de configuration de nouvelle planete"""
+  
+  def __init__(self, gui):
+    MenuDepuisFichier.__init__(self, "nouvelleplanete", gui)
+    
+  def changeMenu(self, select):
+    MenuDepuisFichier.changeMenu(self, select, fabrique=False)
+    btn = self.ajouteGauche(PictureRadio("plus-over.png", "plus.png", "Go !", width=LARGEUR_BOUTON))
+    btn.callback = self.go
+    btn.style = "button"
+    btn.upStyle = "button"
+    btn.overStyle = "button_over"
+    btn.downStyle = "button_down"
+    MenuCirculaire.fabrique(self)
+    
+  def go(self, bouton, etat):
+    general.interface._nouvellePlanete()
 
 class MenuConfiguration(MenuDepuisFichier):
   """Le menu de configuration"""
@@ -1134,6 +1158,10 @@ class Interface:
         self.menuCourant.efface(classe)
       
   def nouvellePlanete(self):
+    """Affiche le menu de configuration de planete"""
+    self.changeMenuVers(MenuConfigurationPlanete)
+      
+  def _nouvellePlanete(self):
     """Construit une nouvelle planète aléatoirement"""
     self.makeMain()
     general.start.fabriquePlanete()

@@ -32,10 +32,14 @@ class IO:
                  #X peut être un dictionnaire {"nom parametre":valeur, ...}
                  
   selection = None #Ce que le joueur a sélectionné
+  groupesUnites = None #Le dictionnaire des groupes d'unités
                  
   def __init__(self):
     #On a rien de sélectionné
-    self.selection = None
+    self.selection = []
+    
+    #On n'a pas de groupes
+    self.groupesUnites = {}
     
     #On attrape les valeurs de sensibilités de déplacement de la caméra
     self.seuilMouvementCamera = general.configuration.getConfiguration("Commandes", "parametres", "seuilMouvementCamera", "0.8", float)
@@ -472,10 +476,25 @@ class IO:
     general.interface.afficheConsole()
     
   def fabriqueGroupe(self, idGroupe):
-    general.TODO("Faire le groupage des unités")
+    self.groupesUnites[idGroupe]=self.selection[:]
+    print "création du groupe",idGroupe,"contenant :",self.selection
     
   def appelGroupe(self, idGroupe):
-    general.TODO("Faire le groupage des unités")
+    if not idGroupe in self.groupesUnites:
+      print "groupe",idGroupe,"no défini"
+      self.selection = []
+    else:
+      #On supprime les unités mortes depuis la création du groupe
+      selection = self.groupesUnites[idGroupe][:]
+      for sprite in self.groupesUnites[idGroupe]:
+        if sprite not in general.planete.spritesJoueur and sprite not in general.planete.spritesNonJoueur:
+          selection.remove(sprite)
+          
+      #On met à jour la sélection et les infos de groupe
+      self.selection = selection
+      self.groupesUnites[idGroupe] = selection[:]
+    
+    print "sélection est maintenant :",self.selection
 
   def modifieAltitude(self, direction):
     """Change l'altitude d'un point, si direction>0 alors l'altitude sera accrue sinon diminuée"""
