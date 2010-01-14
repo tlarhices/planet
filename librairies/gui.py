@@ -107,8 +107,8 @@ class MenuCirculaire:
     """gui: l'instance de Interface en cours d'utilisation"""
     self.gui = gui
     #Par défaut les boutons s'étalent sur 120°
-    self.angleOuverture = 120.0
-    self.animation = 120.0
+    self.angleOuverture = 80.0
+    self.animation = 80.0
     self.directionAnimation = -1
     self.exiting = False
     self.boutons=[[],[],[],[]]
@@ -141,7 +141,7 @@ class MenuCirculaire:
     """Calcul les positions des boutons à placer sur le cercle"""
     elements = [[],[],[],[]]
     bg, bd, bh, bb = boutons
-    rayon=abs(rayon)
+    rayon=abs(rayon[0]), abs(rayon[1])
     
     ratio = float(centre[0])/float(centre[1])
     
@@ -164,24 +164,28 @@ class MenuCirculaire:
       
     def calculPosition(rayon, centre, angle, ratio):
       """Calcul la valeur en x,y du point sur l'elipse decrite"""
-      x = rayon*math.cos(angle/180*math.pi)*ratio
-      y = rayon*math.sin(angle/180*math.pi)
+      x = rayon[0]*math.cos(angle/180*math.pi)*ratio
+      y = rayon[1]*math.sin(angle/180*math.pi)
       return (centre[0]+x, centre[1]+y)
       
     #On calcul l'angle de chaque objet et sa position
     for i in range(0, max(len(bg), len(bd), len(bh), len(bb))):
       if i<len(bg):
         angle = 180.0 + angleObg + anglebg*i
-        elements[0].append(calculPosition(rayon, centre, angle, 1.0))
+        position = calculPosition(rayon, centre, angle, 1.0)
+        elements[0].append((position[0], position[1]-HAUTEUR_BOUTON/2))
       if i<len(bd):
         angle = angleObd + anglebd*i
-        elements[1].append(calculPosition(rayon, centre, angle, 1.0))
+        position = calculPosition(rayon, centre, angle, 1.0)
+        elements[1].append((position[0]-LARGEUR_BOUTON-PAD, position[1]-HAUTEUR_BOUTON/2))
       if i<len(bh):
         angle = 270.0 + angleObh + anglebh*i
-        elements[2].append(calculPosition(rayon, centre, angle, ratio))
+        position = calculPosition(rayon, centre, angle, ratio)
+        elements[2].append((position[0]-50/2, position[1]+HAUTEUR_BOUTON/2))
       if i<len(bb):
         angle = 90.0 + angleObb + anglebb*i
-        elements[3].append(calculPosition(rayon, centre, angle, ratio))
+        position = calculPosition(rayon, centre, angle, ratio)
+        elements[3].append((position[0]-LARGEUR_BOUTON/2, position[1]-HAUTEUR_BOUTON-PAD))
         
     elements[0].reverse()
     elements[1].reverse()
@@ -195,8 +199,8 @@ class MenuCirculaire:
     
     if self.animation<0:
       self.animation=0.0
-    if self.animation>120:
-      self.animation=120.0
+    if self.animation>80:
+      self.animation=80.0
       if self.exit != None:
         self.clear()
         if isinstance(self.gui.menuCourant, EnJeu):
@@ -216,7 +220,7 @@ class MenuCirculaire:
     
   def getRayon(self):
     """Retourne le rayon maximal qui peut être obtenu pour cette taille de fenêtre"""
-    return min(base.win.getXSize()/2 - LARGEUR_BOUTON, base.win.getYSize()/2 - HAUTEUR_BOUTON)
+    return (base.win.getXSize()/2, base.win.getYSize()/2)
     
   def fabrique(self):
     """Construit le menu et l'affiche"""
@@ -237,25 +241,25 @@ class MenuCirculaire:
     for i in range(0, max(nbBoutonsG, nbBoutonsD, nbBoutonsH, nbBoutonsB)):
       if i<len(bg):
         bouton = bg[i]
-        bouton.width = 190
+        #bouton.width = 190
         self.gui.gui.add(bouton)
         self.composants.append((bouton, i, 0))
       
       if i<len(bd):
         bouton = bd[i]
-        bouton.width = 190
+        #bouton.width = 190
         self.gui.gui.add(bouton)
         self.composants.append((bouton, i, 1))
 
       if i<len(bh):
         bouton = bh[i]
-        bouton.width = 190
+        #bouton.width = 190
         self.gui.gui.add(bouton)
         self.composants.append((bouton, i, 2))
         
       if i<len(bb):
         bouton = bb[i]
-        bouton.width = 190
+        #bouton.width = 190
         self.gui.gui.add(bouton)
         self.composants.append((bouton, i, 3))
       i+=1
@@ -280,7 +284,7 @@ class MenuCirculaire:
     self.directionAnimation = 1.0
     self.exit = cible
     if cible==None:
-      self.animation = 120.0
+      self.animation = 80.0
       self.clear()
 
   def remove(self, composant):
@@ -300,7 +304,7 @@ class MenuCirculaire:
       self.boutons[2].remove(composant)
     while self.boutons[3].count(composant)>0:
       self.boutons[3].remove(composant)
-    self.anime()
+    self.anime(0.0)
       
   def clear(self):
     """Supprime tous les composants"""
@@ -322,6 +326,7 @@ class Historique(MenuCirculaire):
   
   #Liste des icones pour chaque type de message
   icones = {
+  None:None,
   "inconnu": "icones/q.png",
   "mort": "icones/skull.png",
   "ai": "icones/reinforcement.png",
@@ -348,7 +353,13 @@ class Historique(MenuCirculaire):
     message : le contenu du message
     position : le point au dessus duquel la caméra doit aller lors d'un clic sur l'icône
     """
-    self.messages.append((self.dureeMessage, type, message, self.ajouteDroite(self.fabriqueMessage(type, message))))
+    self.animation = 0
+    self.messages.append((self.dureeMessage, type, message, self.ajouteBas(self.fabriqueMessage(type, message))))
+    deb = self.messages[:-10]
+    for message in deb:
+      self.remove(message[3])
+    self.messages = self.messages[-10:]
+      
     if position!=None:
       self.messages[-1][3].callback = general.io.placeCameraAuDessusDe
       self.messages[-1][3].callbackParams = {"point":position}
@@ -363,8 +374,21 @@ class Historique(MenuCirculaire):
     if type not in self.icones.keys():
       general.TODO("Il manque l'icone "+type+" pour l'affichage des message")
       type="inconnu"
-
-    return Icon(self.icones[type])
+    cmp = PictureRadio(self.icones[type], self.icones[type], message, width=LARGEUR_BOUTON)
+    cmp.style = "DEFAULT"
+    return cmp
+    
+  """def fabrique(self):
+    self.clear()
+    print "-----------------"
+    for message in self.messages:
+      print message[2]
+      check = self.ajouteBas(self.gui.add(self.fabriqueMessage(message[1], message[2])))
+      #check.color = (sprite.joueur.couleur[0]*1.2, sprite.joueur.couleur[1]*1.2, sprite.joueur.couleur[2]*1.2, 0.5)
+      check.style = "DEFAULT"
+      check.width = 50
+    print "-----------------"
+    MenuCirculaire.fabrique(self)"""
     
   def MAJ(self, temps):
     """Gère la pulsation des icones et supprime les icones périmées"""
@@ -577,9 +601,10 @@ class ListeUnite(MenuCirculaire):
   def fabrique(self):
     self.clear()
     for sprite in self.liste:
-      check = self.ajouteHaut(PictureRadio(sprite.definition["icone-actif"], sprite.definition["icone-inactif"], sprite.definition["nom"].capitalize()+" "+str(int(sprite.vie))+"%", width=LARGEUR_BOUTON))
-      check.color = (sprite.joueur.couleur[0]*1.2, sprite.joueur.couleur[1]*1.2, sprite.joueur.couleur[2]*1.2, 0.5)
+      check = self.ajouteHaut(PictureRadio(sprite.definition["icone-actif"], sprite.definition["icone-inactif"], str(int(sprite.vie))+"%", width=50))
+      #check.color = (sprite.joueur.couleur[0]*1.2, sprite.joueur.couleur[1]*1.2, sprite.joueur.couleur[2]*1.2, 0.5)
       check.style = "DEFAULT"
+      check.width = 50
       check.callback = self.clic
     MenuCirculaire.fabrique(self)
             
@@ -588,8 +613,6 @@ class ListeUnite(MenuCirculaire):
       self.liste = general.io.selection[:]
       self.fabrique()
     MenuCirculaire.anime(self, temps)
-    for composant, indice, cote in self.composants:
-      composant.doPlacement({"x":composant.x-composant.width})
 
   def clic(self, bouton, etat):
     """
@@ -637,7 +660,7 @@ class EnJeu():
     else:
       self.gui.changeMenuVers(ListeUnite)
         
-class Informations(Pane):
+class __Informations__(Pane):
   """Boite de message"""
   style = "default"
   lignes = None
@@ -799,7 +822,7 @@ class MenuPrincipal(MenuCirculaire):
     
     if not os.path.exists(os.path.join(".", "sauvegardes")):
       os.makedirs(os.path.join(".", "sauvegardes"))
-    if not os.path.join(".", "data", "planetes"):
+    if not os.path.exists(os.path.join(".", "data", "planetes")):
       os.makedirs(os.path.join(".", "data", "planetes"))
 
     self.enJeu = isinstance(self.gui.menuCourant, EnJeu)
@@ -834,11 +857,6 @@ class MenuPrincipal(MenuCirculaire):
     if not self.enJeu:
       self.ajouteGauche(Button(u"Quitter le jeu", self.gui.quitter, width=LARGEUR_BOUTON))
     self.fabrique()
-    
-  def anime(self, temps):
-    MenuCirculaire.anime(self, temps)
-    for composant, indice, cote in self.composants:
-      composant.doPlacement({"x":composant.x-composant.width})
     
 class MenuDepuisFichier(MenuCirculaire):
   select = None
@@ -1021,12 +1039,6 @@ class MenuDepuisFichier(MenuCirculaire):
             self.changeMenu(self.select)
             return
     print "Pas trouvé", bouton.lower()
-    
-  def anime(self, temps):
-    MenuCirculaire.anime(self, temps)
-    for composant, indice, cote in self.composants:
-      if cote==0:
-        composant.doPlacement({"x":composant.x-composant.width})
 
 class MenuConfigurationPlanete(MenuDepuisFichier):
   """Le menu de configuration de nouvelle planete"""
@@ -1243,7 +1255,7 @@ class Interface:
     """Supprime les éléments de l'interface utilisés lors du chargement"""
     self.changeMenuVers(None)
     if self.informations != None:
-      self.gui.remove(self.informations)
+      self.informations.efface(None)
       self.informations = None
     if self.chargement != None:
       self.gui.remove(self.chargement)
@@ -1252,7 +1264,7 @@ class Interface:
   def makeMain(self):
     """Construit les éléments de l'interface lors du chargement"""
     self.changeMenuVers(None)
-    self.informations = self.gui.add(Informations(self))
+    self.informations = Historique(self)
     self.chargement = self.gui.add(Chargement())
     
   def configurer(self):
@@ -1337,7 +1349,7 @@ class Interface:
         chaine = u"["+general.i18n.utf8ise(type)+u"]"+" "+general.i18n.utf8ise(texte)
         print chaine.encode("UTF-8")
       if self.informations !=None:
-        self.informations.ajouteTexte(type, texte)
+        self.informations.ajouteMessage(type, texte)
         
     if forceRefresh:
       #On force le recalcul du GUI
