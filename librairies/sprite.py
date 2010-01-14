@@ -117,7 +117,7 @@ class Sprite:
       self.vie=definition["vie"]
       self.nocturne = definition["nocturne"]
       self.terminalVelocity = definition["terminalvelocity"]
-      self.angleSolMax = general.configuration.getConfiguration("ai", "navigation", "angleSolMax", "70.0")
+      self.angleSolMax = general.configuration.getConfiguration("ai", "navigation", "angleSolMax", "70.0", float)
       self.distanceProche = definition["distanceProche"]
       self.seuilToucheSol = definition["seuilToucheSol"]
       self.constanteGravitationelle = definition["constanteGravitationelle"]

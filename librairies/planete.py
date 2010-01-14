@@ -57,11 +57,11 @@ class Planete:
     self.spritesNonJoueur = [] #Pas d'objets sur la planète
     self.joueurs = []
     
-    self.distanceSoleil = float(general.configuration.getConfiguration("planete", "Univers", "distanceSoleil","10.0"))
-    self.vitesseSoleil = float(general.configuration.getConfiguration("planete", "Univers", "vitesseSoleil","1.0"))
+    self.distanceSoleil = general.configuration.getConfiguration("planete", "Univers", "distanceSoleil", "10.0", float)
+    self.vitesseSoleil = general.configuration.getConfiguration("planete", "Univers", "vitesseSoleil", "1.0", float)
     self.angleSoleil = 0.0
-    self.dureeMAJPosSoleil = float(general.configuration.getConfiguration("affichage", "Minimap", "dureeMAJPosSoleil","23.0"))
-    self.seuilSauvegardeAuto = float(general.configuration.getConfiguration("affichage", "General", "seuilSauvegardeAuto","600.0"))
+    self.dureeMAJPosSoleil = general.configuration.getConfiguration("affichage", "Minimap", "dureeMAJPosSoleil", "23.0", float)
+    self.seuilSauvegardeAuto = general.configuration.getConfiguration("affichage", "General", "seuilSauvegardeAuto", "600.0", float)
     
     self.fini = False
     #On calcule la navigation pour l'intelligence artificielle
@@ -268,10 +268,10 @@ class Planete:
   # Mise à jour --------------------------------------------------------
   def fabriqueSoleil(self, type=None):
     if type==None:
-      type = general.configuration.getConfiguration("affichage", "effets", "typeEclairage", "shader")
+      type = general.configuration.getConfiguration("affichage", "effets", "typeEclairage", "shader", str)
     type=type.lower().strip()
       
-    couleurSoleil = general.configuration.getConfiguration("Planete", "Univers", "couleurSoleil", "0.9 0.9 0.9 0.8")
+    couleurSoleil = general.configuration.getConfiguration("Planete", "Univers", "couleurSoleil", "0.9 0.9 0.9 0.8", str)
     couleurSoleil = VBase4(*general.floatise(couleurSoleil.split(" ")))
       
     if type=="flat":
@@ -408,7 +408,7 @@ class Planete:
           while sprite in self.spritesNonJoueur:
             self.spritesNonJoueur.remove(sprite)
         
-    if general.configuration.getConfiguration("affichage","minimap","affichesoleil","t")=="t":
+    if general.configuration.getConfiguration("affichage","minimap","affichesoleil","t", bool):
       #Met à jour la carte du soleil
       self.lastMAJPosSoleil += temps
       if self.lastMAJPosSoleil > self.dureeMAJPosSoleil:

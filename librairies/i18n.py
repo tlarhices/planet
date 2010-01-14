@@ -82,7 +82,7 @@ class i18n:
       
     #On l'a pas, on affiche un avertissement et on temporise dans le fichier de la langue
     #print "Avertissement :: i18n :: Pas de traduction pour \""+texte+"\"."+self.langue
-    if not general.configuration.getConfiguration("affichage", "langue", "traductionAuto","F")!="T":
+    if not general.configuration.getConfiguration("affichage", "langue", "traductionAuto","f", bool):
       self.ajouterAuFichier(texte=texte, traduction=texte)
       return self.utf8ise(texte)
     else:

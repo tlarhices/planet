@@ -55,7 +55,7 @@ class Start:
     
     general.start = self
     
-    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
+    if general.configuration.getConfiguration("affichage", "general", "multitexturage", "heightmap", str) == "shader":
       render.setShaderAuto()
       sa = ShaderAttrib.make( )
       sa = sa.setShader( loader.loadShader( 'data/shaders/terrainNormal.sha' ) )
@@ -64,14 +64,14 @@ class Start:
       cam0.setTagState( 'True' , RenderState.make( sa ) )
     
     #Configuration de DEBUG
-    general.DEBUG_GENERE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_genere_planete","f")=="t"
-    general.DEBUG_CHARGE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_charge_planete","f")=="t"
-    general.DEBUG_CHARGE_PLANETE_VERBOSE = general.configuration.getConfiguration("debug", "planete", "debug_charge_planete_verbose","f")=="t"
-    general.DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION = general.configuration.getConfiguration("debug", "ai", "debug_ai_graphe_deplacement_construction","f")=="t"
-    general.DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE = general.configuration.getConfiguration("debug", "ai", "debug_ai_graphe_deplacement_promenade","f")=="t"
-    general.DEBUG_AI_VA_VERS = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_VA_VERS","f")=="t"
-    general.DEBUG_AI_SUIT_CHEMIN = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_SUIT_CHEMIN","f")=="t"
-    general.DEBUG_AI_PING_PILE_COMPORTEMENT = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_PING_PILE_COMPORTEMENT","f")=="t"
+    general.DEBUG_GENERE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_genere_planete", "f", bool)
+    general.DEBUG_CHARGE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_charge_planete", "f", bool)
+    general.DEBUG_CHARGE_PLANETE_VERBOSE = general.configuration.getConfiguration("debug", "planete", "debug_charge_planete_verbose", "f", bool)
+    general.DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION = general.configuration.getConfiguration("debug", "ai", "debug_ai_graphe_deplacement_construction", "f", bool)
+    general.DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE = general.configuration.getConfiguration("debug", "ai", "debug_ai_graphe_deplacement_promenade", "f", bool)
+    general.DEBUG_AI_VA_VERS = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_VA_VERS", "f", bool)
+    general.DEBUG_AI_SUIT_CHEMIN = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_SUIT_CHEMIN", "f", bool)
+    general.DEBUG_AI_PING_PILE_COMPORTEMENT = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_PING_PILE_COMPORTEMENT", "f", bool)
     
     #Gère le dessin des cartes
     general.cartographie = Cartographie()
@@ -112,12 +112,12 @@ class Start:
       general.interface = DUMMY(self)
     
     #On lance PStats (debugger de panda3d) si la configuration dit qu'on en a envie
-    if general.configuration.getConfiguration("debug", "panda", "DEBUG_PANDA_VIA_PSTATS","f")=="t":
+    if general.configuration.getConfiguration("debug", "panda", "DEBUG_PANDA_VIA_PSTATS","f", bool):
       #Profile du code via PStat
       PStatClient.connect()
 
     #On affiche le compteur d'images par seconde si besoin est
-    if general.configuration.getConfiguration("affichage", "general", "afficheFPS","f")=="t":
+    if general.configuration.getConfiguration("affichage", "general", "afficheFPS","f", bool):
       base.setFrameRateMeter(True)
       
     #On fabrique une planète toute simple pour faire un fond au menu
@@ -198,8 +198,8 @@ class Start:
     #On fabrique une nouvelle planete vide
     general.planete = Planete()
     #On lit la configuration
-    tesselation = int(general.configuration.getConfiguration("planete", "generation", "tesselation", "4"))
-    delta = float(general.configuration.getConfiguration("planete", "generation", "delta", "0.2"))
+    tesselation = general.configuration.getConfiguration("planete", "generation", "tesselation", "4", int)
+    delta = general.configuration.getConfiguration("planete", "generation", "delta", "0.2", float)
     #On fabrique la planète
     general.planete.fabriqueNouvellePlanete(tesselation=tesselation, delta=delta)
     
@@ -315,7 +315,7 @@ if __name__=="__main__":
     #Si on a un fichier de config donné par ligne de commande, on l'utilise
     general.configuration.charge(fichierConfig, erreurSiExistePas=False)
     
-  general.i18n = i18n(langue=general.configuration.getConfiguration("affichage","langue", "langue", "french"))
+  general.i18n = i18n(langue=general.configuration.getConfiguration("affichage","langue", "langue", "french", str))
 
   from pandac.PandaModules import *
 
@@ -327,7 +327,7 @@ if __name__=="__main__":
   #loadPrcFileData("","hardware-point-sprites 0")
   
   #Change la résolution de la fenêtre
-  resolution = general.configuration.getConfiguration("affichage","general", "resolution","640 480")
+  resolution = general.configuration.getConfiguration("affichage", "general", "resolution", "640 480", str)
   if resolution == "0 0":
     print "Avertissement :: resolution de 0, démarrage sans fenêtre"
     loadPrcFileData("",u"window-type none")

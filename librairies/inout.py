@@ -14,7 +14,7 @@ class IO:
   cameraRayon = 6.0 #Distance de la caméra au centre de la planète
   cameraAngleX = 0.0 #Angle de rotation de la planète selon la verticale
   cameraAngleY = 0.0 #Angle de rotation de la planète selon l'horizontale
-  cameraPasRotation = general.degVersRad(1.0) #Angle entre 2 positions de la caméra
+  cameraPasRotation = None #Angle entre 2 positions de la caméra
   cameraPasZoom = 0.005 #Pas de zoom
   cameraAngleSurface = 50 #L'angle de la caméra à la surface
   
@@ -37,6 +37,12 @@ class IO:
     #On a rien de sélectionné
     self.selection = None
     
+    #On attrape les valeurs de sensibilités de déplacement de la caméra
+    self.seuilMouvementCamera = general.configuration.getConfiguration("Commandes", "parametres", "seuilMouvementCamera", "0.8", float)
+    self.rotationCameraX=general.configuration.getConfiguration("Commandes", "parametres", "rotationCameraX", "10.0", float)
+    self.rotationCameraY=general.configuration.getConfiguration("Commandes", "parametres", "rotationCameraY", "5.0", float)
+    self.cameraPasRotation = general.degVersRad(general.configuration.getConfiguration("Commandes", "parametres", "cameraPasRotation", "1.0", float))
+
     #On donne des alias à certaines fonctions
     self.lierActionsFonctions()
     
@@ -94,16 +100,26 @@ class IO:
         mpos=base.mouseWatcherNode.getMouse()
         x=mpos.getX()
         y=mpos.getY()
-        seuil = 0.8
+        
         #Regarde si la caméra est proche d'un bord et fait tourner la planète le cas échéant
-        if x<-seuil:
-          self.tourneCamera(self.cameraPasRotation*(x+seuil)/(1.0-seuil), 0.0)
-        if x>seuil:
-          self.tourneCamera(self.cameraPasRotation*(x-seuil)/(1.0-seuil), 0.0)
-        if y<-seuil:
-          self.tourneCamera(0.0, self.cameraPasRotation*(y+seuil)/(1.0-seuil))
-        if y>seuil:
-          self.tourneCamera(0.0, self.cameraPasRotation*(y-seuil)/(1.0-seuil))
+        if "control" in self.touchesControles:
+          if x<-self.seuilMouvementCamera:
+            self.camera.setR(self.camera.getR()+self.rotationCameraX*deltaT*(x+self.seuilMouvementCamera)/(1.0-self.seuilMouvementCamera))
+          if x>self.seuilMouvementCamera:
+            self.camera.setR(self.camera.getR()-self.rotationCameraX*deltaT*(x-self.seuilMouvementCamera)/(1.0-self.seuilMouvementCamera))
+          if y<-self.seuilMouvementCamera:
+            self.camera.setP(self.camera.getP()+self.rotationCameraY*deltaT*(y+self.seuilMouvementCamera)/(1.0-self.seuilMouvementCamera))
+          if y>self.seuilMouvementCamera:
+            self.camera.setP(self.camera.getP()-self.rotationCameraY*deltaT*(y-self.seuilMouvementCamera)/(1.0-self.seuilMouvementCamera))
+        else:
+          if x<-self.seuilMouvementCamera:
+            self.tourneCamera(self.cameraPasRotation*(x+self.seuilMouvementCamera)/(1.0-self.seuilMouvementCamera)*deltaT, 0.0)
+          if x>self.seuilMouvementCamera:
+            self.tourneCamera(self.cameraPasRotation*(x-self.seuilMouvementCamera)/(1.0-self.seuilMouvementCamera)*deltaT, 0.0)
+          if y<-self.seuilMouvementCamera:
+            self.tourneCamera(0.0, self.cameraPasRotation*(y+self.seuilMouvementCamera)/(1.0-self.seuilMouvementCamera)*deltaT)
+          if y>self.seuilMouvementCamera:
+            self.tourneCamera(0.0, self.cameraPasRotation*(y-self.seuilMouvementCamera)/(1.0-self.seuilMouvementCamera)*deltaT)
       
     #Clavier
     self.gereTouche()
@@ -182,8 +198,14 @@ class IO:
   ### Gestion du clavier/souris ----------------------------------------
   def presseTouche(self, touche):
     """Une touche a été pressée, on l'ajoute a la liste des touches"""
-    if general.interface.gui.hoveringOver and touche.startswith("mouse"):
+    
+    #On regarde si c'est le clavier (touche.find("mouse")==-1) et si on est sur une zone de texte (focus!=None)
+    if general.interface.gui.keys.focus and touche.find("mouse")==-1:
       return
+    #On regarde si c'est la souris (touche.find("mouse")!=-1) et si on est sur l'interface (hoveringOver!=None)
+    if general.interface.gui.hoveringOver and touche.find("mouse")!=-1:
+      return
+
     self.touches.append(touche)
     if touche in ["alt", "shift", "control"]:#, "lalt", "lshift", "lcontrol", "ralt", "rshift", "rcontrol"]:
       self.touchesControles.append(touche)
@@ -264,6 +286,7 @@ class IO:
     self.actions["screenshot"] = (self.screenShot,None)
     self.actions["selectionne"] = (self.selectionne,None)
     self.actions["dragdrop"] = (self.dragDrop,None)
+    self.actions["console"] = (self.afficheConsole,None)
     
   def appelFonction(self, fonction, parametres):
     """Appel la fonction fonction en lui passant les paramètres décris"""
@@ -444,6 +467,9 @@ class IO:
   def afficheStat(self):
     #Affiche le contenu du chronomètre
     general.afficheStatChrono()
+    
+  def afficheConsole(self):
+    general.interface.afficheConsole()
     
   def fabriqueGroupe(self, idGroupe):
     general.TODO("Faire le groupage des unités")

@@ -147,9 +147,31 @@ class Configuration:
       self.configuration[section][soussection]={}
     self.configuration[section][soussection][champ]=valeur
     
+  def versType(self, valeur, defaut, type):
+    try:
+      if type==bool:
+        if isinstance(valeur, bool):
+          return valeur
+        elif isinstance(valeur, (int, float)):
+          return valeur!=0
+        return valeur.lower().strip()=="t"
+      return type(valeur)
+    except Exception, ex:
+      print "configuration::transtypage::Erreur ::",valeur,"n'est pas typpable en",str(type)
+      if defaut==valeur:
+        raise ex
+      return self.versType(defaut, defaut, type)
     
-  def getConfiguration(self, section, soussection, champ, defaut):
+    
+  def getConfiguration(self, section, soussection, champ, defaut, type=None):
     """Retourne une valeur de configuration"""
+    
+    if type==None:
+      frame = sys._getframe(1)
+      texte=str(frame.f_code.co_filename)+"::"+"??"+"::"+str(frame.f_code.co_name)+u" > Avertissement :: getConfiguration sans type est déprécié, pensez à mettre à jour"
+      print texte
+      type=str
+    
     section=str(section).lower()
     soussection=str(soussection).lower()
     champ=str(champ).lower()
@@ -160,23 +182,22 @@ class Configuration:
       #raw_input("pause_configuration")
       self.configuration[section]={}
       self.configuration[section][soussection]={}
-      self.configuration[section][soussection][champ]=defaut
-      return defaut
+      self.configuration[section][soussection][champ]=self.versType(defaut, defaut, type)
+      return self.versType(defaut, defaut, type)
     if soussection not in self.configuration[section].keys():
       print self.configuration.keys()
       print "getConfiguration::sous-section pas dans le fichier de configuration ::",section, soussection
       #raw_input("pause_configuration")
       self.configuration[section][soussection]={}
-      self.configuration[section][soussection][champ]=defaut
-      return defaut
+      self.configuration[section][soussection][champ]=self.versType(defaut, defaut, type)
+      return self.versType(defaut, defaut, type)
     if champ not in self.configuration[section][soussection].keys():
       print "getConfiguration::champ pas dans le fichier de configuration ::",section, soussection, champ
       #raw_input("pause_configuration")
-      self.configuration[section][soussection][champ]=defaut
-      return defaut
+      self.configuration[section][soussection][champ]=self.versType(defaut, defaut, type)
+      return self.versType(defaut, defaut, type)
       
-      
-    return self.configuration[section][soussection][champ]
+    return self.versType(self.configuration[section][soussection][champ], defaut, type)
     
   def chargeMenu(self, menu):
     if not os.path.exists(os.path.join(".","data","menus",menu+".menu")):
@@ -225,7 +246,7 @@ class Configuration:
           print "manque chemin !"
         else:
           sect, soussect, var = contenuElement["chemin"].split("/")
-          contenuElement["valeur"] = self.getConfiguration(sect, soussect, var, "Erreur !")
+          contenuElement["valeur"] = self.getConfiguration(sect, soussect, var, "Erreur !", str)
         if not 'infobulle' in contenuElement.keys():
           print "manque infobulle !"
         if not 'icone' in contenuElement.keys():

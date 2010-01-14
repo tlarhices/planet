@@ -384,13 +384,14 @@ class Geoide:
     
     general.cartographie.calculMiniMap((256, 128))
     
-    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="heightmap":
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap",str)=="heightmap":
       general.cartographie.calculHeightMap()
-    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")!="flat":
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap",str)!="flat":
       self.ajouteTextures()
 
     self.racine.reparentTo(render)
-    self.racine.analyze()
+    if general.configuration.getConfiguration("Debug", "Planete", "debug_analyse_scene", "f", bool):
+      self.racine.analyze()
 
   def animEau(self, time):
     #change z component of vertices in water plane
@@ -430,7 +431,7 @@ class Geoide:
     self.modeleEau.reparentTo(self.racine)
     self.modeleEau.setTransparency(TransparencyAttrib.MDual )
     
-    if general.configuration.getConfiguration("affichage", "general", "type-eau", "texture")=="shader":
+    if general.configuration.getConfiguration("affichage", "general", "type-eau", "texture", str)=="shader":
       self.modeleEau.setShader( loader.loadShader( 'data/shaders/water.sha' ) )
       tex = loader.loadTexture( 'data/textures/017eau.jpg' )
       self.modeleEau.setTexture( tex, 1 )
@@ -462,11 +463,11 @@ class Geoide:
     self.modeleCiel.reparentTo(self.racine)
     self.niveauCiel = 1.0+self.delta*1.25+0.0001
     
-    if general.configuration.getConfiguration("planete", "nuages", "affiche-nuages", "t")=="t":
+    if general.configuration.getConfiguration("planete", "nuages", "affiche-nuages", "t", bool):
       nuages = NodePath("nuage")
-      densite = int(general.configuration.getConfiguration("planete", "nuages", "densite", "15"))
-      taille = float(general.configuration.getConfiguration("planete", "nuages", "taille", "0.15"))
-      quantite = int(general.configuration.getConfiguration("planete", "nuages", "quantite", "80"))
+      densite = general.configuration.getConfiguration("planete", "nuages", "densite", "15", int)
+      taille = general.configuration.getConfiguration("planete", "nuages", "taille", "0.15", float)
+      quantite = general.configuration.getConfiguration("planete", "nuages", "quantite", "80", int)
       for i in range(0, quantite):
         a = sprite.Nuage(densite, taille)
         a.fabriqueModel().reparentTo(nuages)
@@ -486,15 +487,15 @@ class Geoide:
     self.azure.setDepthTest(False)
     self.azure.setDepthWrite(False)
     
-    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader" or general.configuration.getConfiguration("affichage", "general", "type-eau", "texture")=="shader":
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap",str)=="shader" or general.configuration.getConfiguration("affichage", "general", "type-eau", "texture", str)=="shader":
       self.azure.setShader( loader.loadShader( 'data/shaders/atmosphere.sha' ) )
 
     tex = loader.loadTexture( 'data/textures/EarthClearSky2.png' )
     self.azure.setTexture( tex, 1 )
 
     #Fabrique une lumière ambiante pour que la nuit soit moins noire
-    if general.configuration.getConfiguration("affichage", "Effets", "typeEclairage","shader")=="flat":
-      couleurNuit = general.configuration.getConfiguration("Planete", "Univers", "couleurNuit", "0.2 0.2 0.275 1.0")
+    if general.configuration.getConfiguration("affichage", "Effets", "typeEclairage","shader",str)=="flat":
+      couleurNuit = general.configuration.getConfiguration("Planete", "Univers", "couleurNuit", "0.2 0.2 0.275 1.0", str)
       couleurNuit = VBase4(*general.floatise(couleurNuit.split(" ")))
       alight = AmbientLight('alight')
       alight.setColor(couleurNuit)
@@ -521,7 +522,7 @@ class Geoide:
     #etoiles.setTexGen(TextureStage.getDefault(), TexGenAttrib.MEyeSphereMap)
     etoiles.setTexture(tex, 1)
     etoiles.setTwoSided(False)
-    etoiles.setScale(float(general.configuration.getConfiguration("planete", "Univers", "distanceSoleil","10.0"))*3.0/2.0)
+    etoiles.setScale(general.configuration.getConfiguration("planete", "Univers", "distanceSoleil","10.0",float)*3.0/2.0)
     etoiles.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullCounterClockwise))
     etoiles.reparentTo(self.modeleCiel)    
     etoiles.setLightOff()
@@ -659,7 +660,7 @@ class Geoide:
       self.lastPing = task.time-1.0/60
     self.lastPing = task.time
     
-    if general.configuration.getConfiguration("affichage","general", "animation-eau","t")=="t":
+    if general.configuration.getConfiguration("affichage","general", "animation-eau","t", bool):
       if self.modeleEau!=None:
         self.animEau(task.time)
         
@@ -905,18 +906,17 @@ class Geoide:
     #On calcule les normales à chaque sommet
     n1=self.sommetDansFace[self.sommets.index(p)][0].calculNormale(p)
     
-    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="heightmap":
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap", str)=="heightmap":
       ci1 = general.cartographie.point3DVersCarte(p, (1.0, 1.0), coordonneesTexturage=True)
     else:
-      ci1 = general.cartographie.point3DVersCarte(p, (float(general.configuration.getConfiguration("affichage","general", "repetition-texture","17.0")), float(general.configuration.getConfiguration("affichage","general", "repetition-texture","17.0"))), coordonneesTexturage=True)
+      ci1 = general.cartographie.point3DVersCarte(p, (general.configuration.getConfiguration("affichage","general", "repetition-texture","17.0", float), general.configuration.getConfiguration("affichage","general", "repetition-texture", "17.0", float)), coordonneesTexturage=True)
     
-    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap", str)=="shader":
       minAlt = (1.0-self.delta)
       maxAlt = (1.0+self.delta)
       altitude = p.length()
       c1 = ((altitude-minAlt)/(maxAlt-minAlt), 0.0, 0.0, 0.0)
-      
-    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="heightmap":
+    elif general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap", str)=="heightmap":
       c1 = (1.0, 1.0, 1.0, 1.0)
     
     #On écrit le modèle dans cet ordre :
@@ -954,7 +954,7 @@ class Geoide:
   def ajouteTextures(self):
     general.TODO("Finir le texturage via heightmap")
     
-    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="shader":
+    if general.configuration.getConfiguration("affichage", "general", "multitexturage", "heightmap", str)=="shader":
       tex0 = loader.loadTexture( 'data/textures/sable.png' )
       tex0.setMinfilter( Texture.FTLinearMipmapLinear )
       tex0.setMagfilter( Texture.FTLinearMipmapLinear )
@@ -978,11 +978,11 @@ class Geoide:
       self.racineModel.setTexScale(ts1, 256, 256)
       self.racineModel.setTexScale(ts2, 256, 256)
       
-    elif general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="flat":
+    elif general.configuration.getConfiguration("affichage", "general", "multitexturage", "heightmap", str)=="flat":
       tex = loader.loadTexture("data/textures/herbe.png")
       self.racineModel.setTexture(tex, 1)
     
-    elif general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap")=="heightmap":
+    elif general.configuration.getConfiguration("affichage", "general", "multitexturage", "heightmap", str)=="heightmap":
       root = self.racineModel
       root.setLightOff()
 

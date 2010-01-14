@@ -63,6 +63,26 @@ class InfoBulle(Pane):
     """Cette fonction est appelée quand la bulle est détruite"""
     pass
     
+class Console(Pane):
+  style = "default"
+  def __init__(self):
+    Pane.__init__(self)
+    self.ligne1 = self.add(Label("Ligne 1", x=PAD, y=PAD*1+HAUTEUR_TEXTE*0))
+    self.ligne2 = self.add(Label("Ligne 2", x=PAD, y=PAD*2+HAUTEUR_TEXTE*1))
+    self.ligne3 = self.add(Label("Ligne 3", x=PAD, y=PAD*3+HAUTEUR_TEXTE*2))
+    self.ligne4 = self.add(Label("Ligne 4", x=PAD, y=PAD*4+HAUTEUR_TEXTE*3))
+    self.texte = self.add(TextArea("Texte...", x=PAD, y=PAD*5+HAUTEUR_TEXTE*4, width="100%"))
+    #On positionne la Form
+    self.x = "left" 
+    self.y = "top" 
+    self.width = "100%"
+    self.height = PAD*7+HAUTEUR_TEXTE*5
+    
+  def efface(self):
+    pass
+    
+    
+    
 class MenuCirculaire:
   """Affiche des boutons positionnés sur un anneau"""
   boutons = None #Liste des instances de boutons
@@ -94,8 +114,8 @@ class MenuCirculaire:
     self.boutons=[[],[]]
     self.composants = []
     self.lastDraw = None
-    self.vitesseAnimation = float(general.configuration.getConfiguration("affichage", "General", "vitesseAnimationMenus","75.0"))
-    self.dureeMessage = float(general.configuration.getConfiguration("affichage", "General", "dureeMessage","30.0"))
+    self.vitesseAnimation = general.configuration.getConfiguration("affichage", "General", "vitesseAnimationMenus", "75.0", float)
+    self.dureeMessage = general.configuration.getConfiguration("affichage", "General", "dureeMessage", "30.0", float)
     
   def ajouteGauche(self, bouton):
     """Ajoute un bouton dans la colonne de gauche"""
@@ -400,7 +420,7 @@ class MiniMap(Pane):
     self.style = "VIDE"
     
     #On charge les préférences utilisateur
-    self.tailleMiniMapX, self.tailleMiniMapY = general.configuration.getConfiguration("affichage", "Minimap", "taille","256 256").split(" ")
+    self.tailleMiniMapX, self.tailleMiniMapY = general.configuration.getConfiguration("affichage", "Minimap", "taille", "256 256", str).split(" ")
     self.tailleMiniMapX, self.tailleMiniMapY = float(self.tailleMiniMapX), float(self.tailleMiniMapY)
     #Force la carte à une puissance de 2
     self.tailleMiniMapX = 2**int(math.log(self.tailleMiniMapX, 2)+0.5)
@@ -1066,6 +1086,7 @@ class Interface:
   joueur = None
   menuCourant = None
   informations = None
+  console = None
   
   def __init__(self):
     #Fabrique le GUI de base
@@ -1193,6 +1214,14 @@ class Interface:
     message = message %parametres
     self.historique.ajouteMessage(type, message, coord)
     self.gui.informations.ajouteTexte(type, message)
+    
+  def afficheConsole(self):
+    if self.console != None:
+      self.gui.remove(self.console)
+      self.console.efface()
+      self.console = None
+    else:
+      self.console = self.gui.add(Console())
     
   def afficheTexte(self, texte, parametres, type="normal", forceRefresh=False):
     """Affiche le texte sur l'écran, si texte==None, alors efface le dernier texte affiché"""

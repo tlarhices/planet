@@ -31,10 +31,12 @@ class AIPlugin:
         try:
           _temp = __import__(fichier[:-3], globals(), locals(), ['Bulbe'], -1)
           bulbe = _temp.Bulbe(None) #On appel le constructeur pour être sûr que ça marche et attraper les infos de classe
-          print "AIPlugin :: trouvé plugin `",bulbe._classe_,"` dans le fichier",os.path.join(".","librairies","ai",fichier)
+          if general.configuration.getConfiguration("Debug", "ai", "debug_aiplugin_scan_plugin", "f", bool):
+            print "AIPlugin :: trouvé plugin `",bulbe._classe_,"` dans le fichier",os.path.join(".","librairies","ai",fichier)
           self.plugins[bulbe._classe_]=_temp.Bulbe
         except AttributeError:
-          print "Avertissement :: ",os.path.join(".","librairies","ai",fichier),"n'est pas un plugin d'IA valide"
+          if general.configuration.getConfiguration("Debug", "ai", "debug_aiplugin_scan_plugin", "f", bool):
+            print "Avertissement :: ",os.path.join(".","librairies","ai",fichier),"n'est pas un plugin d'IA valide"
           
   def getIA(self, type):
     """Retourne le plugin d'IA demandé s'il existe ou None"""
@@ -56,7 +58,7 @@ class AINavigation:
 
   def __init__(self):
     general.TODO("Prise en compte des bateaux lors des calculs de déplacement")
-    self.angleSolMax = float(general.configuration.getConfiguration("ai","navigation", "angleSolMax","70.0"))
+    self.angleSolMax = general.configuration.getConfiguration("ai","navigation", "angleSolMax","70.0", float)
     
   def detruit(self):
     self.graph = None
@@ -197,7 +199,7 @@ class AINavigation:
       afaire.remove(x)
       #On l'ajoute dans ceux que l'on a testé
       fait.append(x)
-      if f[x]>horizonAStar*float(general.configuration.getConfiguration("ai","navigation","profondeurmax","0.2")):
+      if f[x]>horizonAStar*general.configuration.getConfiguration("ai", "navigation", "profondeurmax", "0.2", float):
         #On coupe la branche car elle est trop longue
         atteindHorizon = True
       else:
@@ -447,7 +449,7 @@ class SuitChemin(AIComportementUnitaire):
       #On prend le point suivant sur le chemin
       cible = self.getCoord(self.chemin.pop(0))
       
-      if general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE", "t")=="t":
+      if general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE", "t", bool):
         general.planete.geoide.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((1.0,0.0,0.0), self.comportement.ai.sprite.position * 1.2, cible * 1.2))
         mdl = loader.loadModel("./data/modeles/sphere.egg")
         mdl.setScale(0.1)

@@ -204,8 +204,8 @@ class Element:
         h2 = self.couleurSommet(s2)[2]
         h3 = self.couleurSommet(s3)[2]
         if h1>0 and h2>0 and h3>0:
-          for i in range(0, int(random.random()*int(general.configuration.getConfiguration("planete","Generation", "nombre-bosquet","2")))):
-            if random.random()>1.0-float(general.configuration.getConfiguration("planete","Generation", "densite-bosquet","0.8")):
+          for i in range(0, random.random()*general.configuration.getConfiguration("planete","Generation", "nombre-bosquet","2", int)):
+            if random.random()>1.0-general.configuration.getConfiguration("planete","Generation", "densite-bosquet","0.8", float):
               r1=random.random()
               r2=random.random()
               if r1+r2>1.0:
