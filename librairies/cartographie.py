@@ -131,6 +131,8 @@ class Cartographie:
           listeElements = general.planete.geoide.elements
     
         def procFace(face):
+          if face.enfants:
+            return True
           jour = Vec3(1.0,1.0,1.0)
           nuit = Vec3(0.2,0.2,0.4)
           p1 = Vec3(general.planete.geoide.sommets[face.sommets[0]])
@@ -175,7 +177,7 @@ class Cartographie:
     image.save(os.path.join(".","data","cache","zoneombre.png"), "PNG")
     general.miniMapAchangee = True
     if self.miniMap != None:
-      out = ImageMath.eval("int(a) * int(b)", a=self.miniMap, b=image)
+      out = ImageMath.eval("int(float(a) * float(b))", a=self.miniMap, b=image)
       out.save(os.path.join(".","data","cache","minimapombre.png"), "PNG")
 
   def calculHeightMap(self, listeElements=None):
