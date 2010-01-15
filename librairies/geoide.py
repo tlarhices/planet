@@ -552,7 +552,7 @@ class Geoide:
     out += "parametres:niveauEau:"+str(self.niveauEau)+":\r\n"
     out += "parametres:niveauCiel:"+str(self.niveauCiel)+":\r\n"
     for point in self.sommets:
-      out += "P:"+str(point[0])+":"+str(point[1])+":"+str(point[2])+":\r\n"
+      out += "sommet:"+str(point[0])+":"+str(point[1])+":"+str(point[2])+":\r\n"
     for element in self.elements:
       out += element.sauvegarde()
       
@@ -629,10 +629,10 @@ class Geoide:
             self.niveauCiel = float(elements[1])
         else:
           inconnu.append(ligne)
-      elif type=="p":
+      elif type=="sommet":
         #Création d'un sommet
         self.sommets.append(Vec3(float(elements[0]), float(elements[1]), float(elements[2])))
-      elif type=="f":
+      elif type=="element":
         #Création d'une face
         ids = elements[0].replace("[","").split("]")
         if len(ids)<2:

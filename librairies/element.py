@@ -338,7 +338,7 @@ class Element:
       
   def sauvegarde(self):
     """Produit une ligne formattée utilisable pour la sauvegarde de la structure de données"""
-    out="F:"+self.id+":"+str(self.sommets[0])+":"+str(self.sommets[1])+":"+str(self.sommets[2])+":\r\n"
+    out="element:"+self.id+":"+str(self.sommets[0])+":"+str(self.sommets[1])+":"+str(self.sommets[2])+":\r\n"
     if self.enfants != None:
       for enfant in self.enfants:
         out+=enfant.sauvegarde()
