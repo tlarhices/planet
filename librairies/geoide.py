@@ -39,7 +39,10 @@ class Geoide:
   niveauCiel = None #Altitude à laquelle se trouve le ciel
   modeleCiel = None #Modele 3D du ciel
   azure = None
-  
+  lastMAJPosSoleil=100000.0 #Le temps depuis lequel on n'a pas remis à jour la carte du soleil
+  dureeMAJPosSoleil=23.0 #Le temps que l'on attends avant de recalculer la carte du soleil
+
+
   fini = False
   
   # Initialisation -----------------------------------------------------
@@ -50,6 +53,8 @@ class Geoide:
     self.voisinage = {} #Pas de sommet, donc pas de voisinage
     self.sommetDansFace = {} #Pas de faces, donc pas d'association
     self.survol = None #Le curseur n'est au dessus de rien par défaut
+    
+    self.dureeMAJPosSoleil = general.configuration.getConfiguration("affichage", "Minimap", "dureeMAJPosSoleil", "23.0", float)
     
     self.fini = False
     
@@ -658,6 +663,7 @@ class Geoide:
     """Fonction appelée a chaque image, temps indique le temps écoulé depuis l'image précédente"""
     if self.lastPing==None:
       self.lastPing = task.time-1.0/60
+    temps = task.time - self.lastPing
     self.lastPing = task.time
     
     if general.configuration.getConfiguration("affichage","general", "animation-eau","t", bool):
@@ -672,6 +678,13 @@ class Geoide:
     #if self.azure != None:
     #  if general.planete.soleil!=None:
     #    self.azure.lookAt(general.planete.soleil)
+    
+    if general.configuration.getConfiguration("affichage","minimap","affichesoleil","t", bool):
+      #Met à jour la carte du soleil
+      self.lastMAJPosSoleil += temps
+      if self.lastMAJPosSoleil > self.dureeMAJPosSoleil:
+        self.lastMAJPosSoleil=0.0
+        general.cartographie.calculZoneOmbre((256, 128))
     
     if not self.fini:
       return task.cont

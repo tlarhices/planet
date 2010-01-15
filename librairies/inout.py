@@ -371,8 +371,6 @@ class IO:
         x=mpos.getX()+1.0
         y=mpos.getY()+1.0
         self.posClic=(x*base.win.getXSize()/2,y*base.win.getYSize()/2)
-      else:
-        print "pas souris deb"
     else:
       if base.mouseWatcherNode.hasMouse():
         mpos=base.mouseWatcherNode.getMouse()

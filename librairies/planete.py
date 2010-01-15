@@ -38,8 +38,6 @@ class Planete:
   distanceSoleil = None #Distance du soleil à la planète
   vitesseSoleil = None #Vitesse de rotation du soleil en pifometre/s
   angleSoleil = None
-  lastMAJPosSoleil=100000.0 #Le temps depuis lequel on n'a pas remis à jour la carte du soleil
-  dureeMAJPosSoleil=23.0 #Le temps que l'on attends avant de recalculer la carte du soleil
   lastSave = 1000
   seuilSauvegardeAuto = 600 #Sauvegarde auto toutes les 10 minutes
   
@@ -60,7 +58,6 @@ class Planete:
     self.distanceSoleil = general.configuration.getConfiguration("planete", "Univers", "distanceSoleil", "10.0", float)
     self.vitesseSoleil = general.configuration.getConfiguration("planete", "Univers", "vitesseSoleil", "1.0", float)
     self.angleSoleil = 0.0
-    self.dureeMAJPosSoleil = general.configuration.getConfiguration("affichage", "Minimap", "dureeMAJPosSoleil", "23.0", float)
     self.seuilSauvegardeAuto = general.configuration.getConfiguration("affichage", "General", "seuilSauvegardeAuto", "600.0", float)
     
     self.fini = False
@@ -386,7 +383,7 @@ class Planete:
       
     #Met à jour les états des sprites
     for sprite in self.spritesJoueur[:]:
-      if False:
+      if general.configuration.getConfiguration("Planete","regles","obscuriteTue","t", bool):
         if general.ligneCroiseSphere(sprite.position, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
           if not sprite.nocturne:
             sprite.tue("obscurite")
@@ -395,61 +392,17 @@ class Planete:
           sprite.joueur.spriteMort(sprite)
         while sprite in self.spritesJoueur:
           self.spritesJoueur.remove(sprite)
+          
+    #Les sprites non joueurs ne sont remis à jour que de temps en temps
     self.compteurMAJSpriteNonJoueur+=temps
     if self.compteurMAJSpriteNonJoueur>self.seuilMAJSpriteNonJoueur:
       for sprite in self.spritesNonJoueur[:]:
-        if False:
-          if general.ligneCroiseSphere(sprite.position, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
-            if not sprite.nocturne:
-              sprite.tue("obscurite")
         if not sprite.ping(self.compteurMAJSpriteNonJoueur):
           if sprite.joueur !=None:
             sprite.joueur.spriteMort(sprite)
           while sprite in self.spritesNonJoueur:
             self.spritesNonJoueur.remove(sprite)
-        
-    if general.configuration.getConfiguration("affichage","minimap","affichesoleil","t", bool):
-      #Met à jour la carte du soleil
-      self.lastMAJPosSoleil += temps
-      if self.lastMAJPosSoleil > self.dureeMAJPosSoleil:
-        self.lastMAJPosSoleil=0.0
-        def procFace(face):
-          jour = (1.0,1.0,1.0)
-          nuit = (0.2,0.2,0.4)
-          p1 = Vec3(self.sommets[face.sommets[0]])
-          p1.normalize()
-          p1 = p1 * 1.0001
-          if general.ligneCroiseSphere(p1, self.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
-            c1=nuit
-          else:
-            c1=jour
-          p2 = Vec3(self.sommets[face.sommets[1]])
-          p2.normalize()
-          p2 = p2 * 1.0001
-          if general.ligneCroiseSphere(p2, self.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
-            c2=nuit
-          else:
-            c2=jour
-          p3 = Vec3(self.sommets[face.sommets[2]])
-          p3.normalize()
-          p3 = p3 * 1.0001
-          if general.ligneCroiseSphere(p3, self.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
-            c3=nuit
-          else:
-            c3=jour
-          
-          if face.enfants == None:# or (c1==c2 and c2==c3):
-            if general.interface.menuCourant.miniMap != None:
-              general.interface.menuCourant.miniMap.dessineCarte(p1, p2, p3, c1, c2, c3, True)
-          return True#not (c1==c2 and c2==c3) #Return False si tout est de la meme couleur
-          
-        def recur(face):
-          if procFace(face):
-            if face.enfants != None:
-              for enfant in face.enfants:
-                recur(enfant)
-        for face in self.elements:
-          recur(face)
+      self.compteurMAJSpriteNonJoueur = 0.0
     
     if not self.fini:
       return task.cont

@@ -12,6 +12,7 @@ import os
 from pandac.PandaModules import *
 
 import ImageDraw
+import ImageMath
 import ImageFilter
 import Image
 
@@ -19,11 +20,13 @@ class Cartographie:
   """Contient toute la gestion des cartes 2D"""
   miniMap = None
   heightMap = None
+  zoneOmbre = None
   
   def __init__(self):
     """Gère les cartes 2D"""
     self.miniMap = None
     self.heightMap = None
+    self.zoneOmbre = None
 
   def triangleVersCarte(self, p1, p2, p3, taille=None, coordonneesTexturage=False):
     if taille == None:
@@ -115,6 +118,65 @@ class Cartographie:
       y=0.0
     return (x, y, z)
 
+  def calculZoneOmbre(self, taille, listeElements=None):
+    if self.zoneOmbre == None:
+      self.zoneOmbre = Image.new(mode="RGB",size=taille,color=(0,0,0))
+    image = self.zoneOmbre
+    draw  =  ImageDraw.Draw(image)
+    
+    if general.interface.menuCourant:
+      if general.interface.menuCourant.miniMap and general.planete.soleil:
+        
+        if listeElements == None:
+          listeElements = general.planete.geoide.elements
+    
+        def procFace(face):
+          jour = Vec3(1.0,1.0,1.0)
+          nuit = Vec3(0.2,0.2,0.4)
+          p1 = Vec3(general.planete.geoide.sommets[face.sommets[0]])
+          p1.normalize()
+          p1 = p1 * 1.0001
+          if general.ligneCroiseSphere(p1, general.planete.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
+            c1=nuit
+          else:
+            c1=jour
+          p2 = Vec3(general.planete.geoide.sommets[face.sommets[1]])
+          p2.normalize()
+          p2 = p2 * 1.0001
+          if general.ligneCroiseSphere(p2, general.planete.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
+            c2=nuit
+          else:
+            c2=jour
+          p3 = Vec3(general.planete.geoide.sommets[face.sommets[2]])
+          p3.normalize()
+          p3 = p3 * 1.0001
+          if general.ligneCroiseSphere(p3, general.planete.soleil.getPos(), Vec3(0.0,0.0,0.0), 1.0) != None:
+            c3=nuit
+          else:
+            c3=jour
+            
+          c = (c1+c2+c3)/3
+          c = int(c[0]*255+0.5), int(c[1]*255+0.5), int(c[2]*255+0.5)
+          
+          a1,a2,a3 = self.triangleVersCarte(p1, p2, p3, taille, coordonneesTexturage=False)
+          a1 = int(a1[0]+0.5), int(a1[1]+0.5)
+          a2 = int(a2[0]+0.5), int(a2[1]+0.5)
+          a3 = int(a3[0]+0.5), int(a3[1]+0.5)
+          draw.polygon((a1,a2,a3), fill=c, outline=None)
+          return True
+          
+        def recur(face):
+          if procFace(face):
+            if face.enfants != None:
+              for enfant in face.enfants:
+                recur(enfant)
+        for face in listeElements:
+          recur(face)
+    image.save(os.path.join(".","data","cache","zoneombre.png"), "PNG")
+    general.miniMapAchangee = True
+    if self.miniMap != None:
+      out = ImageMath.eval("int(a) * int(b)", a=self.miniMap, b=image)
+      out.save(os.path.join(".","data","cache","minimapombre.png"), "PNG")
 
   def calculHeightMap(self, listeElements=None):
     tailleHeightMap = 800
