@@ -6,6 +6,9 @@ import general
 import sys
 import math
 
+#Pour l'affichage du Drag&Drop
+from treegui.components import Pane
+
 class IO:
   preImage = None #L'heure à laquelle la précédente image a été rendue
   
@@ -207,7 +210,7 @@ class IO:
     if general.interface.gui.keys.focus and touche.find("mouse")==-1:
       return
     #On regarde si c'est la souris (touche.find("mouse")!=-1) et si on est sur l'interface (hoveringOver!=None)
-    if general.interface.gui.hoveringOver and touche.find("mouse")!=-1:
+    if (general.interface.gui.hoveringOver and not general.interface.gui.hoveringOver==general.interface.rectangleDrag) and touche.find("mouse")!=-1:
       return
 
     self.touches.append(touche)
@@ -371,20 +374,40 @@ class IO:
       else:
         print "pas souris deb"
     else:
-      if not self.isDragging: #Si on sait qu'on fait du d&d
-        if base.mouseWatcherNode.hasMouse():
-          mpos=base.mouseWatcherNode.getMouse()
-          x=mpos.getX()+1.0
-          y=mpos.getY()+1.0
-          newPos=(x*base.win.getXSize()/2,y*base.win.getYSize()/2)
-          d = (newPos[0]-self.posClic[0])*(newPos[0]-self.posClic[0]), (newPos[1]-self.posClic[1])*(newPos[1]-self.posClic[1])
-          if d[0]>self.seuilDrag or d[1]>self.seuilDrag:
-            self.isDragging = True
+      if base.mouseWatcherNode.hasMouse():
+        mpos=base.mouseWatcherNode.getMouse()
+        x=mpos.getX()+1.0
+        y=mpos.getY()+1.0
+        newPos=(x*base.win.getXSize()/2,y*base.win.getYSize()/2)
+        if not self.isDragging: #Si on sait qu'on fait du d&d
+            d = (newPos[0]-self.posClic[0])*(newPos[0]-self.posClic[0]), (newPos[1]-self.posClic[1])*(newPos[1]-self.posClic[1])
+            if d[0]>self.seuilDrag or d[1]>self.seuilDrag:
+              self.isDragging = True
+        else:
+          if general.interface.rectangleDrag==None:
+            general.interface.rectangleDrag = general.interface.add(Pane())
+            general.interface.rectangleDrag.color = (1.0, 1.0, 1.0, 0.5)
+          minx = min(self.posClic[0], newPos[0])
+          miny = min(self.posClic[1], newPos[1])
+          maxx = max(self.posClic[0], newPos[0])
+          maxy = max(self.posClic[1], newPos[1])
+          
+          general.interface.rectangleDrag.doPlacement({"x":minx, "y": miny})
+          if maxx - minx!=0:
+            general.interface.rectangleDrag.width = maxx - minx
+          if maxy - miny!=0:
+            general.interface.rectangleDrag.height = maxy - miny
+
     
   def finClic(self):
     """Le bouton gauche de la souris a été relâché"""
     touche = None
     params = None
+    
+    #On cache l'affichage du rectangle de D&D s'il existait
+    if general.interface.rectangleDrag!=None:
+      general.interface.remove(general.interface.rectangleDrag)
+      general.interface.rectangleDrag = None
     
     #Si on draggais
     if self.isDragging:
@@ -445,6 +468,7 @@ class IO:
    
   def dragDrop(self, coordDeb, coordFin):
     """Gère le drag&drop"""
+    
     if general.joueurLocal == None:
       #on a pas de joueur
       return

@@ -393,7 +393,7 @@ class Historique(MenuCirculaire):
   def hover(self):
     composant = general.interface.gui.hoveringOver
     if composant != None:
-      general.interface.tip(composant.tooltip)
+      general.interface.tip(composant.icon, composant.tooltip)
     else:
       print "pas de composant, pas de tooltip"
     
@@ -1240,6 +1240,7 @@ class Interface:
   informations = None
   console = None
   tooltip = None
+  rectangleDrag = None
   
   def __init__(self):
     #Fabrique le GUI de base

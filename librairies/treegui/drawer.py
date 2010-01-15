@@ -269,8 +269,14 @@ class Drawer:
         elif ((x >= clipXStart or x+xs <= clipXEnd) and 
               (y >= clipYStart or y+ys <= clipYEnd)):
             
-            xRatio = us/xs
-            yRatio = vs/ys 
+            if xs==0:
+              xRatio = 1.0
+            else:
+              xRatio = us/xs
+            if ys==0:
+              yRatio = 1.0
+            else:
+              yRatio = vs/ys 
             
             if x > clipXEnd: return
             if y > clipYEnd: return
