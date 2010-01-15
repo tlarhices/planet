@@ -175,19 +175,23 @@ class MenuCirculaire:
       if i<len(bg):
         angle = 180.0 + angleObg + anglebg*i + self.decalageOuverture
         position = calculPosition(rayon, centre, angle, 1.0)
-        elements[0].append((position[0], position[1]-HAUTEUR_BOUTON/2))
+        taille = boutons[0][i].width, boutons[0][i].height
+        elements[0].append((position[0], position[1]-taille[1]/2))
       if i<len(bd):
         angle = angleObd + anglebd*i + self.decalageOuverture
         position = calculPosition(rayon, centre, angle, 1.0)
-        elements[1].append((position[0]-LARGEUR_BOUTON-PAD, position[1]-HAUTEUR_BOUTON/2))
+        taille = boutons[1][i].width, boutons[1][i].height
+        elements[1].append((position[0]-taille[0]-PAD, position[1]-taille[1]/2))
       if i<len(bh):
         angle = 270.0 + angleObh + anglebh*i - self.decalageOuverture
         position = calculPosition(rayon, centre, angle, ratio)
-        elements[2].append((position[0]-90/2, position[1]+HAUTEUR_BOUTON/2))
+        taille = boutons[2][i].width, boutons[2][i].height
+        elements[2].append((position[0]-taille[0]/2, position[1]))
       if i<len(bb):
         angle = 90.0 + angleObb + anglebb*i + self.decalageOuverture
         position = calculPosition(rayon, centre, angle, ratio)
-        elements[3].append((position[0]-LARGEUR_BOUTON/2, position[1]-HAUTEUR_BOUTON-PAD))
+        taille = boutons[3][i].width, boutons[3][i].height
+        elements[3].append((position[0]-taille[0]/2, position[1]-taille[1]-PAD - general.interface.tooltip.height-PAD))
         
     elements[0].reverse()
     elements[1].reverse()
@@ -356,11 +360,16 @@ class Historique(MenuCirculaire):
     position : le point au dessus duquel la caméra doit aller lors d'un clic sur l'icône
     """
     self.animation = 0
+    self.tailleHistorique = 10
     self.messages.append((self.dureeMessage, type, message, self.ajouteBas(self.fabriqueMessage(type, message))))
-    deb = self.messages[:-10]
+    general.interface.tip(self.icones.get(type, self.icones["inconnu"]), message)
+    deb = self.messages[:-self.tailleHistorique]
     for message in deb:
       self.remove(message[3])
-    self.messages = self.messages[-10:]
+    self.messages = self.messages[-self.tailleHistorique:]
+    #self.clear()
+    #for msg in self.messages:
+    #  self.ajouteBas(self.fabriqueMessage(msg[1], msg[2], compact=True))
       
     if position!=None:
       self.messages[-1][3].callback = general.io.placeCameraAuDessusDe
@@ -376,21 +385,17 @@ class Historique(MenuCirculaire):
     if type not in self.icones.keys():
       general.TODO("Il manque l'icone "+type+" pour l'affichage des message")
       type="inconnu"
-    cmp = PictureRadio(self.icones[type], self.icones[type], message, width=LARGEUR_BOUTON)
-    cmp.style = "DEFAULT"
+    cmp = Icon(self.icones[type], width=LARGEUR_BOUTON)
+    cmp.tooltip = message
+    cmp.onHover = self.hover
     return cmp
     
-  """def fabrique(self):
-    self.clear()
-    print "-----------------"
-    for message in self.messages:
-      print message[2]
-      check = self.ajouteBas(self.gui.add(self.fabriqueMessage(message[1], message[2])))
-      #check.color = (sprite.joueur.couleur[0]*1.2, sprite.joueur.couleur[1]*1.2, sprite.joueur.couleur[2]*1.2, 0.5)
-      check.style = "DEFAULT"
-      check.width = 50
-    print "-----------------"
-    MenuCirculaire.fabrique(self)"""
+  def hover(self):
+    composant = general.interface.gui.hoveringOver
+    if composant != None:
+      general.interface.tip(composant.tooltip)
+    else:
+      print "pas de composant, pas de tooltip"
     
   def MAJ(self, temps):
     """Gère la pulsation des icones et supprime les icones périmées"""
@@ -589,6 +594,24 @@ class MiniMap(Pane):
         self.blips[id].onClick = self.onClick
     return task.cont
             
+class ListeCommandes(MenuCirculaire):
+  select = None #L'unité sélctionnée en ce moment
+  liste = None
+  dicoUnite = None
+  
+  def __init__(self, gui):
+    MenuCirculaire.__init__(self, gui)
+    self.besoinRetour = False
+    self.ajouteGauche(Label("Hubert Gardaniek")).style = "DEFAULT"
+    self.ajouteGauche(Label("Bucheron")).style = "DEFAULT"
+    self.ajouteGauche(Label("Vie : 72%")).style = "DEFAULT"
+    self.ajouteGauche(Label("Occupation : Coupe un arbre")).style = "DEFAULT"
+    self.ajouteGauche(Icon("icones/gear.png"))
+    self.ajouteGauche(Icon("icones/move.png"))
+    self.ajouteGauche(Icon("icones/target.png"))
+    self.ajouteGauche(Icon("icones/rangearrow.png"))
+    self.fabrique()
+    
 class ListeUnite(MenuCirculaire):
   select = None #L'unité sélctionnée en ce moment
   liste = None
@@ -644,34 +667,35 @@ class ListeUnite(MenuCirculaire):
 class EnJeu():
   """Contient la liste des unitées que l'on peut construire"""
   listeUnite = None #La liste des icones des unités sélectionnées
-  historique = None #La liste des icones d'information
   miniMap = None #La carte
   
   def __init__(self, gui):
     self.gui = gui
-    self.historique = Historique(self.gui)
+    self.gui.historique = Historique(self.gui)
     self.listeUnite = ListeUnite(self.gui)
+    self.listeCommandes = ListeCommandes(self.gui)
     self.miniMap = self.gui.gui.add(MiniMap(self.gui))
     
   def alerte(self, type, message, coord):
     """Ajoute un nouveau message"""
-    self.historique.ajouteMessage(type, message, coord)
-    self.gui.informations.ajouteTexte(type, message)
+    self.gui.historique.ajouteMessage(type, message, coord)
     
   def MAJ(self, temps):
-    self.historique.MAJ(temps)
+    self.gui.historique.MAJ(temps)
     self.listeUnite.MAJ(temps)
+    self.listeCommandes.MAJ(temps)
     
   def efface(self, classe):
     self.clear()
     self.gui.menuCourant = classe(self.gui)
-    self.historique.efface()
+    self.gui.historique.efface()
     
   def clear(self):
-    self.historique.clear()
+    self.gui.historique.clear()
     self.listeUnite.clear()
     #Purge tous les points de la carte
     self.miniMap.clear()
+    self.listeCommandes.clear()
     self.gui.gui.remove(self.miniMap)
     
   def changeMenu(self):
@@ -911,7 +935,7 @@ class MenuDepuisFichier(MenuCirculaire):
     #On parcours les sections
     for nomSection, contenuSection, dicoSection in self.menu:
       #On ajoute les boutons de section
-      btn = self.ajouteGauche(PictureRadio(dicoSection["iconeactif"], dicoSection["iconeinactif"], dicoSection["nom"], width=LARGEUR_BOUTON))
+      btn = self.ajouteGauche(PictureRadio(dicoSection["iconeactif"], dicoSection["iconeinactif"], general.i18n.getText(dicoSection["nom"]), width=LARGEUR_BOUTON))
       btn.callback = self.clicSection
       btn.style = "button"
       btn.upStyle = "button"
@@ -929,7 +953,7 @@ class MenuDepuisFichier(MenuCirculaire):
         for nomElement, contenuElement in contenuSection:
           #Les booleens passe entre True et False, l'état est indiqué par l'icone active/inactive (attention aux boutons qui n'ont pas d'état actif !)
           if contenuElement["type"] == "bool":
-            btn = self.ajouteDroite(PictureRadio(contenuElement["iconeactif"], contenuElement["iconeinactif"], contenuElement["nom"], width=LARGEUR_BOUTON))
+            btn = self.ajouteDroite(PictureRadio(contenuElement["iconeactif"], contenuElement["iconeinactif"], general.i18n.getText(contenuElement["nom"]), width=LARGEUR_BOUTON))
             if contenuElement["valeur"]:
               btn.callback = self.clicVide
               btn.onClick()
@@ -939,7 +963,7 @@ class MenuDepuisFichier(MenuCirculaire):
           elif contenuElement["type"] in ["int", "float"] and "valeurmin" in contenuElement.keys() and "valeurmax" in contenuElement.keys():
             #Le fond du bouton
             btn = self.ajouteDroite(Pane(width=LARGEUR_BOUTON, height=HAUTEUR_BOUTON+HAUTEUR_TEXTE))
-            pr = PictureRadio(contenuElement["iconeactif"], contenuElement["iconeinactif"], contenuElement["nom"])
+            pr = PictureRadio(contenuElement["iconeactif"], contenuElement["iconeinactif"], general.i18n.getText(contenuElement["nom"]))
             btn.add(pr)
             #Le bouton moins
             pr = Icon("icones/minus.png", y=HAUTEUR_TEXTE+PAD)
@@ -960,7 +984,7 @@ class MenuDepuisFichier(MenuCirculaire):
           #icone nom
           #      valeur
           else:
-            btn = self.ajouteDroite(PictureRadio(contenuElement["iconeactif"], contenuElement["iconeinactif"], contenuElement["nom"]+"\n   "+str(contenuElement["valeur"]), width=LARGEUR_BOUTON))
+            btn = self.ajouteDroite(PictureRadio(contenuElement["iconeactif"], contenuElement["iconeinactif"], general.i18n.getText(contenuElement["nom"])+"\n   "+str(contenuElement["valeur"]), width=LARGEUR_BOUTON))
             btn.callback = self.clicValeur
             
           #On change le style des composant pour avoir un fond de bouton
@@ -1215,6 +1239,7 @@ class Interface:
   menuCourant = None
   informations = None
   console = None
+  tooltip = None
   
   def __init__(self):
     #Fabrique le GUI de base
@@ -1224,6 +1249,8 @@ class Interface:
     #self.quit = self.gui.add(Icon("icones/x.png", x="right", y="top"))
     #self.quit.onClick = sys.exit
     taskMgr.add(self.ping, "Boucle GUI", 10)
+    self.tooltip = self.gui.add(Label("", x=0, y="bottom", width="100%"))
+    self.tooltip.style="DEFAULT"
     self.makeMain()
     
   def lanceInterface(self):
@@ -1354,6 +1381,17 @@ class Interface:
       self.console = None
     else:
       self.console = self.gui.add(Console())
+      
+      
+  def tip(self, icone, message):
+    if icone==None:
+      self.tooltip.text = message
+      self.tooltip.icon = None
+    else:
+      #On laisse de la place pour l'icône
+      self.tooltip.text = "     "+message
+      self.tooltip.icon = icone
+      
     
   def afficheTexte(self, texte, parametres, type="normal", forceRefresh=False):
     """Affiche le texte sur l'écran, si texte==None, alors efface le dernier texte affiché"""

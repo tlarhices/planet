@@ -124,6 +124,8 @@ class Icon(Widget):
     style = None
     def __init__(self, icon, **placement):
         self.doPlacement(placement)    
+        self.width=15
+        self.height=15
         self.icon = icon
         
 class Label(Widget):
