@@ -185,6 +185,7 @@ class Element:
     
     
   def fabriqueVegetation(self):
+    return
     vegetation=[]
     vegetation.append([]) #Vide
     vegetation.append(["palmier","banana","benjamina01","dypsis01","ficus01","ginger","greenhouse-palm-acai01","greenhouse-palm-acai02","greenhouse-palm-acai03","greenhouse-palm-cycas01","greenhouse-palm-jubaea01","howea01"]) #Sable/plage

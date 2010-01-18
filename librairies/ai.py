@@ -698,7 +698,7 @@ class AIComportement:
     strict : si True, alors le sprite retourné possédera tous les types de ressource demandé, sinon le plus proche qui en a au moins une
     DANGER : retourne une Socket
     """
-    if True: #Passer à False pour faciliter le debug (danger, fait toutes les recherches en bloquant)
+    if False: #Passer à False pour faciliter le debug (danger, fait toutes les recherches en bloquant)
       parent_conn, child_conn = Pipe()
       p = Process(target=self._chercheSpriteProche_thread, args=(child_conn, stock, ressources, joueur, strict))
       p.start()
@@ -768,17 +768,23 @@ class AIComportement:
       else:
         return proche.id+"||"+str(chemin)
     else:
-      conn.send(None)
+      if conn!=None:
+        conn.send(None)
+      else:
+        return None
     
   def calculChemin(self, debut, fin, priorite):
     """
     Calcule le chemin allant de debut à fin (retourne une chaine de caractère)
     DANGER : retourne une Socket
     """
-    parent_conn, child_conn = Pipe()
-    p = Process(target=self._calculChemin_thread, args=(child_conn, debut, fin, priorite))
-    p.start()
-    self.suitChemin(parent_conn, fin, priorite)
+    if False:
+      parent_conn, child_conn = Pipe()
+      p = Process(target=self._calculChemin_thread, args=(child_conn, debut, fin, priorite))
+      p.start()
+      self.suitChemin(parent_conn, fin, priorite)
+    else:
+      self.suitChemin(self._calculChemin_thread(None, debut, fin, priorite), fin, priorite)
     
   def _calculChemin_thread(self, conn, debut, fin, priorite):
     """A ne pas appeler directement, utiliser calculChemin"""

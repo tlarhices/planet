@@ -24,6 +24,7 @@ general.TODO("Groupement des unités")
 general.TODO("Formations des groupements d'unités")
 
 from planete import Planete
+from systemesolaire import SystemeSolaire
 from configuration import Configuration
 import ai
 from joueur import JoueurLocal, JoueurIA
@@ -121,9 +122,13 @@ class Start:
       base.setFrameRateMeter(True)
       
     #On fabrique une planète toute simple pour faire un fond au menu
-    general.planete = Planete()
-    general.planete.seuilSauvegardeAuto = -1
-    general.planete.fabriqueNouvellePlanete(tesselation=3, delta=0.2)
+    general.planete = SystemeSolaire()#Planete()
+    general.planete.ajoutePlanete("bouec")
+    general.planete.ajoutePlanete("bouec")
+    general.planete.ajoutePlanete("bouec")
+    general.planete.ajoutePlanete("bouec")
+    #general.planete.seuilSauvegardeAuto = -1
+    #general.planete.fabriqueNouvellePlanete(tesselation=3, delta=0.2)
     general.planete.fabriqueModel()
     general.joueurLocal = None
     

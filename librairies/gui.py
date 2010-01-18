@@ -217,8 +217,9 @@ class MenuCirculaire:
     coords = self.cercle(self.getRayon(), self.getCentre(), self.angleOuverture-abs(self.animation), self.angleOuverture-abs(self.animation), self.boutons)
     
     for composant, indice, cote in self.composants:
-      x, y = coords[cote][indice]
-      composant.doPlacement({"x":x, "y":y, "width":composant.width})
+      if indice<len(coords[cote]):
+        x, y = coords[cote][indice]
+        composant.doPlacement({"x":x, "y":y, "width":composant.width})
     
   def getCentre(self):
     """Retourne le centre de la fenêtre"""
@@ -1373,7 +1374,7 @@ class Interface:
     message = general.i18n.getText(message)
     message = message %parametres
     self.historique.ajouteMessage(type, message, coord)
-    self.gui.informations.ajouteTexte(type, message)
+    self.informations.ajouteMessage(type, message, None)
     
   def afficheConsole(self):
     if self.console != None:

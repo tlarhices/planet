@@ -9,6 +9,7 @@ import math
 #Pour l'affichage du Drag&Drop
 from treegui.components import Pane
 
+from systemesolaire import SystemeSolaire
 class IO:
   preImage = None #L'heure à laquelle la précédente image a été rendue
   
@@ -139,6 +140,9 @@ class IO:
       planete = general.planete
     except AttributeError:
       planete = None
+      
+    if planete!=None and isinstance(planete, SystemeSolaire):
+      return
       
     if planete == None:
       racine = render

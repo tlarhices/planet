@@ -38,6 +38,8 @@ class Sprite:
   contenu = None #Ce qui se trouve dans l'objet
   taillePoches = None #Les seuils maximaux de ce que peut promener un sprite
   vie = None #L'état dans lequel se trouve l'objet
+  tempsDeVie = None #Temps depuis lequel ce sprite existe
+  dureeDeVie = None #Temps maximal durant lequel ce sprite existera
   typeMort = None #La façon dont le sprite est mort
   
   bouge = None #Si True, alors l'objet peut bouger (personnage, véhicule, ...) sinon il est statique (arbre, bâtiment, ...)
@@ -91,6 +93,7 @@ class Sprite:
     self.miseAJourPosition(position)
     
     self.modele = None
+    self.tempsDeVie = 0.0
     self.inertie = Vec3(0.0,0.0,0.0)
     self.inertieSteering = Vec3(0.0,0.0,0.0)
     self.rac = NodePath("racine-sprite")
@@ -108,6 +111,7 @@ class Sprite:
     self.contenu={}
     self.taillePoches={}
 
+    self.fichierDefinition = fichierDefinition
     #Charge les propriétés de l'objet depuis le fichier de définition du sprite
     if fichierDefinition!=None:
       definition = general.configuration.parseSprite(fichierDefinition)
@@ -137,6 +141,7 @@ class Sprite:
       self.taillePoches["construction"] = 30.0
       self.vitesseDePillage = definition["vitesseDePillage"]
       self.faciliteDePillage = definition["faciliteDePillage"]
+      self.dureeDeVie = definition["dureeDeVie"]
       #Si un sprite ne bouge pas, alors il n'a pas besoin d'AI (mais un sprite immobile (tour de guet) peut en avoir besoin, dans ce cas faire bouge=True, vitesse = 0.0)
       if definition["ai"] != "none" and self.bouge:
         self.ai = AI(self)
@@ -166,6 +171,12 @@ class Sprite:
     #On se casse pas la tête si le sprite est mort
     if self.vie<=0:
       return False
+      
+    #On vieillit le sprite
+    self.tempsDeVie += temps
+    if self.dureeDeVie < self.tempsDeVie and self.dureeDeVie != -1:
+      self.tue("vieillesse", silence=False)
+      return
       
     #On charge le modèle 3D si le sprite n'en a pas
     if self.modele==None:
@@ -453,7 +464,7 @@ class Sprite:
     if self.joueur != None:
       nom = self.joueur.nom
     out = "sprite:"+self.id+":"+nom+":"+self.fichierModele+":"+self.fichierSymbole
-    out += ":"+str(self.position)+":"+str(self.vitesse)+":"+str(self.vie)+":"+str(self.bouge)+":"+str(self.aquatique)+":\r\n"
+    out += ":"+str(self.position)+":"+str(self.vitesse)+":"+str(self.vie)+":"+str(self.bouge)+":"+str(self.aquatique)+":"+str(self.dureeDeVie)+":"+str(self.tempsDeVie)+":"+str(self.fichierDefinition)+":\r\n"
     if self.ai != None:
       out += self.ai.sauvegarde()
     if self.contenu != None:

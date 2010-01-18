@@ -228,7 +228,7 @@ class Planete:
             joueur.ressources[nomressource] = int(valeur)
       elif type=="sprite":
         #Sprites
-        id, nomjoueur, modele, symbole, position, vitesse, vie, bouge, aquatique, vide = elements
+        id, nomjoueur, modele, symbole, position, vitesse, vie, bouge, aquatique, dureeDeVie, tempsDeVie, fichierDefinition, vide = elements
         position = Vec3(*general.floatise(position.replace("[","").replace("]","").replace("(","").replace(")","").split(",")))
         if nomjoueur.lower().strip()=="none":
           joueur = None
@@ -236,10 +236,17 @@ class Planete:
           for joueurT in self.joueurs:
             if joueurT.nom.lower().strip()==nomjoueur.lower().strip():
               joueur = joueurT
-        sprite = Sprite(id, position, modele, symbole, float(vie), self, joueur)
+        if fichierDefinition.lower().strip()=="none":
+          fichierDefinition = None
+        sprite = Sprite(id, position, fichierDefinition, joueur)
+        sprite.modele = modele
+        sprite.symbole = symbole
+        sprite.vie = float(vie)
+        sprite.bouge = bouge.lower().strip()=="t"
+        sprite.aquatique = aquatique.lower().strip()=="t"
+        sprite.dureeDeVie = float(dureeDeVie)
+        sprite.tempsDeVie = float(tempsDeVie)
         sprite.vitesse = float(vitesse)
-        sprite.bouge = bouge.lower().strip()=="true"
-        sprite.aquatique = aquatique.lower().strip()=="true"
         if joueur!=None:
           self.spritesJoueur.append(sprite)
           joueur.sprites.append(sprite)

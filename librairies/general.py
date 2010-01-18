@@ -126,6 +126,58 @@ def map3dToAspect2d(node, point):
     a2d = aspect2d.getRelativePoint(render2d, r2d)
     return a2d 
     
+    
+    
+def pluck(p1, p2):
+  pluck = []
+  pluck.append(p1[0]*p2[1]-p2[0]*p1[1])
+  pluck.append(p1[0]*p2[2]-p2[0]*p1[2])
+  pluck.append(p1[0]-p2[0])
+  pluck.append(p1[1]*p2[2]-p2[1]*p1[2])
+  pluck.append(p1[2]-p2[2])
+  pluck.append(p2[1]-p1[1])
+  return pluck
+
+def sideProduct(p11, p12, p21, p22):
+  pl1 = pluck(p11, p12)
+  pl2 = pluck(p21, p22)
+  return pl1[0]*pl1[4]+pl1[1]*pl2[5]+pl1[2]*pl2[3]+pl1[3]*pl2[2]+pl1[4]*pl2[0]+pl1[5]*pl2[1]
+  
+def testIntersectionTriangleDroite(p1, p2, p3, l1, l2):
+  s1 = sideProduct(l1, l2, p1, p2)
+  s2 = sideProduct(l1, l2, p2, p3)
+  s3 = sideProduct(l1, l2, p3, p1)
+   
+  if(s1==0 and s2==0 and s3==0):  
+    print " Line and Triangle are coplanar" 
+    #TODO compute_2D_intersection(T,L)
+    #On a jamais ce cas là
+    return None
+  elif(( s1>0 and s2>0 and s3>0) or (s1<0 and s2<0 and s3<0)): 
+    print " Line passes through the triangle"
+    return (p3[0] + p2[0] + p1[0])/3.0, (p3[1] + p2[1] + p1[1])/3.0, (p3[2] + p2[2] + p1[2])/3.0
+  elif(s1==0 and s2*s3>0):
+    print " Line passes through the edge p1 p2"
+    return (p2[0] + p1[0])/2.0, (p2[1] + p1[1])/2.0, (p2[2] + p1[2])/2.0
+  elif(s2==0 and s1*s3>0):
+    print " Line passes through the edge p2 p3"
+    return (p3[0] + p2[0])/2.0, (p3[1] + p2[1])/2.0, (p3[2] + p2[2])/2.0
+  elif(s3==0 and s1*s2>0):
+    print " Line passes through the edge p3 p1"
+    return (p1[0] + p3[0])/2.0, (p1[1] + p3[1])/2.0, (p1[2] + p3[2])/2.0
+  elif(s1==0 and s2==0):
+    print " Line passes through the vertex"
+    return p2
+  elif(s1==0 and s3==0):
+    print " Line passes through the vertex" 
+    return p1
+  elif(s2==0 and s3==0):
+    print " Line passes through the vertex"
+    return p3
+  return None
+    
+    
+    
 def ligneCroiseSphere(l1, l2, c, r):
   """Retourne None si la ligne n'intersecte pas la sphère, sinon retourne le ou les points d'intersection"""
   #Teste si le segment croise la sphere

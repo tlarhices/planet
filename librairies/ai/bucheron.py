@@ -26,7 +26,12 @@ class Bulbe(std):
         if isinstance(self.rechercheSprite, str):
           spriteid, cheminstr = self.rechercheSprite.split("||")
         else:
-          spriteid, cheminstr = self.rechercheSprite.recv().split("||")
+          result = self.rechercheSprite.recv()
+          if result == None:
+            print "rien trouvé"
+            self.rechercheSprite = None
+            return
+          spriteid, cheminstr = result.split("||")
           
         if cheminstr.lower()!="none":
           cheminstr=cheminstr[1:-1].split(",")
