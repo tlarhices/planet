@@ -108,7 +108,7 @@ class IO:
       if base.mouseWatcherNode.hasMouse():
         mpos=base.mouseWatcherNode.getMouse()
         x=mpos.getX()
-        y=mpos.getY()
+        y=-mpos.getY()
         
         #Regarde si la caméra est proche d'un bord et fait tourner la planète le cas échéant
         if "control" in self.touchesControles:
@@ -173,7 +173,9 @@ class IO:
   def zoomPlus(self):
     """Approche la caméra de la planète"""
     planete = general.planete
-      
+    if planete!=None and isinstance(planete, SystemeSolaire):
+      return
+            
     self.cameraRayon -= self.cameraRayon*self.cameraPasZoom
     self.cameraRayon = max(self.cameraRayon, 1.0 + planete.geoide.delta + 0.001)
     self.positionneCamera()
@@ -181,7 +183,9 @@ class IO:
   def zoomMoins(self):
     """Éloigne la caméra de la planète"""
     planete = general.planete
-      
+    if planete!=None and isinstance(planete, SystemeSolaire):
+      return
+            
     self.cameraRayon += self.cameraRayon*self.cameraPasZoom
     #On empèche la caméra de passer derrière le soleil
     self.cameraRayon = min(self.cameraRayon, planete.distanceSoleil-0.01)
@@ -249,7 +253,7 @@ class IO:
         if not touche in self.configClavier.keys():
           touche=tch
       #On regarde si clique pas sur l'interface
-      if not (general.interface.gui.hoveringOver and touche.startswith("mouse")):
+      if not touche.startswith("mouse") or not general.interface.gui.hoveringOver or general.interface.gui.hoveringOver==general.interface.rectangleDrag:
         #La touche est configurée
         if touche in self.configClavier.keys():
           action = self.configClavier[touche]
@@ -327,7 +331,7 @@ class IO:
       if base.mouseWatcherNode.hasMouse():
         mpos=base.mouseWatcherNode.getMouse()
         x=mpos.getX()
-        y=mpos.getY()
+        y=-mpos.getY()
       else:
         #La souris n'est pas sur l'écran
         return
@@ -385,13 +389,13 @@ class IO:
       if base.mouseWatcherNode.hasMouse():
         mpos=base.mouseWatcherNode.getMouse()
         x=mpos.getX()+1.0
-        y=mpos.getY()+1.0
+        y=-mpos.getY()+1.0
         self.posClic=(x*base.win.getXSize()/2,y*base.win.getYSize()/2)
     else:
       if base.mouseWatcherNode.hasMouse():
         mpos=base.mouseWatcherNode.getMouse()
         x=mpos.getX()+1.0
-        y=mpos.getY()+1.0
+        y=-mpos.getY()+1.0
         newPos=(x*base.win.getXSize()/2,y*base.win.getYSize()/2)
         if not self.isDragging: #Si on sait qu'on fait du d&d
             d = (newPos[0]-self.posClic[0])*(newPos[0]-self.posClic[0]), (newPos[1]-self.posClic[1])*(newPos[1]-self.posClic[1])
@@ -433,7 +437,7 @@ class IO:
         if base.mouseWatcherNode.hasMouse():
           mpos=base.mouseWatcherNode.getMouse()
           x=mpos.getX()+1.0
-          y=mpos.getY()+1.0
+          y=-mpos.getY()+1.0
           newPos=(x*base.win.getXSize()/2,y*base.win.getYSize()/2)
         if newPos==None:
           #Le drag & drop est sorti de l'écran

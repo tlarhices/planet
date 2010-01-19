@@ -28,6 +28,7 @@ class Widget(object):
     text = None     
     font = "default_font"     
     icon = None
+    tooltip = None
 
     visable = True       # can we see
     disabled = False     # can we interect   

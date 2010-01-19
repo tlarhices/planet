@@ -43,7 +43,7 @@ class SystemeSolaire:
     self.racine.removeNode()
     
   def dessineCercle(self, rayon, nbFaces):
-    couleur = (1.0, 1.0, 1.0, 1.0)
+    couleur = (0.55, 0.55, 0.65, 1.0)
     ls = LineSegs()
     ls.setColor(*couleur)
     ls.setThickness(1.0)
@@ -125,6 +125,7 @@ class SystemeSolaire:
         anneau.setBin('background', 2)
         anneau.setDepthTest(False)
         anneau.setDepthWrite(False)
+        anneau.setLightOff()
         
   def ping(self, task):
     lastorb = 10.0

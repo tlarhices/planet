@@ -193,7 +193,7 @@ class Element:
     vegetation.append(["herbe", "sapin3","petitarbre","sapin2","sapin1","bougainvillier","ginger", "greenhouse-if01", "greenhouse-if02", "greenhouse-if03", "rose"]) #Altitude
         
     self.vegetation = NodePath("vegetation")#RigidBodyCombiner("vegetation"))
-    self.vegetation.reparentTo(self.modeleReal)
+    self.vegetation.reparentTo(render)
         
         
     s1 = general.planete.geoide.sommets[self.sommets[0]]
