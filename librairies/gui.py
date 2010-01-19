@@ -210,7 +210,7 @@ class MenuCirculaire:
       if self.exit != None:
         self.clear()
         if isinstance(self.gui.menuCourant, EnJeu):
-          self.gui.menuCourant.listeUnite = self.exit(self.gui)
+          self.gui.menuCourant.listeCommandes = self.exit(self.gui)
         else:
           self.gui.menuCourant = self.exit(self.gui)
 
@@ -446,9 +446,18 @@ class FondCarte:
     taskMgr.add(self.draw,"draw",40)
     self.resize(None)
     self.draw(None)
+    
+  def clear(self):
+    self.node.detachNode()
+    self.node.removeNode()
+    self.node = None
+    self.carte = None
   
   def resize(self, task):
     """ resize the window via panda3d internal events"""
+    if not self.node:
+      return task.done
+      
     self.windowsize = base.win.getXSize(),base.win.getYSize()
     self.size = Vec2(*self.windowsize)
     self.aspect  = float(self.windowsize[0]) / float(self.windowsize[1])         
@@ -461,6 +470,9 @@ class FondCarte:
     
   def draw(self, task=None):
     """ resize the window via panda3d internal events"""
+    if not self.carte:
+      return task.done
+      
     if self.image!=None:
       self.carte.setTexture(self.image)
     if task!=None:
@@ -594,7 +606,11 @@ class MiniMap(Pane):
         self.blips[id].color=self.points[id][2]
         self.blips[id].onClick = self.onClick
     return task.cont
-            
+    
+  def clear(self):
+    Pane.clear(self)
+    self.carte.clear()
+                
 class ListeCommandes(MenuCirculaire):
   select = None #L'unité sélctionnée en ce moment
   liste = None
@@ -701,6 +717,7 @@ class ListeUnite(MenuCirculaire):
 class EnJeu():
   """Contient la liste des unitées que l'on peut construire"""
   listeUnite = None #La liste des icones des unités sélectionnées
+  listeCommandes = None
   miniMap = None #La carte
   
   def __init__(self, gui):
@@ -732,10 +749,10 @@ class EnJeu():
     self.gui.gui.remove(self.miniMap)
     
   def changeMenu(self):
-    if isinstance(self.listeUnite, ListeUnite):
+    if isinstance(self.listeCommandes, ListeCommandes):
       self.gui.changeMenuVers(MenuPrincipal)
     else:
-      self.gui.changeMenuVers(ListeUnite)
+      self.gui.changeMenuVers(ListeCommandes)
         
 class __Informations__(Pane):
   """Boite de message"""
@@ -1083,6 +1100,7 @@ class MenuDepuisFichier(MenuCirculaire):
                 nvVal = int(float(contenuElement["valeur"]))+modificateur
               else:
                 nvVal = int(float(etat)/100*(float(contenuElement["valeurmax"])-float(contenuElement["valeurmin"]))+float(contenuElement["valeurmin"])+0.5)
+              
               if nvVal<int(contenuElement["valeurmin"]):
                 nvVal = int(contenuElement["valeurmin"])
               if nvVal>int(contenuElement["valeurmax"]):
@@ -1270,7 +1288,7 @@ class Interface:
     """Passe d'un menu à un autre"""
     if self.menuCourant != None:
       if isinstance(self.menuCourant, EnJeu):
-        self.menuCourant.listeUnite.efface(classe)
+        self.menuCourant.listeCommandes.efface(classe)
       else:
         self.menuCourant.efface(classe)
       
@@ -1328,7 +1346,7 @@ class Interface:
     
   def retourJeu(self):
     """Ferme le menu en jeu et retourne à la partie"""
-    self.changeMenuVers(ListeUnite)
+    self.changeMenuVers(ListeCommandes)
     
   def retourPrincipal(self):
     """Quitte la partie et retour au menu principal"""
@@ -1367,11 +1385,11 @@ class Interface:
       
   def tip(self, icone, message):
     if icone==None:
-      self.tooltip.text = message
+      self.tooltip.text = general.i18n.getText(message)
       self.tooltip.icon = None
     else:
       #On laisse de la place pour l'icône
-      self.tooltip.text = "     "+message
+      self.tooltip.text = "     "+general.i18n.getText(message)
       self.tooltip.icon = icone
       
     

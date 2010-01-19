@@ -150,7 +150,8 @@ class Sprite:
         
   def stop(self):
     """Stoppe toutes les activités du sprite"""
-    self.ai.stop()
+    if self.ai:
+      self.ai.stop()
     
   def pointeRacineSol(self):
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""

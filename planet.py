@@ -17,11 +17,7 @@ import general
 
 #Préparation du todo
 general.chargeTODO()
-general.TODO("Trouver un nom au projet")
 general.TODO("Chasser les dépendances circulaires et faire des weakref")
-general.TODO("Sélection des unités")
-general.TODO("Groupement des unités")
-general.TODO("Formations des groupements d'unités")
 
 from planete import Planete
 from systemesolaire import SystemeSolaire
@@ -204,8 +200,8 @@ class Start:
     general.tmp = None
     
     #On repositionne la caméra (la distance du sol peu avoir changé, tout comme l'épaisseur d'atmosphère)
-    general.io.positionneCamera()
-    general.io.positionneCamera()
+    #general.io.positionneCamera()
+    #general.io.positionneCamera()
     
 
   def ping(self, task):

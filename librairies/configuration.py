@@ -140,6 +140,7 @@ class Configuration:
   def setConfiguration(self, section, soussection, champ, valeur):
     """Change une valeur de la configuration courante"""
     section=str(section).lower()
+    soussection=str(soussection).lower()
     champ=str(champ).lower()
     
     if not section in self.configuration.keys():

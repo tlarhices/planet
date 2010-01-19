@@ -54,7 +54,7 @@ valeurMin = 10
 valeurMax = 200
 
 Nuages-taille:
-chemin = planete/nuages/densite
+chemin = planete/nuages/taille
 icone = ruller
 nom = Taille d'un nuage
 infobulle = Taille d'un nuage

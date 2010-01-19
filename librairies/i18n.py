@@ -24,6 +24,9 @@ class i18n:
     
   def getText(self, texte):
     """Retourne le texte traduit dans la langue souhaitée"""
+    if texte == None:
+      return u""
+    
     if isinstance(texte, (float, int)):
       return texte
       

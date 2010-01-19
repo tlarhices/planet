@@ -115,10 +115,10 @@ class SystemeSolaire:
         planetemdl = loader.loadModel("./data/modeles/sphere.egg")
         planetemdl.reparentTo(self.racine)
         planetemdl.setScale(rayonplanete)
-        planetemdl.setColor(random.random()*0.5, random.random()*0.5, random.random()*0.5)
+        #planetemdl.setColor(random.random()*0.5, random.random()*0.5, random.random()*0.5)
         planetemdl.setPythonTag("type", "planete") #Pour dire que c'est une planète
         planetemdl.setPythonTag("nomPlanete", planete) #Pour indiquer de quelle planète il sagit et le retrouver facilement 
-        #planetemdl.setTexture(loader.loadTexture("./data/cache/minimap.png"))
+        planetemdl.setTexture(loader.loadTexture("./data/cache/minimap.png"))
         planetemdl.setHpr(random.random()*360, random.random()*360, random.random()*360)
         self.planetes[i] = (planete, rayonplanete, rayonorbite, angleDepart, planetemdl, vitesse)
         anneau = self.racine.attachNewNode(self.dessineCercle(rayonorbite, 40))

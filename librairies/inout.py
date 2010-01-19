@@ -331,7 +331,7 @@ class IO:
       if base.mouseWatcherNode.hasMouse():
         mpos=base.mouseWatcherNode.getMouse()
         x=mpos.getX()
-        y=-mpos.getY()
+        y=mpos.getY()
       else:
         #La souris n'est pas sur l'écran
         return
