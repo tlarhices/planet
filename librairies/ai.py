@@ -302,6 +302,7 @@ class AI:
     
   def ping(self, temps):
     """Boucle de calcul de l'IA"""
+    return
     #On calcul chaque comportement
     self.comportement.ping(temps)
     
@@ -706,7 +707,7 @@ class AIComportement:
     strict : si True, alors le sprite retourné possédera tous les types de ressource demandé, sinon le plus proche qui en a au moins une
     DANGER : retourne une Socket
     """
-    if False: #Passer à False pour faciliter le debug (danger, fait toutes les recherches en bloquant)
+    if True: #Passer à False pour faciliter le debug (danger, fait toutes les recherches en bloquant)
       parent_conn, child_conn = Pipe()
       p = Process(target=self._chercheSpriteProche_thread, args=(child_conn, stock, ressources, joueur, strict))
       p.start()
@@ -786,7 +787,7 @@ class AIComportement:
     Calcule le chemin allant de debut à fin (retourne une chaine de caractère)
     DANGER : retourne une Socket
     """
-    if False:
+    if True:
       parent_conn, child_conn = Pipe()
       p = Process(target=self._calculChemin_thread, args=(child_conn, debut, fin, priorite))
       p.start()

@@ -9,6 +9,9 @@
 
 from treegui.widgets import *
 from treegui.components import *
+import math
+
+PAD = 4
 
 class PictureCheck(Label):
     """
@@ -79,9 +82,11 @@ class IconButton(Icon):
   def onClick(self):
     if self.callbackParams!=None:
       self.callback(**self.callbackParams)
+    else:
+      self.callback()
             
-    def callback(self, text, value):
-      pass
+  def callback(self, text, value):
+    pass
 
 class SetterBar(ProgressBar):
     def __init__(self, text, percent, **placement):
@@ -102,14 +107,17 @@ class SetterBar(ProgressBar):
 class Groupe(Pane):
   def __init__(self, **placement):
     self.doPlacement(placement)
+    self.children=[]
     
   def add(self, composant):
-    Pane.add(composant)
+    comp = Pane.add(self, composant)
     self.MAJ()
+    return comp
     
   def remove(self, composant):
-    Pane.remove(composant)
+    comp = Pane.remove(self, composant)
     self.MAJ()
+    return comp
 
   def MAJ(self):
     if len(self.children)==0:
@@ -117,14 +125,16 @@ class Groupe(Pane):
       self.height = 15
       return
     cote = int(math.sqrt(len(self.children))+0.5)
-    self.width = cote*self.children[0].width+(cote+1)*PAD
-    self.height = cote*self.children[0].height+(cote+1)*PAD
+    self.width = cote*self.children[0].width+(cote-2)*PAD
+    
     ligne = 0
     colone = 0
     for composant in self.children:
       if colone >= cote:
         ligne+=1
         colone = 0
-      composant.x=colone*PAD+(colone-1)*composant.width
-      composant.y=colone*PAD+(colone-1)*composant.width
+      composant.x=colone*PAD+colone*composant.width
+      composant.y=ligne*PAD+ligne*composant.height
+      self.height = composant.y + composant.height
       colone+=1
+    

@@ -603,6 +603,8 @@ class ListeCommandes(MenuCirculaire):
   def __init__(self, gui):
     MenuCirculaire.__init__(self, gui)
     self.besoinRetour = False
+    self.animation = 0
+    self.angleOuverture = 40
     btn = self.ajouteGauche(Label("Hubert Gardaniek"))
     btn.style = "DEFAULT"
     btn.width = LARGEUR_BOUTON
@@ -615,10 +617,11 @@ class ListeCommandes(MenuCirculaire):
     btn = self.ajouteGauche(Label(general.i18n.getText("Occupation : %s")%"Coupe un arbre"))
     btn.style = "DEFAULT"
     btn.width = LARGEUR_BOUTON
-    btn = self.ajouteGauche(Icon("icones/gear.png"))
-    btn = self.ajouteGauche(Icon("icones/move.png"))
-    btn = self.ajouteGauche(Icon("icones/target.png"))
-    btn = self.ajouteGauche(Icon("icones/rangearrow.png"))
+    grp = self.ajouteGauche(Groupe())
+    btn = grp.add(Icon("icones/gear.png"))
+    btn = grp.add(Icon("icones/move.png"))
+    btn = grp.add(Icon("icones/target.png"))
+    btn = grp.add(Icon("icones/rangearrow.png"))
     self.fabrique()
     
 class ListeUnite(MenuCirculaire):
@@ -628,8 +631,8 @@ class ListeUnite(MenuCirculaire):
   
   def __init__(self, gui):
     MenuCirculaire.__init__(self, gui)
-    self.angleOuverture = 40.0
-    self.decalageOuverture = 20
+    self.angleOuverture = 30.0
+    self.decalageOuverture = 15
     self.besoinRetour = False
     self.liste = []
     self.dicoUnite = {}
@@ -637,25 +640,28 @@ class ListeUnite(MenuCirculaire):
     
   def fabrique(self):
     self.clear()
-    for nom in self.dicoUnite.keys():
-      type = self.dicoUnite[nom]
-      check = self.ajouteHaut(PictureRadio(type[0], type[0], str(type[1])+":"+str(type[2])+"/"+str(type[3]), width=90))
-      #check.color = (sprite.joueur.couleur[0]*1.2, sprite.joueur.couleur[1]*1.2, sprite.joueur.couleur[2]*1.2, 0.5)
-      check.style = "DEFAULT"
-      check.width = 50
-      check.callback = self.clic
+    if self.dicoUnite:
+      for nom in self.dicoUnite.keys():
+        groupe = self.ajouteHaut(Groupe())
+        liste = self.dicoUnite[nom]
+        for icone, couleur, sprite in liste:
+          ic = groupe.add(IconButton(icone))
+          ic.color = couleur
+          ic.callback = self.clic
+          ic.callbackParams = {"bouton":sprite.id, "etat":sprite}
     MenuCirculaire.fabrique(self)
            
   def calculDicoUnite(self):
     self.dicoUnite = {}
     for sprite in self.liste:
-      courant = self.dicoUnite.get(sprite.definition["nom"], [None, 0, 0, 0])
-      courant[0] = sprite.icone
-      courant[1] += 1
+      courant = self.dicoUnite.get(sprite.definition["nom"], None)
+      if courant == None:
+        courant = []
       if sprite.vie>=50:
-        courant[2] += 1
+        couleur = (0.5, 1.0, 0.5, 1.0)
       else:
-        courant[3] += 1
+        couleur = (1.0, 0.5, 0.5, 1.0)
+      courant.append((sprite.icone, couleur, sprite))
       self.dicoUnite[sprite.definition["nom"]]=courant
             
   def anime(self, temps):
@@ -671,7 +677,26 @@ class ListeUnite(MenuCirculaire):
     bouton : le texte du bouton
     etat : si True alors le bouton est actif (ce devrait toujours être le cas de figure)
     """
-    self.select = bouton.lower()
+    #shift + control + clic : déselectionne l'unité sous le curseur
+    #control + clic : déselectionne toutes les unités de ce type
+    #clic : ne garde que les unités de ce type
+    if "control" in general.io.touchesControles:
+      if "shift" in general.io.touchesControles:
+        general.io.selection.remove(etat)
+        self.fabrique()
+        return
+            
+      del self.dicoUnite[etat.definition["nom"]]
+    else:
+      for cat in self.dicoUnite.keys():
+        if cat != etat.definition["nom"]:
+          del self.dicoUnite[cat]
+    general.io.selection=[]
+    for cat in self.dicoUnite.keys():
+      for icone, couleur, sprite in self.dicoUnite[cat]:
+        general.io.selection.append(sprite)
+    self.fabrique()
+        
 
 class EnJeu():
   """Contient la liste des unitées que l'on peut construire"""
@@ -697,7 +722,6 @@ class EnJeu():
   def efface(self, classe):
     self.clear()
     self.gui.menuCourant = classe(self.gui)
-    self.gui.historique.efface()
     
   def clear(self):
     self.gui.historique.clear()

@@ -361,7 +361,7 @@ class Drawer:
           v4 = Vec3(x,    z,y+ys)
            
            
-        color = Vec4(1,1,1,1)
+        color = self.color
         
         w = self.w
         h = self.h
