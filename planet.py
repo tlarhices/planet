@@ -43,6 +43,12 @@ except ImportError:
     print "Vous devriez installer Psyco (pour python) pour aller plus vite"
     print 
 
+
+if not os.path.exists(os.path.join(".", "sauvegardes")):
+  os.makedirs(os.path.join(".", "sauvegardes"))
+if not os.path.exists(os.path.join(".", "data", "planetes")):
+  os.makedirs(os.path.join(".", "data", "planetes"))
+      
 class Start:
   
   #Paramètres de génération de la planète
@@ -57,6 +63,8 @@ class Start:
     general.start = self
     
     if general.configuration.getConfiguration("affichage", "general", "multitexturage", "heightmap", str) == "shader":
+      _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
+      render.setShaderInput( 'lightvec', _lightvec )
       render.setShaderAuto()
       sa = ShaderAttrib.make( )
       sa = sa.setShader( loader.loadShader( 'data/shaders/terrainNormal.sha' ) )
@@ -121,14 +129,22 @@ class Start:
     if general.configuration.getConfiguration("affichage", "general", "afficheFPS","f", bool):
       base.setFrameRateMeter(True)
       
-    #On fabrique une planète toute simple pour faire un fond au menu
-    general.planete = SystemeSolaire()#Planete()
-    general.planete.ajoutePlanete("bouec")
-    general.planete.ajoutePlanete("bouec")
-    general.planete.ajoutePlanete("bouec")
-    general.planete.ajoutePlanete("bouec")
-    #general.planete.seuilSauvegardeAuto = -1
-    #general.planete.fabriqueNouvellePlanete(tesselation=3, delta=0.2)
+      
+      if cpt>0:
+        self.ajouteGauche(Button(u"Utiliser un planète vierge", self.gui.planeteVierge, width=LARGEUR_BOUTON))
+
+    #On fabrique le système solaire
+    general.planete = SystemeSolaire()
+    #On place les planètes dans le système
+    cptPlanetes = 0
+    for fich in os.listdir(os.path.join(".", "data", "planetes")):
+      if fich.endswith(".pln"):
+        cptPlanetes+=1
+        general.planete.ajoutePlanete(fich)
+    #on met des planètes aléatoires qui font rien pour avoir au moins 7 planètes dans le menu
+    while cptPlanetes<7:
+      cptPlanetes+=1
+      general.planete.ajoutePlanete("--n/a--")
     general.planete.fabriqueModel()
     general.joueurLocal = None
     
@@ -181,6 +197,7 @@ class Start:
     general.tmp = None
     
     #On repositionne la caméra (la distance du sol peu avoir changé, tout comme l'épaisseur d'atmosphère)
+    general.io.positionneCamera()
     general.io.positionneCamera()
     
 

@@ -19,3 +19,31 @@ sauvegarde terminée|^|Game saved
 ressources épuisées|^|No more ressources
 noyade|^|drowning
 impossible de trouver une trajectoire pour aller de %(a)s à %(b)s.|^|Unable to find a path to go from %(a)s to %(b)s.
+chargement en cours...|^|Loading...
+nouvelle planète|^|New planet
+charger une partie|^|Load game
+configuration|^|Configure
+quitter le jeu|^|Quit game
+écran|^|Screen
+résolution de votre écran|^|Screen resoltuion
+160 120|^|160 120
+vitesse des menus|^|Menu speed
+afficher les nuages|^|Display clouds
+effets|^|Effects
+minimap|^|Minimap
+jeu|^|Game
+images par secondes|^|Frame per second
+multitexturage|^|Multitexturing
+flat|^|flat
+répétition de la texture|^|Texture repetition
+représentation de l'eau|^|Water representation
+texture|^|texture
+animation de l'eau par vectrice|^|Water animation by vectrice
+utilisation du filtre bloom|^|Bloom filter
+normal mapping|^|Normal mapping
+afficher le soleil|^|Show the sun on the map
+durée entre 2 mises à jour de la carte du soleil|^|Time between 2 updates of the sun map
+taille de la carte|^|Map size
+256 128|^|256 128
+durée entre 2 sauvegardes automatiques|^|Time between autosaves
+durée des messages|^|Display time for messages

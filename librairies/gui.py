@@ -67,11 +67,11 @@ class Console(Pane):
   style = "default"
   def __init__(self):
     Pane.__init__(self)
-    self.ligne1 = self.add(Label("Ligne 1", x=PAD, y=PAD*1+HAUTEUR_TEXTE*0))
-    self.ligne2 = self.add(Label("Ligne 2", x=PAD, y=PAD*2+HAUTEUR_TEXTE*1))
-    self.ligne3 = self.add(Label("Ligne 3", x=PAD, y=PAD*3+HAUTEUR_TEXTE*2))
-    self.ligne4 = self.add(Label("Ligne 4", x=PAD, y=PAD*4+HAUTEUR_TEXTE*3))
-    self.texte = self.add(TextArea("Texte...", x=PAD, y=PAD*5+HAUTEUR_TEXTE*4, width="100%"))
+    self.ligne1 = self.add(Label(general.i18n.getText("Ligne %i") %1, x=PAD, y=PAD*1+HAUTEUR_TEXTE*0))
+    self.ligne2 = self.add(Label(general.i18n.getText("Ligne %i") %2, x=PAD, y=PAD*2+HAUTEUR_TEXTE*1))
+    self.ligne3 = self.add(Label(general.i18n.getText("Ligne %i") %3, x=PAD, y=PAD*3+HAUTEUR_TEXTE*2))
+    self.ligne4 = self.add(Label(general.i18n.getText("Ligne %i") %4, x=PAD, y=PAD*4+HAUTEUR_TEXTE*3))
+    self.texte = self.add(TextArea(general.i18n.getText("Texte..."), x=PAD, y=PAD*5+HAUTEUR_TEXTE*4, width="100%"))
     #On positionne la Form
     self.x = "left" 
     self.y = "top" 
@@ -357,7 +357,7 @@ class Historique(MenuCirculaire):
     """
     Ajoute un nouveau message
     type : le type de message (voir self.icones)
-    message : le contenu du message
+    message : le contenu du message (doit être passé à getText avant !)
     position : le point au dessus duquel la caméra doit aller lors d'un clic sur l'icône
     """
     self.animation = 0
@@ -603,14 +603,22 @@ class ListeCommandes(MenuCirculaire):
   def __init__(self, gui):
     MenuCirculaire.__init__(self, gui)
     self.besoinRetour = False
-    self.ajouteGauche(Label("Hubert Gardaniek")).style = "DEFAULT"
-    self.ajouteGauche(Label("Bucheron")).style = "DEFAULT"
-    self.ajouteGauche(Label("Vie : 72%")).style = "DEFAULT"
-    self.ajouteGauche(Label("Occupation : Coupe un arbre")).style = "DEFAULT"
-    self.ajouteGauche(Icon("icones/gear.png"))
-    self.ajouteGauche(Icon("icones/move.png"))
-    self.ajouteGauche(Icon("icones/target.png"))
-    self.ajouteGauche(Icon("icones/rangearrow.png"))
+    btn = self.ajouteGauche(Label("Hubert Gardaniek"))
+    btn.style = "DEFAULT"
+    btn.width = LARGEUR_BOUTON
+    btn = self.ajouteGauche(Label("Bucheron"))
+    btn.style = "DEFAULT"
+    btn.width = LARGEUR_BOUTON
+    btn = self.ajouteGauche(Label(general.i18n.getText("Vie : %i%%")%72))
+    btn.style = "DEFAULT"
+    btn.width = LARGEUR_BOUTON
+    btn = self.ajouteGauche(Label(general.i18n.getText("Occupation : %s")%"Coupe un arbre"))
+    btn.style = "DEFAULT"
+    btn.width = LARGEUR_BOUTON
+    btn = self.ajouteGauche(Icon("icones/gear.png"))
+    btn = self.ajouteGauche(Icon("icones/move.png"))
+    btn = self.ajouteGauche(Icon("icones/target.png"))
+    btn = self.ajouteGauche(Icon("icones/rangearrow.png"))
     self.fabrique()
     
 class ListeUnite(MenuCirculaire):
@@ -849,7 +857,7 @@ class Chargement(Pane):
   def __init__(self):
     Pane.__init__(self)
     
-    self.label = self.add(Label("Chargement en cours...", x="left", y=PAD))
+    self.label = self.add(Label(general.i18n.getText("Chargement en cours..."), x="left", y=PAD))
     
     #On positionne la Form
     self.x = "center" 
@@ -865,42 +873,28 @@ class MenuPrincipal(MenuCirculaire):
     MenuCirculaire.__init__(self, gui)
     self.besoinRetour = False
     
-    if not os.path.exists(os.path.join(".", "sauvegardes")):
-      os.makedirs(os.path.join(".", "sauvegardes"))
-    if not os.path.exists(os.path.join(".", "data", "planetes")):
-      os.makedirs(os.path.join(".", "data", "planetes"))
-
     self.enJeu = isinstance(self.gui.menuCourant, EnJeu)
     
     if not self.enJeu:
-      self.ajouteGauche(Button(u"Nouvelle planète", self.gui.nouvellePlanete, width=LARGEUR_BOUTON))
+      self.ajouteGauche(Button(general.i18n.getText(u"Nouvelle planète"), self.gui.nouvellePlanete, width=LARGEUR_BOUTON))
     
-    if not self.enJeu:
-      cpt = 0
-      for fich in os.listdir(os.path.join(".", "data", "planetes")):
-        if fich.endswith(".pln"):
-          cpt+=1
-      if cpt>0:
-        self.ajouteGauche(Button(u"Utiliser un planète vierge", self.gui.planeteVierge, width=LARGEUR_BOUTON))
-      
-      
     cpt = 0
     for fich in os.listdir(os.path.join(".", "sauvegardes")):
       if fich.endswith(".pln"):
         cpt+=1
     if cpt>0:
-      self.ajouteGauche(Button(u"Charger une partie", self.gui.chargerPartie, width=LARGEUR_BOUTON))
+      self.ajouteGauche(Button(general.i18n.getText(u"Charger une partie"), self.gui.chargerPartie, width=LARGEUR_BOUTON))
       
     if self.enJeu:
-      self.ajouteGauche(Button(u"Sauvegarder la partie", self.gui.sauvegarderPartie, width=LARGEUR_BOUTON))
+      self.ajouteGauche(Button(general.i18n.getText(u"Sauvegarder la partie"), self.gui.sauvegarderPartie, width=LARGEUR_BOUTON))
 
-    self.ajouteGauche(Button(u"Configuration", self.gui.configurer, width=LARGEUR_BOUTON))
+    self.ajouteGauche(Button(general.i18n.getText(u"Configuration"), self.gui.configurer, width=LARGEUR_BOUTON))
 
     if self.enJeu:
-      self.ajouteGauche(Button(u"Retour en Jeu", self.gui.retourJeu, width=LARGEUR_BOUTON))
-      self.ajouteGauche(Button(u"Quitter la partie", self.gui.retourPrincipal, width=LARGEUR_BOUTON))
+      self.ajouteGauche(Button(general.i18n.getText(u"Retour en Jeu"), self.gui.retourJeu, width=LARGEUR_BOUTON))
+      self.ajouteGauche(Button(general.i18n.getText(u"Quitter la partie"), self.gui.retourPrincipal, width=LARGEUR_BOUTON))
     if not self.enJeu:
-      self.ajouteGauche(Button(u"Quitter le jeu", self.gui.quitter, width=LARGEUR_BOUTON))
+      self.ajouteGauche(Button(general.i18n.getText(u"Quitter le jeu"), self.gui.quitter, width=LARGEUR_BOUTON))
     self.fabrique()
     
 class MenuDepuisFichier(MenuCirculaire):
@@ -985,7 +979,7 @@ class MenuDepuisFichier(MenuCirculaire):
           #icone nom
           #      valeur
           else:
-            btn = self.ajouteDroite(PictureRadio(contenuElement["iconeactif"], contenuElement["iconeinactif"], general.i18n.getText(contenuElement["nom"])+"\n   "+str(contenuElement["valeur"]), width=LARGEUR_BOUTON))
+            btn = self.ajouteDroite(PictureRadio(contenuElement["iconeactif"], contenuElement["iconeinactif"], general.i18n.getText(contenuElement["nom"])+"\n   "+general.i18n.getText(str(contenuElement["valeur"])), width=LARGEUR_BOUTON))
             btn.callback = self.clicValeur
             
           #On change le style des composant pour avoir un fond de bouton
@@ -1117,61 +1111,11 @@ class MenuVierge(MenuCirculaire):
   """Contient la liste des planètes vierges que l'on peut charger"""
   style = "default"
   
-  def clic(self, bouton, etat):
-    """
-    On a cliqué sur un bouton de construction d'unité
-    bouton : le texte du bouton
-    etat : si True alors le bouton est actif (ce devrait toujours être le cas de figure)
-    """
-    for element in self.liste:
-      if element[0].lower() == bouton.lower():
-        self.gui.planeteVierge2(element[1])
-  
   def __init__(self, gui):
     MenuCirculaire.__init__(self, gui)
-    
-    self.liste=[]
-    for element in os.listdir(os.path.join(".", "data", "planetes")):
-      if element.endswith(".pln"):
-        self.liste.append((element.lower(), element))
-    i=0
-    for elem in self.liste:
-      
-      zip = zipfile.ZipFile(os.path.join(".", "data", "planetes", elem[1]), "r")
-      if zip.testzip()!=None:
-        print "Charge :: Erreur : Fichier de sauvegarde corrompu !"
-      data = zip.read(os.path.basename(elem[1]))
-      zip.close()
-      lignes = data.split("\r\n")
-
-      date = ""
-      nomPlanete = ""
-      for ligne in lignes:
-        if ligne.lower().strip().startswith("details:"):
-          type, infos, inutile = ligne.lower().strip().split(":")[1:]
-          if type=="datesauvegarde":
-            date = infos.replace("-",":")
-          elif type=="nomplanete":
-            nomPlanete = infos.capitalize()
-            
-      nom = elem[0].capitalize()
-      
-      if nomPlanete != "":
-        nom = nomPlanete
-      if date != "":
-        nom += " "+date
-      
-      if i<len(self.liste)/2:
-        check = self.ajouteGauche(PictureRadio("icones/news-over.png", "icones/news.png", nom))
-      else:
-        check = self.ajouteDroite(PictureRadio("icones/news-over.png", "icones/news.png", nom))
-      check.style = "button"
-      check.upStyle = "button"
-      check.overStyle = "button_over"
-      check.downStyle = "button_down"
-      check.callback = self.clic
-      i+=1
-      
+    cmp = self.ajouteHaut(Label("Nouvelle partie"))
+    cmp.style = "DEFAULT"
+    cmp.width = LARGEUR_BOUTON
     self.fabrique()
     
 class MenuCharge(MenuCirculaire):
@@ -1320,11 +1264,7 @@ class Interface:
     """Passe au menu de configuration"""
     self.changeMenuVers(MenuConfiguration)
     
-  def planeteVierge(self):
-    """Lance une planète "vierge" """
-    self.changeMenuVers(MenuVierge)
-    
-  def planeteVierge2(self, fichier):
+  def planeteVierge(self, fichier):
     """Charge un prototype de planète pré-construit"""
     self.makeMain()
     general.start.chargePlanete(os.path.join(".", "data", "planetes", fichier))

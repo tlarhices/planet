@@ -30,8 +30,8 @@ class SystemeSolaire:
     
   def ajoutePlanete(self, planete):
     """"""
-    rayonorbite = float(len(self.planetes)*len(self.planetes)+6.0)*5
-    rayonplanete = random.random()*2.0+0.5
+    rayonorbite = float(len(self.planetes)*len(self.planetes)+10.0)*5+20.0
+    rayonplanete = random.random()*3.0+15.0
     angleDepart = 360.0*random.random()
     vitesse = 8.0*random.random()+2.0
     self.planetes.append((planete, rayonplanete, rayonorbite, angleDepart, None, vitesse))
@@ -41,6 +41,17 @@ class SystemeSolaire:
     self.fini = True
     self.racine.detachNode()
     self.racine.removeNode()
+    
+  def dessineCercle(self, rayon, nbFaces):
+    couleur = (1.0, 1.0, 1.0, 1.0)
+    ls = LineSegs()
+    ls.setColor(*couleur)
+    ls.setThickness(1.0)
+    deltaAngle = 2*math.pi/nbFaces
+    for i in range(0, nbFaces):
+      ls.moveTo(rayon*math.cos(deltaAngle*i), 0.0, rayon*math.sin(deltaAngle*i))
+      ls.drawTo(rayon*math.cos(deltaAngle*(i+1)), 0.0, rayon*math.sin(deltaAngle*(i+1)))
+    return ls.create()
     
   def fabriqueModel(self):
     """Produit un modèle 3D à partir du nuage des faces"""
@@ -54,7 +65,7 @@ class SystemeSolaire:
       #Active la transprence
       self.soleil.setTransparency(TransparencyAttrib.MDual)
       #Fait une mise à l'échelle
-      self.soleil.setScale(8.0)
+      self.soleil.setScale(100.0)
       #On fait en sorte que la carte soit toujours tournée vers la caméra, le haut vers le haut
       self.soleil.setBillboardPointEye()
       
@@ -74,6 +85,9 @@ class SystemeSolaire:
       self.etoiles.setBin('background', 1)
       self.etoiles.setDepthTest(False)
       self.etoiles.setDepthWrite(False)
+      self.etoiles.setPythonTag("type","ciel")
+      #On coupe la collision avec les étoiles pour pas qu'on détecte de clics sur le fond
+      self.etoiles.setCollideMask(BitMask32.allOff())
 
     for i in range(0, len(self.planetes)):
       planete, rayonplanete, rayonorbite, angleDepart, planetemdl, vitesse = self.planetes[i]
@@ -81,7 +95,14 @@ class SystemeSolaire:
         planetemdl = loader.loadModel("./data/modeles/sphere.egg")
         planetemdl.reparentTo(self.racine)
         planetemdl.setScale(rayonplanete)
+        planetemdl.setColor(random.random()*0.5, random.random()*0.5, random.random()*0.5)
+        planetemdl.setPythonTag("type", "planete") #Pour dire que c'est une planète
+        planetemdl.setPythonTag("nomPlanete", planete) #Pour indiquer de quelle planète il sagit et le retrouver facilement 
         self.planetes[i] = (planete, rayonplanete, rayonorbite, angleDepart, planetemdl, vitesse)
+        anneau = self.racine.attachNewNode(self.dessineCercle(rayonorbite, 40))
+        anneau.setBin('background', 2)
+        anneau.setDepthTest(False)
+        anneau.setDepthWrite(False)
         
   def ping(self, task):
     lastorb = 10.0
@@ -91,7 +112,7 @@ class SystemeSolaire:
       planetemdl.setPos(px, 0.0, py)
       lastorb = rayonorbite
     
-    general.io.camera.setPos(0.0, rayonorbite*10, 0.0)
+    general.io.camera.setPos(0.0, rayonorbite*4, 0.0)
     self.etoiles.setScale(rayonorbite*11)
     general.io.camera.lookAt(self.soleil)
     while not self.fini:

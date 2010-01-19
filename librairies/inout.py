@@ -10,6 +10,7 @@ import math
 from treegui.components import Pane
 
 from systemesolaire import SystemeSolaire
+
 class IO:
   preImage = None #L'heure à laquelle la précédente image a été rendue
   
@@ -351,9 +352,20 @@ class IO:
           planete.geoide.survol = idsommet
       elif objet.getPythonTag('type') == "sprite":
           self.selection = [objet.getPythonTag('instance'),]
+      elif objet.getPythonTag('type') == "planete":
+          nomPlanete = objet.getPythonTag("nomPlanete")
+          from gui import MenuVierge
+          if isinstance(general.interface.menuCourant, MenuVierge):
+            if nomPlanete.lower().strip() != "--n/a--":
+              general.interface.planeteVierge(nomPlanete)
+          else:
+            general.interface.changeMenuVers(MenuVierge)
       else:
+        print objet
         general.interface.afficheTexte("Clic sur un objet au tag inconnu : %(a)s", parametres={"a": str(objet.getPythonTag('type'))}, type="info")
     else:
+      if planete!=None and isinstance(planete, SystemeSolaire):
+        return
       planete.geoide.survol = None
         
         
