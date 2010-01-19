@@ -81,13 +81,33 @@ class SystemeSolaire:
       self.etoiles.setScale(general.configuration.getConfiguration("planete", "Univers", "distanceSoleil","10.0",float)*3.0/2.0)
       self.etoiles.setAttrib(CullFaceAttrib.make(CullFaceAttrib.MCullCounterClockwise))
       self.etoiles.reparentTo(self.racine)    
-      self.etoiles.setLightOff()
       self.etoiles.setBin('background', 1)
       self.etoiles.setDepthTest(False)
       self.etoiles.setDepthWrite(False)
       self.etoiles.setPythonTag("type","ciel")
       #On coupe la collision avec les étoiles pour pas qu'on détecte de clics sur le fond
       self.etoiles.setCollideMask(BitMask32.allOff())
+      
+      #Lumière dans le noir
+      couleurNuit = general.configuration.getConfiguration("Planete", "Univers", "couleurNuit", "0.2 0.2 0.275 1.0", str)
+      couleurNuit = VBase4(*general.floatise(couleurNuit.split(" ")))
+      alight = AmbientLight('alight')
+      alight.setColor(couleurNuit)
+      alnp = self.racine.attachNewNode(alight)
+      self.racine.setLight(alnp)
+      
+      #Lumière du soleil
+      couleurSoleil = general.configuration.getConfiguration("Planete", "Univers", "couleurSoleil", "0.9 0.9 0.9 0.8", str)
+      couleurSoleil = VBase4(*general.floatise(couleurSoleil.split(" ")))
+      light = PointLight('soleil')
+      light.setColor(couleurSoleil)
+      lampe = self.racine.attachNewNode(light)
+      lampe.setPos(0,0,0)
+      self.racine.setLight(lampe)
+
+      #Le fond et le soleil ne sont pas affectés par la lumière
+      self.soleil.setLightOff()
+      self.etoiles.setLightOff()
 
     for i in range(0, len(self.planetes)):
       planete, rayonplanete, rayonorbite, angleDepart, planetemdl, vitesse = self.planetes[i]
@@ -98,6 +118,8 @@ class SystemeSolaire:
         planetemdl.setColor(random.random()*0.5, random.random()*0.5, random.random()*0.5)
         planetemdl.setPythonTag("type", "planete") #Pour dire que c'est une planète
         planetemdl.setPythonTag("nomPlanete", planete) #Pour indiquer de quelle planète il sagit et le retrouver facilement 
+        #planetemdl.setTexture(loader.loadTexture("./data/cache/minimap.png"))
+        planetemdl.setHpr(random.random()*360, random.random()*360, random.random()*360)
         self.planetes[i] = (planete, rayonplanete, rayonorbite, angleDepart, planetemdl, vitesse)
         anneau = self.racine.attachNewNode(self.dessineCercle(rayonorbite, 40))
         anneau.setBin('background', 2)
@@ -110,6 +132,7 @@ class SystemeSolaire:
       px = rayonorbite * math.cos((angleDepart + task.time*vitesse)/180.0*math.pi)
       py = rayonorbite * math.sin((angleDepart + task.time*vitesse)/180.0*math.pi)
       planetemdl.setPos(px, 0.0, py)
+      planetemdl.setR(task.time*vitesse*5)
       lastorb = rayonorbite
     
     general.io.camera.setPos(0.0, rayonorbite*4, 0.0)

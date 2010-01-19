@@ -429,6 +429,7 @@ class Sprite:
     """Gère la mort du sprite"""
     general.TODO("Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...")
     general.TODO("Ajouter les ruines et les cadavres")
+    self.stop()
     if not silence:
       general.interface.afficheTexte("%(a)s est mort par %(b)s", parametres={"a": general.i18n.utf8ise(self.id), "b": general.i18n.utf8ise(type)}, type="mort")
     self.vie = 0
