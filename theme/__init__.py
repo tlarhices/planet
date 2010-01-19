@@ -27,7 +27,7 @@ class Theme(Theme):
 
     BLACK_FIX_FONT = Font(
         "BLACK_FIX_FONT",
-        "theme/fonts/ProFontWindows.ttf",
+        "fonts/ProFontWindows.ttf",
         10,
         (0,0,0,1))
 

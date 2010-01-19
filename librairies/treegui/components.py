@@ -145,7 +145,7 @@ class ScrollPane(Pane):
         range = float(abs(a-b))
         slideRange = max(0,self.bounds[1]-self._height+100)
         self.inner.y = -slideRange*v/range
-  
+        
 class ScrollDownPane(ScrollPane):
     """ scroll pane with one Y scroll shown """
         
@@ -195,9 +195,9 @@ class SingleSelectList(ScrollDownPane):
             
     def onSelect(self):  
         """ overide this if you need too """
+    
 
-    
-    
+
 class ProgressBar(Pane):
     """ display a string of text in the ui """
     clips = False

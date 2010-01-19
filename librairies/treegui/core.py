@@ -101,8 +101,8 @@ class Holder:
                             gui.hoveringOver = child
                         return True
                    
-                    
-                    
+
+
         # disable all focus
         if key != "hover":
             gui.keys.focus = None

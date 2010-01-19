@@ -86,12 +86,13 @@ class Layout:
         for line in file:
             line = line.strip()
             id,x,y,width,height,visable = line.split("|")
-            widget = gui.idToFrame[id]
-            widget.x = x
-            widget.y = y
-            widget.width = width
-            widget.height = height
-            widget.visable = visable == "True"
+            if id in gui.idToFrame:
+                widget = gui.idToFrame[id]
+                widget.x = x
+                widget.y = y
+                widget.width = width
+                widget.height = height
+                widget.visable = visable == "True"
         
     def save(self,filename):
         file = open(filename,'w')

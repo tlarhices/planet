@@ -1,13 +1,15 @@
 """
 
     this contains atlas tools 
-    
+
+	This has ability to create and read egg.atlas files.
+
 """
 
 from pandac.PandaModules import *
 import math
 import os
-import sha
+import hashlib 
 from imagetable import ImageTable
 
 import re, sys
@@ -95,10 +97,10 @@ class EggAtlas:
         """ 
         try:       
             image = self.images[name]
-            return image.x,image.y,image.w,image.h
+            return (image.x,image.y,image.w,image.h)
         except KeyError:
-            print "can't find picture",name
-            return (0,0,0,0)
+          print "can't find",name
+          return (0,0,0,0)
     
     def getChar(self,name):
         """
@@ -108,7 +110,7 @@ class EggAtlas:
         image = self.images[name]
         return image.x,image.y,image.w,image.h,image.extend
     
-    
+
 def extensionOneOf(path,l):
     os.path.splitext
 
@@ -117,7 +119,7 @@ def walkdir(dir):
     for path, dirs, files in os.walk(dir):
         for file in files:
             if not re.match(".*?(\..*?)/.*",path+"/"+file):
-                yield  path+"/"+file
+            	yield path+"/"+file
 
 
 def getAllType(eggNode,eggType):
@@ -168,55 +170,14 @@ class EggAtlasMaker:
         self.it = ImageTable(int(self.size),int(self.size))
         self.files = []
 
-#    def doFont(self,f):
-#        """ records the image extents in font """
-#        
-#        letters = {}
-#        
-#        print "font",f
-#        
-#        eggFont = EggData()
-#        eggFont.read(f)
-#        for char in getAllEggGroup(eggFont):
-#            for p in getAllType(char,EggPolygon):
-#                   
-#                name = str(p.getTexture().getName())
-#                texture = str(p.getTexture().getFilename())
-#                
-#                print name,texture
-#                
-#                if p.getNumVertices() > 0:
-#                    uv1 = p.getVertex(0).getUv()
-#                    uv2 = p.getVertex(2).getUv()
-#                    print "  uv", uv1,uv2
-#                           
-#                    for l in getAllType(char,EggPoint):
-#                        v1 = p.getVertex(0).getPos3()
-#                        v2 = p.getVertex(2).getPos3()
-#                        print " pos",v1,v2
-#                        
-#                        extendVec = l.getVertex(0).getPos3()
-#                        print "  >", extendVec
-#                        print "  =", extendVec
-#                    
-#                letters[name] = (uv1,uv2,extendVec)
-#        self.fonts[texture] = letters
-#        
-    fontcharMap={}
-    
-    def doFonts(self,fonts):
+    def doFonts(self,fonts,folder):
         for font in fonts:
             print "Doing font:",font
-            self.doFont(font)
+            self.doFont(font, folder)
         print "End of fonts"
 
-    def doFont(self,fontdef):
-        import time
-        deb = time.time()
-        testedFont = fontdef.filename in self.fontcharMap.keys()
-        if not testedFont:
-          self.fontcharMap[fontdef.filename]=[]
-          
+    def doFont(self,fontdef,folder):
+        
         color = Vec4(0,0,0,1)
         color.setX(fontdef.color[0])
         color.setZ(fontdef.color[1])
@@ -228,7 +189,7 @@ class EggAtlasMaker:
         
         PADDING = 0
         
-        font = PNMTextMaker(fontdef.filename,0)
+        font = PNMTextMaker(folder+"/"+fontdef.filename,0)
         font.setPixelsPerUnit(size)
         font.setPointSize(size)
         font.setAlign(font.ALeft)
@@ -278,16 +239,9 @@ class EggAtlasMaker:
                 sys.stdout.flush()
             charName = name+str(i)
             #print i,charName,"'%s'"%char
+            glyph = font.getGlyph(i)
             
-            if testedFont:
-              valid = i in self.fontcharMap[fontdef.filename]
-              if valid or not hasBad:
-                glyph = font.getGlyph(i)
-            else:
-              glyph = font.getGlyph(i)
-              valid = isGlyphValid(emptyGlyph, glyph)
-              if valid:
-                self.fontcharMap[fontdef.filename].append(i)
+            valid = isGlyphValid(emptyGlyph, glyph)
             
             if valid or not hasBad:
                 if not valid:
@@ -312,19 +266,18 @@ class EggAtlasMaker:
                 
                 self.it.add(charName,image)
         print
-        print "Font done", time.time()-deb
+        print "Font done"
 
-    def doImage(self, f, themeFolder):
-        """ process an image and put it into the atlas """ 
-        print "Doing image:",f
-        i = PNMImage(f)
+    def doImage(self,filename,filder):
+        """ process an iamge and put it into the atlas """ 
+        i = PNMImage(filename)
         i.addAlpha()
-        short = f
-        if short.startswith(themeFolder):
-          short = f.replace(themeFolder,"",1)
-          while short[0] in ["/", "\\"]:
-            short = short[1:]
-        self.it.add(short,i)
+        if filename.startswith(filder):
+          filename = filename.replace(filder,"",1)
+          while filename[0] in ["/", "\\"]:
+            filename = filename[1:]
+        self.it.add(filename,i)
+        
         
     def doHash(self,folder):
         """ 
@@ -336,7 +289,8 @@ class EggAtlasMaker:
             if ".font.egg" in f or ".png" in f or ".rgb" in f:        
                 files.append("%s:%f"%(f,os.stat(f).st_mtime))
         text = "\n".join(sorted(files))
-        return sha.new(text).hexdigest() 
+        return hashlib.sha224(text).hexdigest() 
+
     
     def doFolders(self,folder):
         """ 
@@ -344,11 +298,6 @@ class EggAtlasMaker:
             and insert them into the atlas 
         """
         for f in sorted(walkdir(folder)):
-            
-#            if "ttf" in f:        
-#                self.doFont(f)
-#                self.files.append(f)
-                
             if ".png" in f or ".rgb" in f:
                 self.doImage(f, folder)
                 self.files.append(f)
@@ -427,4 +376,3 @@ class EggAtlasMaker:
             self.egg.addChild(group)
 
     
-#EggAtlas("../egg-atlas/2aw.atlas.egg")

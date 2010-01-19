@@ -241,7 +241,7 @@ class Theme(object):
         
         fontNames = [e for e in dir(self) if "FONT" in e.upper()]
         self.fonts = set([self.defineFont(name) for name in fontNames])
-        eam.doFonts(self.fonts) 
+        eam.doFonts(self.fonts,self.RAW_DIR) 
         eam.generate()
     
     def define(self,name):

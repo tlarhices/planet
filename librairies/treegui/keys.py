@@ -49,7 +49,8 @@ class Keys:
     def loadFile(self,keyFilename):
         """" load a file with key file syntax """
         if os.path.exists(keyFilename):
-            for n,line in enumerate(open(keyFilename)):
+            text = vfs.readFile(keyFilename,True)
+            for n,line in enumerate(text.split("\n")):
                 s = line.split() 
                 if s == []:
                     continue

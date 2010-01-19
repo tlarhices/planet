@@ -65,6 +65,12 @@ class Widget(object):
     def toggle(self):
         self.visable = not self.visable
         
+    def show(self):
+        self.visable = True
+        
+    def hide(self):
+        self.visable = False
+        
     def onAdd(self):
         """ called when this is added to some holder """
         
@@ -124,9 +130,16 @@ class Icon(Widget):
     style = None
     def __init__(self, icon, **placement):
         self.doPlacement(placement)    
-        self.width=15
-        self.height=15
         self.icon = icon
+        
+class RotatedIcon(Widget):
+    """ a simple image that can act as a button"""
+    clips = False
+    style = None
+    def __init__(self, icon,rotation, **placement):
+        self.doPlacement(placement)            
+        self.icon = icon
+        self.rotation = rotation
         
 class Label(Widget):
     """ display a string of text in the ui """
@@ -159,6 +172,7 @@ class Button(Widget):
 
     def onOut(self):
         self.style = self.upStyle
+
 
 
 class ValueButton(Button):
@@ -227,6 +241,8 @@ class TextArea(Label):
         elif self.multiLine and char == "enter" :
             self.text += "\n"
             self.caret += 1
+        elif not self.multiLine and char == "enter" :    
+            self.onEnter(self.text)
         elif self.multiLine and char == "arrow_up" :
             lastLine = 0
             thisLine = 0
@@ -269,6 +285,9 @@ class TextArea(Label):
 class Entry(TextArea):
     multiLine = False
     
+    def onEnter(self,text):
+        """ overide if you need enter events, like chat and stuff """
+        
 class PasswordEntry(Entry):
     """ single line entry that types as stars "*" """
     
