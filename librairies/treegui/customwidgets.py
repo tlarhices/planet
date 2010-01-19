@@ -8,6 +8,7 @@
 """
 
 from treegui.widgets import *
+from treegui.components import *
 
 class PictureCheck(Label):
     """
@@ -78,6 +79,22 @@ class IconButton(Icon):
   def onClick(self):
     if self.callbackParams!=None:
       self.callback(**self.callbackParams)
+            
+    def callback(self, text, value):
+      pass
+
+class SetterBar(ProgressBar):
+    def __init__(self, text, percent, **placement):
+        ProgressBar.__init__(self, percent, **placement)
+        self.textComponent = self.add(Label(text))
+        self.children.reverse()
+      
+    def mouseEvent(self, event, x, y):
+        if event=="mouse1":
+            self.setProgress(float(x)/self.width*100)
+            if self.callbackParams!=None:
+              self.callbackParams["etat"]=float(x)/self.width*100
+              self.callback(**self.callbackParams)
             
     def callback(self, text, value):
       pass

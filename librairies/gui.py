@@ -970,8 +970,16 @@ class MenuDepuisFichier(MenuCirculaire):
             pr.callbackParams = {"bouton":"plus-"+contenuElement["nom"], "etat":True}
             pr.callback = self.clicValeur
             btn.add(pr)
+            valeur = 100*(float(contenuElement["valeur"])-float(contenuElement["valeurmin"]))/(float(contenuElement["valeurmax"])-float(contenuElement["valeurmin"]))
+            if contenuElement["type"]=="int":
+              texte = "%i [%s; %s]" %(float(contenuElement["valeur"]), str(contenuElement["valeurmin"]), str(contenuElement["valeurmax"]))
+            else:
+              texte = "%.3f [%s; %s]" %(float(contenuElement["valeur"]), str(contenuElement["valeurmin"]), str(contenuElement["valeurmax"]))
+            pr = SetterBar(texte, valeur, y=HAUTEUR_TEXTE+PAD*2, x=HAUTEUR_TEXTE*2+PAD*3, width=LARGEUR_BOUTON-PAD*4-HAUTEUR_TEXTE*2, height=10)
+            pr.callbackParams = {"bouton":"progr-"+contenuElement["nom"],"etat":valeur}
+            pr.callback = self.clicValeur
             #Le texte de la forme "valeur [min;max]"
-            pr = Label(str(contenuElement["valeur"])+" ["+str(contenuElement["valeurmin"])+";"+str(contenuElement["valeurmax"])+"]", y=HAUTEUR_TEXTE+PAD, x=HAUTEUR_TEXTE*2+PAD*2)
+            #pr = Label(str(contenuElement["valeur"])+" ["+str(contenuElement["valeurmin"])+";"+str(contenuElement["valeurmax"])+"]", y=HAUTEUR_TEXTE+PAD, x=HAUTEUR_TEXTE*2+PAD*2)
             btn.add(pr)
             
           #Les listes et les labels sont justes affichés sous la forme
@@ -1019,6 +1027,9 @@ class MenuDepuisFichier(MenuCirculaire):
     elif bouton.startswith("moins-"):
       modificateur = -1
       bouton=bouton[6:]
+    elif bouton.startswith("progr-"):
+      modificateur = 0
+      bouton=bouton[6:]
       
     #On recherche dans la liste des boutons de quel bouton il sagit
     for nomSection, contenuSection, dicoSection in self.menu:
@@ -1030,8 +1041,11 @@ class MenuDepuisFichier(MenuCirculaire):
             
             #Les float varient entre valeurMin et valeurMax par pas de 1/20 de l'espace à parcourir
             if contenuElement["type"] == "float":
-              delta = (float(contenuElement["valeurmax"])-float(contenuElement["valeurmin"]))/20
-              nvVal = float(contenuElement["valeur"])+delta*modificateur
+              delta = (float(contenuElement["valeurmax"])-float(contenuElement["valeurmin"]))/100
+              if modificateur!=0:
+                nvVal = float(contenuElement["valeur"])+delta*modificateur
+              else:
+                nvVal = float(etat)/100*(float(contenuElement["valeurmax"])-float(contenuElement["valeurmin"]))+float(contenuElement["valeurmin"])
               if nvVal<float(contenuElement["valeurmin"]):
                 nvVal = float(contenuElement["valeurmin"])
               if nvVal>float(contenuElement["valeurmax"]):
@@ -1041,7 +1055,10 @@ class MenuDepuisFichier(MenuCirculaire):
               
             #Les int varient entre valeurMin et valeurMax par pas de 1
             elif contenuElement["type"] == "int":
-              nvVal = int(float(contenuElement["valeur"]))+modificateur
+              if modificateur!=0:
+                nvVal = int(float(contenuElement["valeur"]))+modificateur
+              else:
+                nvVal = int(float(etat)/100*(float(contenuElement["valeurmax"])-float(contenuElement["valeurmin"]))+float(contenuElement["valeurmin"])+0.5)
               if nvVal<int(contenuElement["valeurmin"]):
                 nvVal = int(contenuElement["valeurmin"])
               if nvVal>int(contenuElement["valeurmax"]):
