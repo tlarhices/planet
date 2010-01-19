@@ -9,65 +9,71 @@ import random
 import time
 
 T=10
-grilleType = []
-grilleAltitude = []
+grilleSol = []
+grilleMonte = []
+grilleDescend = []
+grillePlan = []
   
-
-def disp():
-  for i in range(0,T):
-    for j in range(0, T):
-      print "% .2f" %grilleType[i][j],
-    print
-
-  for i in range(0,T):
-    for j in range(0, T):
-      print "% 2i" %int(grilleAltitude[i][j]),
-    print
-
 for i in range(0,T):
-  grilleType.append([0.0,]*T)
-  grilleAltitude.append([0,]*T)
+  grilleSol.append([0.0,]*T)
+  grilleMonte.append([0,]*T)
+  grilleDescend.append([0,]*T)
+  grillePlan.append([0,]*T)
+  for j in range(0,T):
+    grilleSol[i][j] = 0.0#random.random()*100-50
+    grilleMonte[i][j] = int(random.random()+0.5)
+    grilleDescend[i][j] = int(random.random()+0.5)
+    grillePlan[i][j] = int(random.random()+0.5)
+
+def sommeVoisin(tab, x, y):
+  somme=0
+  for i in (-1, 0, 1):
+    for j in (-1, 0, 1):
+      if x+i>=0 and y+j>=0 and x+i<T and y+j<T:
+        if i!=0 or j!=0:
+          somme+=tab[x+i][y+j]
+  return somme
   
-  for j in range(0, T):
-    val = random.random()
-    if val<0.6:
-      grilleType[i][j] = 1.0
-    if val<0.3:
-      grilleType[i][j] = -1.0
-    grilleAltitude[i][j] = random.random()*100
-
-disp()
-
-pas = time.time()
-while True:
-  delta = time.time() - pas
-  delta = delta*10000
+def cellule(tab):
+  copie = []
   for i in range(0,T):
-    for j in range(0, T):
-      if grilleType[i][j]!=0:
-        if grilleType[i][j]>0:
-          signe = +1
+    copie.append([0,]*T)
+    for j in range(0,T):
+      copie[i][j] = tab[i][j]
+      
+  for i in range(0,T):
+    for j in range(0,T):
+      somme = sommeVoisin(copie, i, j)
+      if copie[i][j]==0 and (somme==3 or somme==6):
+        tab[i][j]=1
+      if copie[i][j]==1:
+        if somme==2 or somme==3:
+          tab[i][j]=1
         else:
-          signe = -1
+          tab[i][j]=0
         
-        grilleType[i][j] = abs(grilleType[i][j])
-        grilleType[i][j] += delta*random.random()
-        
-        cpt=0
-        if grilleType[i][j] > 100:
-          cpt = int(grilleType[i][j]/100)
-          grilleType[i][j] = grilleType[i][j]%100
-          grilleType[i][j] = signe*grilleType[i][j]
-          
-          grilleAltitude[i][j]+=signe*cpt
-          if abs(grilleAltitude[i][j])>100:
-            grilleAltitude[i][j] = signe*100
-            grilleType[i][j] = 0
-            for a in (-1,0,1):
-              for b in (-1,0,1):
-                if i+a>=0 and j+b>=0 and i+a<T and j+b<T:
-                  grilleType[i+a][j+b]+=signe      
-        
-  disp()
-  pas = time.time()
+  return tab
+  
+while True:
+  grilleMonte = cellule(grilleMonte)
+  grilleDescend = cellule(grilleDescend)
+  grillePlan = cellule(grillePlan)
+  for i in range(0,T):
+    for j in range(0,T):
+      if grilleMonte[i][j]==1 and grilleDescend[i][j]==0 and grillePlan[i][j]==0:
+        grilleSol[i][j]+=1
+      elif grilleMonte[i][j]==0 and grilleDescend[i][j]==1 and grillePlan[i][j]==0:
+        grilleSol[i][j]-=1
+      elif grilleMonte[i][j]==0 and grilleDescend[i][j]==0 and grillePlan[i][j]==1:
+        grilleSol[i][j]=sommeVoisin(grilleSol,i,j)/8.0
+      elif grilleMonte[i][j]==1 and grilleDescend[i][j]==1 and grillePlan[i][j]==1:
+        grilleMonte[i][j] = int(random.random()+0.5)
+        grilleDescend[i][j] = int(random.random()+0.5)
+        grillePlan[i][j] = int(random.random()+0.5)
+      else:
+        grilleMonte[i][j] = abs(grilleDescend[i][j]+grillePlan[i][j]-1)
+        grilleDescend[i][j] = abs(grilleMonte[i][j]+grillePlan[i][j]-1)
+        grillePlan[i][j] = abs(grilleMonte[i][j]+grilleDescend[i][j]-1)
+      print int(grilleSol[i][j]),
+    print
   raw_input()

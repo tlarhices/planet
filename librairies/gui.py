@@ -961,12 +961,12 @@ class MenuDepuisFichier(MenuCirculaire):
             pr = PictureRadio(contenuElement["iconeactif"], contenuElement["iconeinactif"], general.i18n.getText(contenuElement["nom"]))
             btn.add(pr)
             #Le bouton moins
-            pr = Icon("icones/minus.png", y=HAUTEUR_TEXTE+PAD)
+            pr = IconButton("icones/minus.png", y=HAUTEUR_TEXTE+PAD)
             pr.callbackParams = {"bouton":"moins-"+contenuElement["nom"], "etat":True}
             pr.callback = self.clicValeur
             btn.add(pr)
             #Le bouton plus
-            pr = Icon("icones/plus.png", y=HAUTEUR_TEXTE+PAD, x=HAUTEUR_TEXTE+PAD)
+            pr = IconButton("icones/plus.png", y=HAUTEUR_TEXTE+PAD, x=HAUTEUR_TEXTE+PAD)
             pr.callbackParams = {"bouton":"plus-"+contenuElement["nom"], "etat":True}
             pr.callback = self.clicValeur
             btn.add(pr)
@@ -1005,7 +1005,6 @@ class MenuDepuisFichier(MenuCirculaire):
 
   def clicValeur(self, bouton, etat):
     """Clic sur un bouton de configuration (colonne de droite)"""
-    
     #On ne garde que la première ligne de texte pour les boutons de la forme :
     #blah blah blah\r\n
     #valeur du bouton

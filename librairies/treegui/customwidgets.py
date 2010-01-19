@@ -72,3 +72,12 @@ class PictureRadio(Check):
     def callback(self, text, value):
       pass
       
+      
+class IconButton(Icon):
+  callbackParams = None
+  def onClick(self):
+    if self.callbackParams!=None:
+      self.callback(**self.callbackParams)
+            
+    def callback(self, text, value):
+      pass
