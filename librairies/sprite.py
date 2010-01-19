@@ -174,7 +174,7 @@ class Sprite:
       
     #On vieillit le sprite
     self.tempsDeVie += temps
-    if self.dureeDeVie < self.tempsDeVie and self.dureeDeVie != -1:
+    if self.dureeDeVie < self.tempsDeVie and self.dureeDeVie > 0:
       self.tue("vieillesse", silence=False)
       return
       
