@@ -94,3 +94,42 @@ type = float
 valeurMin = 0.001
 valeurMax = 0.5
 
+[Regles]
+icone = nebula
+nom = Règles
+infobulle = Change les règles de jeu actives sur la planète
+
+nombreJoueurs:
+chemin = planete/Regles/nombreJoueurs
+icone = user
+nom = Nombre de joueurs
+infobulle = Nombre de joueurs sur la planète
+type = int
+valeurMin = 2
+valeurMax = 10
+
+nombreUnite:
+chemin = planete/Regles/nombreUnite
+icone = reinforcement
+nom = Nombre d'unités par joueur
+infobulle = Nombre d'unités par joueur à la création de la planète
+type = int
+valeurMin = 1
+valeurMax = 10
+
+nombreCollecteurRessource:
+chemin = planete/Regles/nombreCollecteurRessource
+icone = inutilisees/cart
+nom = Nombre de collecteurs de ressource par joueur
+infobulle = Nombre de collecteurs de ressource par joueur à la création de la planète
+type = int
+valeurMin = 1
+valeurMax = 5
+
+obscuriteTue:
+chemin = planete/Regles/obscuriteTue
+icone = nebula
+nom = L'obscurité tue
+infobulle = Lorsque la nuit touchera une unité, elle sera tuée.
+type = bool
+

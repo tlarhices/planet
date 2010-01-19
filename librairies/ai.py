@@ -445,6 +445,14 @@ class SuitChemin(AIComportementUnitaire):
         print "va vers checkpoint suivant..."
       general.TODO("Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est")
 
+      if isinstance(self.chemin[0], int):
+        if not self.chemin[0] in general.planete.aiNavigation.graph[general.planete.trouveSommet(self.comportement.sprite.position)]:
+          print "bout de chemin desormais impraticable"
+          chemin = self.comportement.calculChemin(sprite.position, self.chemin[-1])
+          self.comportement.suitChemin(chemin, self.chemin[-1], self.priorite)
+          self.chemin = None
+          return
+
       #Comme on a pas de cible au chemin pour le moment
       #On prend le point suivant sur le chemin
       cible = self.getCoord(self.chemin.pop(0))

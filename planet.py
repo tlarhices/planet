@@ -158,35 +158,42 @@ class Start:
   def start(self):
     """Lance le rendu et la boucle de jeu"""
 
+    couleurs = [
+      (0.0, 0.0, 1.0, 1.0),
+      (1.0, 0.0, 0.0, 1.0),
+      (0.0, 1.0, 0.0, 1.0),
+      (0.0, 1.0, 1.0, 1.0),
+      (1.0, 0.0, 1.0, 1.0),
+      (1.0, 1.0, 0.0, 1.0),
+      (1.0, 0.0, 0.0, 1.0),
+      (1.0, 0.0, 0.0, 1.0),
+      (1.0, 0.0, 0.0, 1.0),
+      (1.0, 0.0, 0.0, 1.0),
+      (1.0, 0.0, 0.0, 1.0),
+      (1.0, 0.0, 0.0, 1.0)      
+    ]
+    
     #On ajoute les joueurs
-    general.TODO("Faire la création des joueurs comme il faut et pas hardcodé")
-    j1 = JoueurLocal("Joueur 1", (0.0, 0.0, 1.0, 1.0))
-    j2 = JoueurIA("Joueur 2", (1.0, 0.0, 0.0, 1.0))
+    j = JoueurLocal("Joueur 1", couleurs[len(general.planete.joueurs)])
+    general.planete.ajouteJoueur(j)
+    while len(general.planete.joueurs)<int(general.configuration.getConfiguration("planete", "Regles", "nombreJoueurs", "2", int)):
+      j = JoueurIA("Joueur "+str(len(general.planete.joueurs)+1), couleurs[len(general.planete.joueurs)])
+      general.planete.ajouteJoueur(j)
     
-    #On place les joueurs sur la planète
-    general.planete.ajouteJoueur(j1)
-    general.planete.ajouteJoueur(j2)
-    
-    general.TODO("Donner des gugusses aux joueurs de façon non aléatoire")
     #Ajoute des gugusses aux joueurs
-    for i in range(0, 10):
-      OK=False
-      while not OK:
-        sommet = random.choice(general.planete.geoide.sommets)
-        OK = sommet.length()>general.planete.geoide.niveauEau
-      j1.ajouteSprite("test", sommet, "test")
-    j1.ajouteSprite("ressource", sommet, "ressource")
-    j1.ajouteSprite("ressource", sommet, "ressource")
-    j1.ajouteSprite("ressource", sommet, "ressource")
-    for i in range(0, 5):
-      OK=False
-      while not OK:
-        sommet = random.choice(general.planete.geoide.sommets)
-        OK = sommet.length()>general.planete.geoide.niveauEau
-      j2.ajouteSprite("test", sommet, "test")
-    j2.ajouteSprite("ressource", sommet, "ressource")
-    j2.ajouteSprite("ressource", sommet, "ressource")
-    j2.ajouteSprite("ressource", sommet, "ressource")
+    for joueur in general.planete.joueurs:
+      for i in range(0, int(general.configuration.getConfiguration("planete", "Regles", "nombreUnite", "2", int))):
+        OK=False
+        while not OK:
+          sommet = random.choice(general.planete.geoide.sommets)
+          OK = sommet.length()>general.planete.geoide.niveauEau
+        joueur.ajouteSprite("test", sommet, "test")
+      for i in range(0, int(general.configuration.getConfiguration("planete", "Regles", "nombreCollecteurRessource", "1", int))):
+        OK=False
+        while not OK:
+          sommet = random.choice(general.planete.geoide.sommets)
+          OK = sommet.length()>general.planete.geoide.niveauEau
+        joueur.ajouteSprite("ressource", sommet, "ressource")
 
     #On construit le modèle 3D de la planète
     general.planete.fabriqueModel()
