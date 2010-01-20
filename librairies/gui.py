@@ -54,7 +54,15 @@ class Console(Pane):
       return ""
     return self.commandes[self.positionHistorique]
     
+  def macros(self, texte):
+    texte = texte.replace("_g_", "general")
+    texte = texte.replace("_getConf_", "general.configuration.getConfiguration")
+    texte = texte.replace("_setConf_", "general.configuration.setConfiguration")
+    texte = texte.replace("_\\n_", "\n")
+    return texte
+    
   def execute(self, texte):
+    texte = self.macros(texte)
     self.ligne1.text = self.ligne3.text
     self.ligne2.text = self.ligne4.text
     self.ligne3.text = texte
@@ -852,16 +860,22 @@ class MenuDepuisFichier(MenuCirculaire):
             btn = self.ajouteDroite(Pane(width=LARGEUR_BOUTON, height=HAUTEUR_BOUTON+HAUTEUR_TEXTE))
             pr = PictureRadio(contenuElement["iconeactif"], contenuElement["iconeinactif"], general.i18n.getText(contenuElement["nom"]))
             btn.add(pr)
+            pr.__onHover__ = pr.onHover
+            pr.onHover = general.interface.hover
             #Le bouton moins
             pr = IconButton("icones/minus.png", y=HAUTEUR_TEXTE+PAD)
             pr.callbackParams = {"bouton":"moins-"+contenuElement["nom"], "etat":True}
             pr.callback = self.clicValeur
             btn.add(pr)
+            pr.__onHover__ = pr.onHover
+            pr.onHover = general.interface.hover
             #Le bouton plus
             pr = IconButton("icones/plus.png", y=HAUTEUR_TEXTE+PAD, x=HAUTEUR_TEXTE+PAD)
             pr.callbackParams = {"bouton":"plus-"+contenuElement["nom"], "etat":True}
             pr.callback = self.clicValeur
             btn.add(pr)
+            pr.__onHover__ = pr.onHover
+            pr.onHover = general.interface.hover
             valeur = 100*(float(contenuElement["valeur"])-float(contenuElement["valeurmin"]))/(float(contenuElement["valeurmax"])-float(contenuElement["valeurmin"]))
             if contenuElement["type"]=="int":
               texte = "%i [%s; %s]" %(float(contenuElement["valeur"]), str(contenuElement["valeurmin"]), str(contenuElement["valeurmax"]))
@@ -873,6 +887,8 @@ class MenuDepuisFichier(MenuCirculaire):
             #Le texte de la forme "valeur [min;max]"
             #pr = Label(str(contenuElement["valeur"])+" ["+str(contenuElement["valeurmin"])+";"+str(contenuElement["valeurmax"])+"]", y=HAUTEUR_TEXTE+PAD, x=HAUTEUR_TEXTE*2+PAD*2)
             btn.add(pr)
+            pr.__onHover__ = pr.onHover
+            pr.onHover = general.interface.hover
             
           #Les listes et les labels sont justes affichés sous la forme
           #

@@ -47,16 +47,27 @@ taille de la carte|^|Map size
 256 128|^|256 128
 durée entre 2 sauvegardes automatiques|^|Time between autosaves
 durée des messages|^|Display time for messages
-langues|^|Langues
-choix de la langue|^|Choix de la langue
+langues|^|Languages
+choix de la langue|^|Language choice
 english|^|english
-french|^|french
-ligne %i|^|Ligne %i
-texte...|^|Texte...
-change la vitesse à laquelle les boutons du menu tournent.|^|Change la vitesse à laquelle les boutons du menu tournent.
-change la résolution de votre écran.|^|Change la résolution de votre écran.
-affiche ou masque les nuages sur la planète|^|Affiche ou masque les nuages sur la planète
-change les paramètres d'affichage de votre écran....|^|Change les paramètres d'affichage de votre écran....
-change les options d'internationalisation|^|Change les options d'internationalisation
-change les paramètres avancés de votre écran|^|Change les paramètres avancés de votre écran
-change les paramètres de la carte|^|Change les paramètres de la carte
+french|^|français
+ligne %i|^|Line %i
+texte...|^|Text...
+change la vitesse à laquelle les boutons du menu tournent.|^|Change the speed of the menu animation.
+change la résolution de votre écran.|^|Change screen resolution.
+affiche ou masque les nuages sur la planète|^|Show or hide clouds.
+change les paramètres d'affichage de votre écran....|^|Change display properties....
+change les options d'internationalisation|^|Change internationalisation options
+change les paramètres avancés de votre écran|^|Change advanced display properties
+change les paramètres de la carte|^|Change map parameters
+génération|^|Creation
+tesselation|^|Tesselation
+delta|^|Delta
+écosystème|^|Ecosystem
+univers|^|Univers
+règles|^|Rules
+change les paramètres de construction de la planète|^|Change les paramètres de construction de la planète
+écart entre le niveau de la mer et le plus haut sommet (en % du rayon de la planète)|^|Écart entre le niveau de la mer et le plus haut sommet (en % du rayon de la planète)
+nombre de subdivision de la planète. plus ce nombre est élevé, plus la planète sera grande.|^|Nombre de subdivision de la planète. Plus ce nombre est élevé, plus la planète sera grande.
+change les règles de jeu actives sur la planète|^|Change les règles de jeu actives sur la planète
+change les paramètres de végétation|^|Change les paramètres de végétation
