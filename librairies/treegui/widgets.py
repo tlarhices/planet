@@ -90,6 +90,9 @@ class Widget(object):
         """ called when mouse is hovering over this """
     onHover = False
     
+    def __onHover__(self):
+      pass
+    
         
     def onClick(self):
         """ called when this is right clicked """

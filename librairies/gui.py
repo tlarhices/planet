@@ -25,6 +25,7 @@ HAUTEUR_TEXTE = 15 #Hauteur d'une ligne de texte
 TAILLE_ICONE = 15 #Hauteur==Largeur d'une icone
 
 class Console(Pane):
+  """Une console qui permet d'exécuter du code python sans quitter l'appli"""
   style = "default"
   commandes = []
   lignes = []
@@ -375,15 +376,9 @@ class Historique(MenuCirculaire):
       type="inconnu"
     cmp = Icon(self.icones[type], width=LARGEUR_BOUTON)
     cmp.tooltip = message
-    cmp.onHover = self.hover
+    cmp.__onHover__ = cmp.onHover
+    cmp.onHover = general.interface.hover
     return cmp
-    
-  def hover(self):
-    composant = general.interface.gui.hoveringOver
-    if composant != None:
-      general.interface.tip(composant.icon, composant.tooltip)
-    else:
-      print "pas de composant, pas de tooltip"
     
   def MAJ(self, temps):
     """Gère la pulsation des icones et supprime les icones périmées"""
@@ -830,7 +825,10 @@ class MenuDepuisFichier(MenuCirculaire):
       btn.upStyle = "button"
       btn.overStyle = "button_over"
       btn.downStyle = "button_down"
-      
+      btn.tooltip = dicoSection["infobulle"]
+      btn.__onHover__ = btn.onHover
+      btn.onHover = general.interface.hover
+
       #On regarde si la section que l'on construit est celle à afficher
       if self.select == dicoSection["nom"].lower().strip():
         #Si c'est le cas, on met à jour l'état actif/inactif du bouton
@@ -889,6 +887,9 @@ class MenuDepuisFichier(MenuCirculaire):
           btn.upStyle = "button"
           btn.overStyle = "button_over"
           btn.downStyle = "button_down"
+          btn.tooltip = contenuElement["infobulle"]
+          btn.__onHover__ = btn.onHover
+          btn.onHover = general.interface.hover
       
     if fabrique:
       #On construit les boutons
@@ -1262,6 +1263,10 @@ class Interface:
     else:
       self.console.visable = not self.console.visable
       
+    if self.console.visable:
+      general.interface.gui.keys.focus = self.console.texte
+      self.console.texte.onFocus()
+      
   def tip(self, icone, message):
     if icone==None:
       self.tooltip.text = general.i18n.getText(message)
@@ -1296,3 +1301,11 @@ class Interface:
       self.gui._draw()
       #On force le rendu
       base.graphicsEngine.renderFrame()
+      
+  def hover(self):
+    composant = self.gui.hoveringOver
+    if composant != None:
+      self.tip(composant.icon, composant.tooltip)
+      if composant.__onHover__:
+        composant.__onHover__()
+
