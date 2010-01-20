@@ -302,7 +302,9 @@ class AI:
     
   def ping(self, temps):
     """Boucle de calcul de l'IA"""
-    return
+    general.TODO("RÉactiver l'IA")
+    return #BUG : Pour le moment l'IA est en pause
+    
     #On calcul chaque comportement
     self.comportement.ping(temps)
     

@@ -398,8 +398,8 @@ class Geoide:
     if general.configuration.getConfiguration("Debug", "Planete", "debug_analyse_scene", "f", bool):
       self.racine.analyze()
 
-  def animEau(self, time):
-    #change z component of vertices in water plane
+  def animEau(self, temps):
+    """Animation de l'eau via manipulation des vectrices"""
     geomNodeCollection = self.modeleEau.findAllMatches('**/+GeomNode')
     for nodePath in geomNodeCollection:
       geomNode = nodePath.node()
@@ -412,15 +412,14 @@ class Geoide:
           v = vertex.getData3f()
           v = Vec3(*v)
           v.normalize()
-          v=v*self.waveFunction(v[0],v[1],v[2],time)
-          vertex.setData3f(v[0],v[1],v[2])
+          v=v*self.ondulateur(v[0], v[1], v[2], temps)
+          vertex.setData3f(v[0], v[1], v[2])
 
-
-  #waveFunction
-  def waveFunction(self,x,y,z,time):
-    WAVE_LENGTH = 0.005
-    WAVE_HEIGHT = 0.0001
-    z=(math.sin(time+x/WAVE_LENGTH)+math.sin(y+x)/WAVE_LENGTH)*math.cos(time+z/WAVE_LENGTH)*WAVE_HEIGHT/2
+  def ondulateur(self, x, y, z, temps):
+    """Fonction qui calcule les vagues de l'animation de l'eau (mode par vectrice)"""
+    longueurOnde = general.configuration.getConfiguration("affichage","effets", "animation-eau-longueuronde","0.005", float)
+    tailleOnde = general.configuration.getConfiguration("affichage","effets", "animation-eau-tailleonde","0.0001", float)
+    z=(math.sin(temps+x/longueurOnde)+math.sin(y+x)/longueurOnde)*math.cos(temps+z/longueurOnde)*tailleOnde/2
     return self.niveauEau+z 
 
   def fabriqueEau(self):
@@ -666,7 +665,7 @@ class Geoide:
     temps = task.time - self.lastPing
     self.lastPing = task.time
     
-    if general.configuration.getConfiguration("affichage","general", "animation-eau","t", bool):
+    if general.configuration.getConfiguration("affichage","effets", "animation-eau","t", bool):
       if self.modeleEau!=None:
         self.animEau(task.time)
         

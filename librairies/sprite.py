@@ -449,7 +449,9 @@ class Sprite:
       self.modele = None
     self.symbole = None
     if self.blipid!=None:
-      general.interface.menuCourant.miniMap.enlevePoint(self.blipid)
+      if general.interface.menuCourant!=None:
+        if general.interface.menuCourant.miniMap!=None:
+          general.interface.menuCourant.miniMap.enlevePoint(self.blipid)
     if self.ai != None:
       self.ai.clear()
       self.ai = None

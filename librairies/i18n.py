@@ -17,6 +17,13 @@ class i18n:
     self.langue = langue
     self.traductions = {}
     
+  def listeLangues(self):
+    langues = ["french",]
+    for langue in os.listdir(os.path.join(".", "data", "langues")):
+      if langue.endswith(".i18n"):
+        langues.append(langue[:-5])
+    return langues
+    
   def utf8ise(self, texte):
     if not isinstance(texte, unicode):
       texte = texte.decode("utf-8")

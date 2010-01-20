@@ -20,5 +20,7 @@
 ./librairies/sprite.py::??::appliqueGravite > Debugger la gestion de la gravité
 ./librairies/sprite.py::??::fabriqueModel > Charger les images data/modeles/birchc-1.png... pour faire un lod
 ./librairies/sprite.py::??::ping > Afficher la barre de vie sur les unités sélectionnées
-./planet.py::??::<module> > Chasser les dépendances circulaires et faire des weakref
+./librairies/sprite.py::??::tue > Ajouter les ruines et les cadavres
+./librairies/sprite.py::??::tue > Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...
+./planet.py::??::__init__ > Passer les DEBUG_* en getConfiguration
 /librairies/sprite.py::??::__init__ > Faire dépendre la vitesse du sprite selon l'angle du sol sur lequel il se déplace

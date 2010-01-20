@@ -26,6 +26,24 @@ icone = vegetable
 nom = Écosystème
 infobulle = Change les paramètres de végétation
 
+animation-eau-tailleonde:
+chemin = affichage/effets/animation-eau-tailleonde
+icone = sound
+nom = Hauteur d'une vague
+infobulle = Amplitude d'onde de l'oscillateur de l'eau
+type = float
+valeurMin = 0.00005
+valeurMax = 0.0005
+
+animation-eau-longueuronde:
+chemin = affichage/effets/animation-eau-longueuronde
+icone = sound
+nom = Longueur d'une vague
+infobulle = Longueur d'onde de l'oscillateur de l'eau
+type = float
+valeurMin = 0.001
+valeurMax = 0.01
+
 nombre-bosquet:
 chemin = planete/generation/nombre-bosquet
 icone = debree

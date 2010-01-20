@@ -81,8 +81,6 @@ class Console(Pane):
   def efface(self):
     pass
     
-    
-    
 class MenuCirculaire:
   """Affiche des boutons positionnés sur un anneau"""
   boutons = None #Liste des instances de boutons
@@ -130,12 +128,12 @@ class MenuCirculaire:
     return bouton
 
   def ajouteHaut(self, bouton):
-    """Ajoute un bouton dans la colonne de gauche"""
+    """Ajoute un bouton dans la colonne du haut"""
     self.boutons[2].append(bouton)
     return bouton
     
   def ajouteBas(self, bouton):
-    """Ajoute un bouton dans la colonne de droite"""
+    """Ajoute un bouton dans la colonne du bas"""
     self.boutons[3].append(bouton)
     return bouton
     
@@ -741,7 +739,8 @@ class EnJeu():
     self.gui.menuCourant = classe(self.gui)
     
   def clear(self):
-    self.gui.historique.clear()
+    if self.gui.historique !=None:
+      self.gui.historique.clear()
     self.listeUnite.clear()
     #Purge tous les points de la carte
     self.miniMap.clear()
@@ -754,141 +753,6 @@ class EnJeu():
     else:
       self.gui.changeMenuVers(ListeCommandes)
         
-class __Informations__(Pane):
-  """Boite de message"""
-  style = "default"
-  lignes = None
-  position = None
-  
-  def __init__(self, gui):
-    self.gui = gui
-    Pane.__init__(self)
-    self.lignes = []
-    self.position = 0
-    
-    y=0
-    #On garde 6 lignes de texte
-    self.l1 = self.add(Label("", x=20, y=0)) #Texte
-    self.i1 = self.add(Icon("icones/blank.png", x=20, y=y)) #Icone
-    self.i1.visable = False #On cache l'icone
-    y+=HAUTEUR_TEXTE
-    self.l2 = self.add(Label("", x=20, y=y))
-    self.i2 = self.add(Icon("icones/blank.png", x=20, y=y))
-    self.i2.visable = False
-    y+=HAUTEUR_TEXTE
-    self.l3 = self.add(Label("", x=20, y=y))
-    self.i3 = self.add(Icon("icones/blank.png", x=20, y=y))
-    self.i3.visable = False
-    y+=HAUTEUR_TEXTE
-    self.l4 = self.add(Label("", x=20, y=y))
-    self.i4 = self.add(Icon("icones/blank.png", x=20, y=y))
-    self.i4.visable = False
-    
-    #Bare de défilement
-    self.plus = self.add(Icon("icones/arrow-up.png", x="left", y="top"))
-    self.plus.onClick = self.logHaut
-    self.plus = self.add(Icon("icones/arrow-down.png", x="left", y="bottom"))
-    self.plus.onClick = self.logBas
-    self.curseur = self.add(Icon("icones/blank.png", x="left", y=HAUTEUR_TEXTE))
-    
-    #On positionne la Form
-    self.x = "left" 
-    self.y = "bottom" 
-    self.width = "100%"
-    self.height = "70px"
-    
-  def logHaut(self):
-    """Fait défiler le log vers le haut"""
-    self.position-=1
-    if self.position < 0:
-      self.position = 0
-    self.refresh()
-    
-  def logBas(self):
-    """Fait défiler le log vers le bas"""
-    self.position+=1
-    if self.position >= len(self.lignes)-6:
-      self.position = len(self.lignes)-7
-    self.refresh()
-    
-  def ajouteTexte(self, icone, texte):
-    """Ajoute une ligne dans le log"""
-    
-    #Si on est pas à la tête du log, on laisse la boite sur le texte en cours bien qu'on ajoute une nouvelle ligne
-    #Sinon on fait scroller le texte automatiquement
-    if self.position !=0:
-      self.position+=1
-      
-    self.lignes.insert(0,(icone, texte))
-    self.refresh()
-    
-  def refresh(self):
-    """Met à jour le texte dans la zone d'affichage"""
-    #On extrait les 4 que l'on veut afficher
-    lignes = self.lignes[self.position:self.position+4]
-    
-    #On calcule la position du curseur de la barre de défilement
-    prct = float(self.position)/float(len(self.lignes))*10
-    self.curseur.y = HAUTEUR_TEXTE + int(prct)
-    
-    if len(lignes) >= 1:
-      self.MAJObjet(self.i1, self.l1, lignes[0][0], lignes[0][1])
-    else:
-      self.MAJObjet(self.i1, self.l1, None, None)
-      
-    if len(lignes) >= 2:
-      self.MAJObjet(self.i2, self.l2, lignes[1][0], lignes[1][1])
-    else:
-      self.MAJObjet(self.i2, self.l2, None, None)
-
-    if len(lignes) >= 3:
-      self.MAJObjet(self.i3, self.l3, lignes[2][0], lignes[2][1])
-    else:
-      self.MAJObjet(self.i3, self.l3, None, None)
-
-    if len(lignes) >= 4:
-      self.MAJObjet(self.i4, self.l4, lignes[3][0], lignes[3][1])
-    else:
-      self.MAJObjet(self.i4, self.l4, None, None)
-
-    
-  icones = {
-  "inconnu":"icones/q.png",
-  "mort":"icones/skull.png",
-  "chat":"icones/phone.png",
-  "info":"icones/info.png",
-  "obscurite":"icones/clock.png",
-  "avertissement":"icones/caution.png",
-  "sauvegarde":"icones/diskette.png"
-  }
-    
-  def MAJObjet(self, objeti, objett, type, texte):
-    #On met à jour le contenu
-      
-    if texte!=None:
-      
-      if type==None:
-        icone = None
-      elif type in self.icones.keys():
-        icone = self.icones[type]
-      else:
-        icone = self.icones["inconnu"]
-      
-      #Si on a une icone, on pousse le texte un peu
-      if icone != None:
-        texte="   "+texte
-
-      if icone != None:
-        objeti.visable = True #On affiche l'icone si on doit en afficher une
-        objeti.icon = icone #On change l'icone
-      else:
-        objeti.visable = False #On cache l'icone s'il n'y en a pas à afficher
-      objett.text = texte #On change le texte
-    else:
-      #Il n'y a pas de texte, ni d'icone
-      objeti.visable = False
-      objett.text = ""
-    
 class Chargement(Pane):
   """
   Bandeau qui dit "chargement..."
@@ -1164,6 +1028,31 @@ class MenuConfiguration(MenuDepuisFichier):
       MenuDepuisFichier.__init__(self, "configuration-enjeu", gui)
     else:
       MenuDepuisFichier.__init__(self, "configuration", gui)
+      
+    #Ajoute la liste de langue au menu
+    self.ajouteListeLangue()
+    #On ouvre le menu dans la première section
+    self.changeMenu(self.menu[0][2]["nom"])
+      
+  def ajouteListeLangue(self):
+    """Force la liste de langue dans le menu"""
+    #On parcours les sections
+    for section in self.menu:
+      nomSection, contenuSection, dicoSection = section
+      #On cherche la section "langues"
+      if "langues" == dicoSection["nom"].lower().strip():
+        #Prototype de langue
+        for element in contenuSection:
+          nomElement, contenuElement = element
+          if nomElement.lower().strip()=="choixlangue":
+            contenuElement["type"]="liste"
+            contenuElement["valeurs"]=general.i18n.listeLangues()
+          
+  def clicValeur(self, bouton, etat):
+    """Ajoute la liste de langue à chaque rechargement du menu"""
+    MenuDepuisFichier.clicValeur(self, bouton, etat)
+    self.ajouteListeLangue()
+    self.changeMenu(self.select)
     
 class MenuVierge(MenuCirculaire):
   """Contient la liste des planètes vierges que l'on peut charger"""
@@ -1240,7 +1129,7 @@ class MenuCharge(MenuCirculaire):
 class Interface:
   joueur = None
   menuCourant = None
-  informations = None
+  historique = None
   console = None
   tooltip = None
   rectangleDrag = None
@@ -1282,6 +1171,8 @@ class Interface:
   def ping(self, task):
     if self.menuCourant!=None:
       self.menuCourant.MAJ(task.time)
+    if self.historique!=None:
+      self.historique.MAJ(task.time)
     return task.cont
     
   def changeMenuVers(self, classe):
@@ -1305,9 +1196,9 @@ class Interface:
   def removeMain(self):
     """Supprime les éléments de l'interface utilisés lors du chargement"""
     self.changeMenuVers(None)
-    if self.informations != None:
-      self.informations.efface(None)
-      self.informations = None
+    if self.historique != None:
+      self.historique.efface(None)
+      self.historique = None
     if self.chargement != None:
       self.gui.remove(self.chargement)
       self.chargement = None
@@ -1315,7 +1206,7 @@ class Interface:
   def makeMain(self):
     """Construit les éléments de l'interface lors du chargement"""
     self.changeMenuVers(None)
-    self.informations = Historique(self)
+    self.historique = Historique(self)
     self.chargement = self.gui.add(Chargement())
     
   def configurer(self):
@@ -1352,8 +1243,11 @@ class Interface:
     """Quitte la partie et retour au menu principal"""
     jeu = self.menuCourant
     self.menuCourant = None
-    
+    self.historique.clear()
+    self.historique = None
     jeu.efface(MenuPrincipal)
+    general.planete.detruit()
+    general.start.fabriqueSystemeSolaire()
     
   def ajouteJoueur(self, joueur):
     """Indique qu'on passe du mode chargement au mode joueur"""
@@ -1372,7 +1266,6 @@ class Interface:
     message = general.i18n.getText(message)
     message = message %parametres
     self.historique.ajouteMessage(type, message, coord)
-    self.informations.ajouteMessage(type, message, None)
     
   def afficheConsole(self):
     if self.console != None:
@@ -1392,7 +1285,6 @@ class Interface:
       self.tooltip.text = "     "+general.i18n.getText(message)
       self.tooltip.icon = icone
       
-    
   def afficheTexte(self, texte, parametres, type="normal", forceRefresh=False):
     """Affiche le texte sur l'écran, si texte==None, alors efface le dernier texte affiché"""
     texte = self.getText(texte)
@@ -1406,8 +1298,8 @@ class Interface:
       else:
         chaine = u"["+general.i18n.utf8ise(type)+u"]"+" "+general.i18n.utf8ise(texte)
         print chaine.encode("UTF-8")
-      if self.informations !=None:
-        self.informations.ajouteMessage(type, texte)
+      if self.historique !=None:
+        self.historique.ajouteMessage(type, texte)
         
     if forceRefresh:
       #On force le recalcul du GUI

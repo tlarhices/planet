@@ -142,7 +142,6 @@ class Element:
     Si forceCouleur est different de None, alors sa valeur sera utilisée comme couleur pour la facette
     """
     lvlOpt = 1
-    
     if self.modele!=None:
       self.modele.detachNode()
       self.modele.removeNode()
@@ -176,15 +175,19 @@ class Element:
     
     self.modele.setPos(general.planete.geoide.sommets[self.sommets[0]])
     insert.setPos(-general.planete.geoide.sommets[self.sommets[0]])
-        
+
     self.modele.reparentTo(self.planete.racineModel)
     self.modele.setPythonTag("type","sol")
     
     self.fabriqueVegetation()
+    
     return self.modele
     
     
   def fabriqueVegetation(self):
+    """Ajoute la végétation"""
+    
+    #Indique ce qui pousse à quelle altitude
     vegetation=[]
     vegetation.append([]) #Vide
     vegetation.append(["palmier","banana","benjamina01","dypsis01","ficus01","ginger","greenhouse-palm-acai01","greenhouse-palm-acai02","greenhouse-palm-acai03","greenhouse-palm-cycas01","greenhouse-palm-jubaea01","howea01"]) #Sable/plage
@@ -192,50 +195,52 @@ class Element:
     vegetation.append(["herbe", "sapin2","cerisier","boulot1","boulot2","arbrerond","bougainvillier","dypsis01","eucalyptus","ginger", "greenhouse-if01", "greenhouse-if02", "greenhouse-if03", "howea01", "sophora"]) #Feuilluts
     vegetation.append(["herbe", "sapin3","petitarbre","sapin2","sapin1","bougainvillier","ginger", "greenhouse-if01", "greenhouse-if02", "greenhouse-if03", "rose"]) #Altitude
         
-    self.vegetation = NodePath("vegetation")#RigidBodyCombiner("vegetation"))
+    self.vegetation = NodePath("vegetation")
     self.vegetation.reparentTo(render)
         
-        
     s1 = general.planete.geoide.sommets[self.sommets[0]]
-    s2 = general.planete.geoide.sommets[self.sommets[0]]
-    s3 = general.planete.geoide.sommets[self.sommets[0]]
-    if (s1.length()+s2.length()+s3.length())/3>general.planete.geoide.niveauEau:
-        h1 = self.couleurSommet(s1)[2]
-        h2 = self.couleurSommet(s2)[2]
-        h3 = self.couleurSommet(s3)[2]
-        if h1>0 and h2>0 and h3>0:
-          for i in range(0, random.random()*general.configuration.getConfiguration("planete","Generation", "nombre-bosquet","2", int)):
-            if random.random()>1.0-general.configuration.getConfiguration("planete","Generation", "densite-bosquet","0.8", float):
-              r1=random.random()
-              r2=random.random()
-              if r1+r2>1.0:
-                r2=1.0-r1
-              r3=1.0-(r1+r2)
-              
-              p = s1*r1+s2*r2+s3*r3
-              alt = p.length()
-              if alt>general.planete.geoide.niveauEau:
-                #p.normalize()
-                #p=p*alt
-                type=int((float(h1)+float(h2)+float(h3))/3.0+0.5)
-                typeVegetation = random.choice(vegetation[type])
-                sprite = general.planete.ajouteSprite(typeVegetation, p, typeVegetation)
-                sprite.rac.reparentTo(self.vegetation)
-                sprite.racine.flattenStrong()
-                #on change d'échelle aléatoirement pour varier un peu
-                sprite.echelle = sprite.echelle*(1.0-random.random()/8)
-                sprite.racine.setScale(sprite.echelle)
-                sprite.fabriqueModel()
-                #On tourne les arbres aléatoirement pour plus de variation
-                sprite.modele.setH(random.random()*360)
-    #self.vegetation.node().collect()
-                
+    s2 = general.planete.geoide.sommets[self.sommets[1]]
+    s3 = general.planete.geoide.sommets[self.sommets[2]]
+    #On regarde si on est en dehors de l'eau
+    if float(s1.length()+s2.length()+s3.length())/3>general.planete.geoide.niveauEau:
+      #On regarde quel type de plante peut pousser ici
+      h1 = self.couleurSommet(s1)[2]
+      h2 = self.couleurSommet(s2)[2]
+      h3 = self.couleurSommet(s3)[2]
+      if h1>0 and h2>0 and h3>0:
+        #Ajoute des arbres
+        for i in range(0, general.configuration.getConfiguration("planete","Generation", "nombre-bosquet","2", int)):
+          if random.random()>1.0-general.configuration.getConfiguration("planete","Generation", "densite-bosquet","0.8", float):
+            
+            #On choisit une position aléatoire en jouant sur les poids du barycentre
+            r1=random.random()
+            r2=random.random()
+            if r1+r2>1.0:
+              r2=1.0-r1
+            r3=1.0-(r1+r2)
+            
+            p = s1*r1+s2*r2+s3*r3
+            alt = p.length()
+            
+            #On vérifie que ce point est bien au dessus de l'eau
+            if alt>general.planete.geoide.niveauEau:
+              #On choisit le type de végétation qui correspond à ce point en extrapolant depuis les poids barycentriques
+              type=int(float(h1)*r1+float(h2)*r2+float(h3)*r3+0.5)
+              #On choisit un type d'arbre aléatoirement depuis la liste
+              typeVegetation = random.choice(vegetation[type])
+              #On fabrique l'arbre
+              sprite = general.planete.ajouteSprite(typeVegetation, p, typeVegetation)
+              sprite.rac.reparentTo(self.vegetation)
+              sprite.racine.flattenStrong()
+              #on change d'échelle aléatoirement pour varier un peu
+              sprite.echelle = sprite.echelle*(1.0-random.random()/8)
+              sprite.racine.setScale(sprite.echelle)
+              sprite.fabriqueModel()
+              #On tourne les arbres aléatoirement pour plus de variation
+              sprite.modele.setH(random.random()*360)
         
-  texturesValides=["subsubaquatique", "subaquatique", "sable", "champ", "herbe",
-  "feuillesa", "feuillesb", "feuillesc", "cailloux", "neige"]
-    
   def couleurSommet(self, sommet):
-    """Retourne une couleur et une texture suivant l'altitude du sommet"""
+    """Retourne une couleur, une texture et un type de végétation suivant l'altitude du sommet"""
     minAlt = self.planete.niveauEau#(1.0-self.planete.delta)*(1.0-self.planete.delta)
     maxAlt = (1.0+self.planete.delta)*(1.0+self.planete.delta)
     altitude = sommet.lengthSquared()
@@ -273,10 +278,10 @@ class Element:
       return ls.create()
     
   def fabriqueGeomVertex(self):
-    #Prepare la création du triangle
+    """Prepare la création des triangles"""
     if self.planete.vdata == None:
-      format = GeomVertexFormat.getV3n3c4t2() #On donne les vectrices, les normales et les textures
-        
+      #On donne les vectrices, les normales, les couleurs et les textures
+      format = GeomVertexFormat.getV3n3c4t2()
       vdata = GeomVertexData('TriangleVertices',format,Geom.UHStatic)
     else:
       vdata = self.planete.vdata
@@ -289,6 +294,7 @@ class Element:
     return vdata, vWriter, nWriter, tWriter, cWriter
     
   def assemblePrimitives(self):
+    """Met tous les bouts de sphere dans une même boite"""
     primitives = []
     if self.enfants != None:
       for enfant in self.enfants:
@@ -299,7 +305,7 @@ class Element:
     return primitives
     
   def ajouteFace(self, o1, o2, o3):
-    #On fabrique la géométrie
+    """On fabrique la géométrie"""
     prim = GeomTriangles(Geom.UHStatic)
     prim.addVertex(o1)
     prim.addVertex(o2)

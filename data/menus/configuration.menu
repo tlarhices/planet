@@ -28,6 +28,19 @@ nom = Afficher les nuages
 infobulle = Affiche ou masque les nuages sur la planète
 type = bool
 
+[Langues]
+icone = quote
+nom = Langues
+infobulle = Change les options d'internationalisation
+
+choixlangue:
+chemin = affichage/langue/langue
+icone = quote
+nom = Choix de la langue
+infobulle = Choisissez la langue d'affichage que vous souhaitez
+type = liste
+valeurs = french|french
+
 
 [Effets]
 icone = configure
@@ -67,7 +80,7 @@ type = liste
 valeurs = shader|texture
 
 animation-eau:
-chemin = affichage/general/animation-eau
+chemin = affichage/effets/animation-eau
 icone = sound
 nom = Animation de l'eau par vectrice
 infobulle = Si activé, l'eau sera animée. Peut faire des effets étranges avec l'animation en mode shader.

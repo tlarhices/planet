@@ -150,6 +150,12 @@ class Configuration:
     self.configuration[section][soussection][champ]=valeur
     
   def versType(self, valeur, defaut, type):
+    """
+    Effectue un transtypage sécurisé
+    Effectue type(valeur), si une erreur survient un message est affiché et type(defaut) est renvoyé
+    Effectue un transtypage intelligent des booléens
+    Si type(defaut) retourne une erreur, le programme se bloque
+    """
     try:
       if type==bool:
         if isinstance(valeur, bool):
@@ -202,6 +208,7 @@ class Configuration:
     return self.versType(self.configuration[section][soussection][champ], defaut, type)
     
   def chargeMenu(self, menu):
+    """Charge un fichier de menu et retourne le contenu du fichier parsé"""
     if not os.path.exists(os.path.join(".","data","menus",menu+".menu")):
       print "ChargeMenu, Erreur : fichier de menu inexistant", menu
       return None

@@ -10,6 +10,9 @@ import sys
 import shutil
 import getopt
 import os
+from weakref import proxy
+
+#Ajoute les dossiers de librairies au path
 sys.path.append(os.path.join(".", "librairies"))
 sys.path.append(os.path.join(".", "librairies","ai"))
 
@@ -17,7 +20,6 @@ import general
 
 #Préparation du todo
 general.chargeTODO()
-general.TODO("Chasser les dépendances circulaires et faire des weakref")
 
 from planete import Planete
 from systemesolaire import SystemeSolaire
@@ -28,36 +30,29 @@ from gui import Interface
 from cartographie import Cartographie
 from i18n import i18n
 
-from weakref import proxy
-
 try:
     import psyco
     psyco.full()
     #psyco.profile()
 except ImportError:
     print 
-    print "Vous devriez installer Psyco (pour python) pour aller plus vite"
+    print "Vous devriez installer Psyco (pour python) pour aller plus vite."
     print 
 
 
+#Fabrique les dossiers de donnée s'ils ne sont pas déjà là
 if not os.path.exists(os.path.join(".", "sauvegardes")):
   os.makedirs(os.path.join(".", "sauvegardes"))
 if not os.path.exists(os.path.join(".", "data", "planetes")):
   os.makedirs(os.path.join(".", "data", "planetes"))
       
 class Start:
-  
-  #Paramètres de génération de la planète
-  delta=None #Le taux de perturbation de la surface de la planète
-  
-  #Autres
-  preImage = None #L'heure à laquelle la précédente image a été rendue
-  
+  """Gère le début de la partie"""
   ### Initialisation ---------------------------------------------------
   def __init__(self):
-    
     general.start = self
     
+    #Active le shader si besoin est
     if general.configuration.getConfiguration("affichage", "general", "multitexturage", "heightmap", str) == "shader":
       _lightvec = Vec4(1.0, 0.0, 1.0, 1.0)
       render.setShaderInput( 'lightvec', _lightvec )
@@ -68,6 +63,7 @@ class Start:
       cam0.setTagStateKey( 'Normal' )
       cam0.setTagState( 'True' , RenderState.make( sa ) )
     
+    general.TODO("Passer les DEBUG_* en getConfiguration")
     #Configuration de DEBUG
     general.DEBUG_GENERE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_genere_planete", "f", bool)
     general.DEBUG_CHARGE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_charge_planete", "f", bool)
@@ -125,23 +121,10 @@ class Start:
     if general.configuration.getConfiguration("affichage", "general", "afficheFPS","f", bool):
       base.setFrameRateMeter(True)
       
-      
-      if cpt>0:
-        self.ajouteGauche(Button(u"Utiliser un planète vierge", self.gui.planeteVierge, width=LARGEUR_BOUTON))
-
-    #On fabrique le système solaire
-    general.planete = SystemeSolaire()
-    #On place les planètes dans le système
-    cptPlanetes = 0
-    for fich in os.listdir(os.path.join(".", "data", "planetes")):
-      if fich.endswith(".pln"):
-        cptPlanetes+=1
-        general.planete.ajoutePlanete(fich)
-    #on met des planètes aléatoires qui font rien pour avoir au moins 7 planètes dans le menu
-    while cptPlanetes<7:
-      cptPlanetes+=1
-      general.planete.ajoutePlanete("--n/a--")
-    general.planete.fabriqueModel()
+    #On ajoute le système solaire
+    self.fabriqueSystemeSolaire()
+    
+    #On dit qu'on a pas de joueur
     general.joueurLocal = None
     
     #general.io est crée par l'interface
@@ -151,9 +134,27 @@ class Start:
     #On affiche le menu principal
     general.interface.lanceInterface()
     
+  def fabriqueSystemeSolaire(self):
+    """Construit le système solaire"""
+    
+    #On fabrique le système solaire
+    general.planete = SystemeSolaire()
+    #On place les planètes dans le système
+    cptPlanetes = 0
+    for fich in os.listdir(os.path.join(".", "data", "planetes")):
+      if fich.endswith(".pln"):
+        cptPlanetes+=1
+        general.planete.ajoutePlanete(fich)
+    #On met des planètes aléatoires qui font rien pour avoir au moins 7 planètes dans le menu
+    while cptPlanetes<7:
+      cptPlanetes+=1
+      general.planete.ajoutePlanete("--n/a--")
+    general.planete.fabriqueModel()
+    
   def start(self):
     """Lance le rendu et la boucle de jeu"""
 
+    #Les couleurs des joueurs par ordre d'arrivée sur la planète
     couleurs = [
       (0.0, 0.0, 1.0, 1.0),
       (1.0, 0.0, 0.0, 1.0),
@@ -194,16 +195,11 @@ class Start:
     #On construit le modèle 3D de la planète
     general.planete.fabriqueModel()
     
-    #On retire la planete qui servait de fond de menu
-    general.planete.afficheTexte("Supression de la planète du menu : %(nom)s", parametres={"nom":general.tmp.nom})
+    #On retire le système solaire du fond de menu
+    general.planete.afficheTexte("Supression du système solaire")
     general.tmp.detruit()
     general.tmp = None
     
-    #On repositionne la caméra (la distance du sol peu avoir changé, tout comme l'épaisseur d'atmosphère)
-    #general.io.positionneCamera()
-    #general.io.positionneCamera()
-    
-
   def ping(self, task):
     """Fonction exécutée à chaque image"""
     #On met à jour l'heure actuelle pour les calculs dans les shaders
@@ -222,11 +218,12 @@ class Start:
     
     #On fabrique une nouvelle planete vide
     general.planete = Planete()
-    #On lit la configuration
-    tesselation = general.configuration.getConfiguration("planete", "generation", "tesselation", "4", int)
-    delta = general.configuration.getConfiguration("planete", "generation", "delta", "0.2", float)
+    
     #On fabrique la planète
-    general.planete.fabriqueNouvellePlanete(tesselation=tesselation, delta=delta)
+    general.planete.fabriqueNouvellePlanete(
+      tesselation = general.configuration.getConfiguration("planete", "generation", "tesselation", "4", int),
+      delta = general.configuration.getConfiguration("planete", "generation", "delta", "0.2", float)
+    )
     
   def chargePlanete(self, fichierPlanete):
     """Charge une planète depuis un fichier"""
@@ -266,18 +263,6 @@ def aideCommande():
   print "     Utiliser 'fichier' comme fichier de config"
   print "  -p / --profiler :"
   print "     Active cProfile et lui fait produire le fichier profiler.log"
-  print ""
-  print " # Configuration clavier par défaut :"
-  print "  -q/esc :"
-  print "     Quitter"
-  print "  -Touches flêchées / souris aux bors de l'écran :"
-  print "     Déplacer la caméra"
-  print "  -Touches +/- / molette haut/bas :"
-  print "     Zommer/dézoomer"
-  print "  -Clic gauche sur la planète :"
-  print "     Surélever le sommet le plus proche du curseur"
-  print "  -Clic droite sur la planète :"
-  print "     Enfoncer le sommet le plus proche du curseur"
 
 #Parasage des paramètres de la ligne de commande
 try:
@@ -313,7 +298,6 @@ def deb():
 if __name__=="__main__":
   fichierConfig = None
   profile = False
-  besoinDetails = False
   for o, a in opts:
     if o in ("-h", "--help"):
       aideCommande()
@@ -340,6 +324,7 @@ if __name__=="__main__":
     #Si on a un fichier de config donné par ligne de commande, on l'utilise
     general.configuration.charge(fichierConfig, erreurSiExistePas=False)
     
+  #On initialise l'internationalisation
   general.i18n = i18n(langue=general.configuration.getConfiguration("affichage","langue", "langue", "french", str))
 
   from pandac.PandaModules import *

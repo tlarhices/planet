@@ -44,7 +44,7 @@ def cellule(tab):
   for i in range(0,T):
     for j in range(0,T):
       somme = sommeVoisin(copie, i, j)
-      if copie[i][j]==0 and (somme==3 or somme==6):
+      if copie[i][j]==0 and (somme==3 or False):#somme==6):
         tab[i][j]=1
       if copie[i][j]==1:
         if somme==2 or somme==3:
@@ -74,6 +74,19 @@ while True:
         grilleMonte[i][j] = abs(grilleDescend[i][j]+grillePlan[i][j]-1)
         grilleDescend[i][j] = abs(grilleMonte[i][j]+grillePlan[i][j]-1)
         grillePlan[i][j] = abs(grilleMonte[i][j]+grilleDescend[i][j]-1)
+      if random.random()>0.8:
+        grille = random.choice((grilleMonte, grilleDescend, grillePlan))
+        grille[i][j] = int(random.random()+0.5)
+      if grilleSol[i][j]>=100:
+        grilleSol[i][j] = 100
+        grilleMonte[i][j] = 0
+        grillePlan[i][j] = 0
+        grilleDescend[i][j] = 1
+      if grilleSol[i][j]<=-100:
+        grilleSol[i][j] = -100
+        grilleDescend[i][j] = 0
+        grillePlan[i][j] = 0
+        grilleMonte[i][j] = 1
       print int(grilleSol[i][j]),
     print
   raw_input()
