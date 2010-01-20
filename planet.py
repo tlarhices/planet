@@ -196,7 +196,7 @@ class Start:
     general.planete.fabriqueModel()
     
     #On retire le système solaire du fond de menu
-    general.planete.afficheTexte("Supression du système solaire")
+    general.planete.afficheTexte("Supression du système solaire", {}, None)
     general.tmp.detruit()
     general.tmp = None
     

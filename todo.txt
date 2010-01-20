@@ -1,5 +1,6 @@
 ./librairies/ai.py::??::__init__ > Prise en compte des bateaux lors des calculs de déplacement
 ./librairies/ai.py::??::anglePassage > Vérifier que l'angle soit calculé comme il devrait être
+./librairies/ai.py::??::ping > RÉactiver l'IA
 ./librairies/ai.py::??::ping > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
 ./librairies/ai.py::??::sauvegarde > Sauvegarde des comportements unitaires de type :ai.AppelFonction
 ./librairies/ai.py::??::sauvegarde > Sauvegarde des comportements unitaires de type :ai.Routine
