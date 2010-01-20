@@ -10,6 +10,7 @@
 from treegui.widgets import *
 from treegui.components import *
 import math
+import general
 
 PAD = 4
 
@@ -138,3 +139,33 @@ class Groupe(Pane):
       self.height = composant.y + composant.height
       colone+=1
     
+class EntryHistory(Entry):
+  
+  def tradTouche(self, touche):
+    letters = "abcdefghijklmnopqrstuvwxyz"     
+    symbols = "1234567890-^@[;:],./\\"#"1234567890-=,./[]\\;'`"
+    shifted = "!\"#$%&'()~=~`{+*}<>?_"#"!@#$%^&*()_+<>?{}|:\"~"
+    
+    if "shift" in general.io.touchesControles:
+      if touche in letters:
+        return touche.upper()
+      if touche in symbols:
+        return shifted[symbols.index(touche)]
+    return touche
+
+  def onKey(self, char):
+    char = self.tradTouche(char)
+    if char=="arrow_up":
+      history = self.history(-1)
+      if history != None:
+        self.text = history
+    elif char=="arrow_down":
+      history = self.history(1)
+      if history != None:
+        self.text = history
+    else:
+      Entry.onKey(self, char)
+      
+  def history(self, move):
+    return None
+      

@@ -215,6 +215,9 @@ class IO:
   def presseTouche(self, touche):
     """Une touche a été pressée, on l'ajoute a la liste des touches"""
     
+    if touche in ["alt", "shift", "control"]:#, "lalt", "lshift", "lcontrol", "ralt", "rshift", "rcontrol"]:
+      self.touchesControles.append(touche)
+
     #On regarde si c'est le clavier (touche.find("mouse")==-1) et si on est sur une zone de texte (focus!=None)
     if general.interface.gui.keys.focus and touche.find("mouse")==-1:
       return
@@ -223,8 +226,6 @@ class IO:
       return
 
     self.touches.append(touche)
-    if touche in ["alt", "shift", "control"]:#, "lalt", "lshift", "lcontrol", "ralt", "rshift", "rcontrol"]:
-      self.touchesControles.append(touche)
     self.gereTouche()
     
   def relacheTouche(self, touche):

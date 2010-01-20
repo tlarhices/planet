@@ -24,59 +24,48 @@ HAUTEUR_CHECK = 15 #Hauteur d'une checkbox
 HAUTEUR_TEXTE = 15 #Hauteur d'une ligne de texte
 TAILLE_ICONE = 15 #Hauteur==Largeur d'une icone
 
-
-class InfoBulle(Pane):
-  """Zone de texte qui disparait après un certain temps"""
-  def __init__(self, gui, message, timeout, x, y, callback=None):
-    """
-    gui : l'instance de la classe Interface en cours d'utilisation
-    message : le message à afficher
-    timeout : la durée après laquelle l'infobulle doit disparaitre
-    x,y : la position de l'infobulle à l'écran
-    callback : la fonction à appeler une fois que la bulle disparait
-    """
-    Pane.__init__(self)
-    #Crée le label
-    label = self.add(Label(message))
-    #Positionne et dimentionne le fond de la bulle
-    self.width, self.height = label.getSize(gui.gui)
-    self.x, self.y = x, y
-    
-    #La fonction de fin
-    if callback != None:
-      self.callback = callback
-      
-    #La fonction qui va supprimer l'infobulle une fois le timeout passé
-    taskMgr.doMethodLater(timeout, self.exit, 'effaceInfoBulle')
-    
-  def exit(self, task=None):
-    """
-    Fonction qui détruit l'infobulle
-    task : paramètre renvoyé par taskMgr
-    """
-    self.parent.remove(self)
-    self.callback()
-    if task!=None:
-      return task.done
-    
-  def callback(self):
-    """Cette fonction est appelée quand la bulle est détruite"""
-    pass
-    
 class Console(Pane):
   style = "default"
+  commandes = []
+  lignes = []
+  
   def __init__(self):
     Pane.__init__(self)
     self.ligne1 = self.add(Label(general.i18n.getText("Ligne %i") %1, x=PAD, y=PAD*1+HAUTEUR_TEXTE*0))
     self.ligne2 = self.add(Label(general.i18n.getText("Ligne %i") %2, x=PAD, y=PAD*2+HAUTEUR_TEXTE*1))
     self.ligne3 = self.add(Label(general.i18n.getText("Ligne %i") %3, x=PAD, y=PAD*3+HAUTEUR_TEXTE*2))
     self.ligne4 = self.add(Label(general.i18n.getText("Ligne %i") %4, x=PAD, y=PAD*4+HAUTEUR_TEXTE*3))
-    self.texte = self.add(TextArea(general.i18n.getText("Texte..."), x=PAD, y=PAD*5+HAUTEUR_TEXTE*4, width="100%"))
+    self.texte = self.add(EntryHistory(general.i18n.getText("Texte..."), x=PAD, y=PAD*5+HAUTEUR_TEXTE*4, width="100%"))
     #On positionne la Form
     self.x = "left" 
     self.y = "top" 
     self.width = "100%"
     self.height = PAD*7+HAUTEUR_TEXTE*5
+    self.texte.onEnter = self.execute
+    self.texte.history = self.history
+    self.positionHistorique = 0
+    
+  def history(self, mouvement):
+    self.positionHistorique=self.positionHistorique+mouvement
+    self.positionHistorique = min(self.positionHistorique, len(self.commandes))
+    self.positionHistorique = max(0, self.positionHistorique)
+    if self.positionHistorique == len(self.commandes):
+      return ""
+    return self.commandes[self.positionHistorique]
+    
+  def execute(self, texte):
+    self.ligne1.text = self.ligne3.text
+    self.ligne2.text = self.ligne4.text
+    self.ligne3.text = texte
+    try:
+      test=eval(texte)
+    except Exception, e:
+      test=str(e)
+    self.ligne4.text = ">>> "+str(test)
+    self.commandes.append(texte)
+    self.positionHistorique=len(self.commandes)
+    self.lignes.append(texte)
+    self.lignes.append(">>> "+str(test))
     
   def efface(self):
     pass
@@ -1268,13 +1257,10 @@ class Interface:
     self.historique.ajouteMessage(type, message, coord)
     
   def afficheConsole(self):
-    if self.console != None:
-      self.gui.remove(self.console)
-      self.console.efface()
-      self.console = None
-    else:
+    if not self.console:
       self.console = self.gui.add(Console())
-      
+    else:
+      self.console.visable = not self.console.visable
       
   def tip(self, icone, message):
     if icone==None:
