@@ -325,7 +325,7 @@ class IO:
   
   def testeSouris(self, coords=None):
     """Teste ce qui se trouve sous le curseur de la souris"""
-    self.selection = []
+      
     planete = general.planete
     
     if coords==None:
@@ -356,7 +356,10 @@ class IO:
           idsommet = general.planete.geoide.trouveSommet(coord)
           planete.geoide.survol = idsommet
       elif objet.getPythonTag('type') == "sprite":
-          self.selection = [objet.getPythonTag('instance'),]
+          if "shift" not in self.touchesControles:
+            self.selection = []
+          if objet.getPythonTag('instance') not in self.selection:
+            self.selection.append(objet.getPythonTag('instance'))
       elif objet.getPythonTag('type') == "planete":
           nomPlanete = objet.getPythonTag("nomPlanete")
           from gui import MenuVierge
@@ -371,6 +374,8 @@ class IO:
     else:
       if planete!=None and isinstance(planete, SystemeSolaire):
         return
+      if "shift" not in self.touchesControles:
+        self.selection = []
       planete.geoide.survol = None
         
         
@@ -492,7 +497,9 @@ class IO:
       #on a pas de joueur
       return
       
-    self.selection = []
+    #"shift+d&d" ajoute les unités à la sélection courante, "d&d" remplace la sélection courante par ce qui est dans le rectangle
+    if not "shift" in self.touchesControles:
+      self.selection = []
     
     #On normalise les coordonnées du rectangle de sélection
     minx = min(coordDeb[0], coordFin[0])
@@ -510,7 +517,8 @@ class IO:
           if pos[0]>=pt1[0] and pos[0]<=pt2[0]:
             if pos[1]>=pt1[1] and pos[1]<=pt2[1]:
               if general.ligneCroiseSphere(sprite.position, self.camera.getPos(), (0.0,0.0,0.0), 1.0) == None:
-                self.selection.append(sprite)
+                if sprite not in self.selection:
+                  self.selection.append(sprite)
   
   def afficheStat(self):
     #Affiche le contenu du chronomètre
@@ -524,9 +532,11 @@ class IO:
     print "création du groupe",idGroupe,"contenant :",self.selection
     
   def appelGroupe(self, idGroupe):
+    """un "1" sélectionne le groupe 1 uniquement, si "shift+1" ajoute le groupe 1 à la sélection courante"""
     if not idGroupe in self.groupesUnites:
       print "groupe",idGroupe,"no défini"
-      self.selection = []
+      if not "shift" in self.touchesControles:
+        self.selection = []
     else:
       #On supprime les unités mortes depuis la création du groupe
       selection = self.groupesUnites[idGroupe][:]
@@ -535,8 +545,15 @@ class IO:
           selection.remove(sprite)
           
       #On met à jour la sélection et les infos de groupe
-      self.selection = selection
       self.groupesUnites[idGroupe] = selection[:]
+      if not "shift" in self.touchesControles:
+        self.selection = selection
+      else:
+        for unite in selection:
+          if unite not in self.selection:
+            self.selection.append(unite)
+      
+        #On met à jour les infos de groupe
     
     print "sélection est maintenant :",self.selection
     
