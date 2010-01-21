@@ -120,6 +120,7 @@ class SystemeSolaire:
         #planetemdl.setColor(random.random()*0.5, random.random()*0.5, random.random()*0.5)
         planetemdl.setPythonTag("type", "planete") #Pour dire que c'est une planète
         planetemdl.setPythonTag("nomPlanete", planete) #Pour indiquer de quelle planète il sagit et le retrouver facilement 
+        #Si c'est une vraie sauvegarde, on prend sa minimap comme etxture
         if planete!="--n/a--":
           fichier = os.path.join(".","data","cache",planete+"-tex.png")
           zip = zipfile.ZipFile(os.path.join(".","data","planetes",planete), "r")
@@ -131,9 +132,10 @@ class SystemeSolaire:
           img.write(data)
           img.close()
           planetemdl.setTexture(loader.loadTexture("./data/cache/"+planete+"-tex.png"))
+        #Sinon on utili celle par défaut
         else:
-          planetemdl.setTexture(loader.loadTexture("./data/textures/degrad.jpeg"))
-        planetemdl.setHpr(random.random()*360, random.random()*360, random.random()*360)
+          planetemdl.setTexture(loader.loadTexture("./data/textures/planete-vide.png"))
+        #planetemdl.setHpr(random.random()*360, random.random()*360, random.random()*360)
         self.planetes[i] = (planete, rayonplanete, rayonorbite, angleDepart, planetemdl, vitesse)
         anneau = self.racine.attachNewNode(self.dessineCercle(rayonorbite, 40))
         anneau.setBin('background', 2)
