@@ -334,7 +334,6 @@ class IO:
   
   def testeSouris(self, coords=None):
     """Teste ce qui se trouve sous le curseur de la souris"""
-      
     planete = general.planete
     
     if coords==None:
@@ -365,6 +364,7 @@ class IO:
           idsommet = general.planete.geoide.trouveSommet(coord)
           planete.geoide.survol = idsommet
       elif objet.getPythonTag('type') == "sprite":
+          print "clic sprite"
           if "shift" not in self.touchesControles:
             self.selection = []
           if objet.getPythonTag('instance') not in self.selection:
@@ -491,13 +491,13 @@ class IO:
     """Passe un point en pixels dans le champ [-1:1][-1:1] de render2D"""
     if point==None:
       return None
-    return (point[0]/base.win.getXSize()*2-1.0, point[1]/base.win.getYSize()*2-1.0)
+    return (point[0]/base.win.getXSize()*2-1.0, -point[1]/base.win.getYSize()*2-1.0)
     
   def selectionne(self, coordSouris):
     """Fait un clic"""
     if coordSouris==None:
       return
-    self.testeSouris(self.pointEcranVersRender2D(coordSouris))
+    self.testeSouris()
    
   def dragDrop(self, coordDeb, coordFin):
     """Gère le drag&drop"""

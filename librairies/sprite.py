@@ -550,8 +550,10 @@ class Sprite:
       tmp = loader.loadModel(self.fichierModele)
     
     if self.joueur!=None:
-      self.ajouteZoneSurbrillance().reparentTo(tmp)
-    self.ajouteBarreVie().reparentTo(tmp)
+      self.ajouteZoneSurbrillance().reparentTo(self.racine)
+      self.zoneSurbrillance.setScale(self.echelle)
+    self.ajouteBarreVie().reparentTo(self.racine)
+    self.barreDeVie.setScale(self.echelle)
     
     tmp.reparentTo(self.modele)
     self.modele.setScale(self.echelle)
