@@ -23,5 +23,4 @@
 ./librairies/sprite.py::??::ping > Afficher la barre de vie sur les unités sélectionnées
 ./librairies/sprite.py::??::tue > Ajouter les ruines et les cadavres
 ./librairies/sprite.py::??::tue > Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...
-./planet.py::??::__init__ > Passer les DEBUG_* en getConfiguration
 /librairies/sprite.py::??::__init__ > Faire dépendre la vitesse du sprite selon l'angle du sol sur lequel il se déplace

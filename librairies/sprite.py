@@ -26,6 +26,7 @@ class Sprite:
   altCarre = None #L'altitude de cet objet
   rac = None #Ce qui fait que le sprite garde les pieds en bas
   racine = None #Ce qui fait que le sprite garde la tête en haut
+  zoneSurbrillance = None #Le disque au pied des personnages qui indique s'il est sélectionné ou non
   majTempsOrientation = None #La boucle qui s'assure qu'un sprite est bien orienté (les pieds par terre)
   majTempsOrientationMax = None #Le temps minimal à attendre entre 2 recalculs de l'orientation du sprite
   distanceSymbole = None #Distance à partir de laquelle on tranforme l'objet en symbole  (ou fait disparaitre l'objet si symbole==None)
@@ -168,6 +169,14 @@ class Sprite:
       if self in general.io.selection:
         #Le sprite est selectionné, afficher sa barre de vie
         general.TODO("Afficher la barre de vie sur les unités sélectionnées")
+        if self.zoneSurbrillance:
+          self.zoneSurbrillance.show()
+      else:
+        if self.zoneSurbrillance:
+          self.zoneSurbrillance.hide()
+    else:
+      if self.zoneSurbrillance:
+        self.zoneSurbrillance.hide()
         
     #On se casse pas la tête si le sprite est mort
     if self.vie<=0:
@@ -527,6 +536,9 @@ class Sprite:
     else:
       tmp = loader.loadModel(self.fichierModele)
     
+    if self.joueur!=None:
+      self.ajouteZoneSurbrillance().reparentTo(tmp)
+    
     tmp.reparentTo(self.modele)
     self.modele.setScale(self.echelle)
     self.modele.node().addSwitch(self.distanceSymbole, 0) 
@@ -546,6 +558,20 @@ class Sprite:
     self.pointeRacineSol()
     return self.modele
     
+  def ajouteZoneSurbrillance(self):
+      cardMaker = CardMaker('sprite')
+      cardMaker.setFrame(-0.5, 0.5, -0.5, 0.5)
+      cardMaker.setHasNormals(True)
+    
+      #Construit une carte (un plan)
+      racine = NodePath("surbrillance")
+      self.zoneSurbrillance = racine.attachNewNode(cardMaker.generate())
+      self.zoneSurbrillance.setTexture(loader.loadTexture("./data/textures/flare/lens-reflex3.png"))
+      self.zoneSurbrillance.hide()
+      if self.joueur!=None:
+        self.zoneSurbrillance.setColor(*self.joueur.couleur)
+      return self.zoneSurbrillance
+
   def fabriqueSymbole(self, fichierSymbole):
     """Affiche une icône dont la taille ne change pas avec la distance à la caméra"""
     
