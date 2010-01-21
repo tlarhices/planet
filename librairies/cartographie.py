@@ -235,18 +235,15 @@ class Cartographie:
     image = self.miniMap
     draw  =  ImageDraw.Draw(image)
 
-    if general.interface.menuCourant !=None:
-      if general.interface.menuCourant.miniMap !=None:
-        
-        if listeElements == None:
-          listeElements = general.planete.geoide.elements
-          
-        compte=0
-        for element in listeElements:
-          if listeElements == general.planete.geoide.elements:
-            general.planete.afficheTexte("Rendu de la minimap : %(a).2f%%", parametres={"a": (compte*1.0)/len(listeElements)*100}, type="carte")
-          compte+=1
-          self.procedeRenduElement(element, taille, draw, False)
+    if listeElements == None:
+      listeElements = general.planete.geoide.elements
+      
+    compte=0
+    for element in listeElements:
+      if listeElements == general.planete.geoide.elements:
+        general.planete.afficheTexte("Rendu de la minimap : %(a).2f%%", parametres={"a": (compte*1.0)/len(listeElements)*100}, type="carte")
+      compte+=1
+      self.procedeRenduElement(element, taille, draw, False)
     del draw
     """for i in range(0, 1):
       image = image.filter(ImageFilter.BLUR)"""

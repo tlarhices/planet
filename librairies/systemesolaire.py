@@ -136,6 +136,7 @@ class SystemeSolaire:
       planetemdl.setR(task.time*vitesse*5)
       lastorb = rayonorbite
     
+    general.io.camera.reparentTo(render)
     general.io.camera.setPos(0.0, rayonorbite*4, 0.0)
     self.etoiles.setScale(rayonorbite*11)
     general.io.camera.lookAt(self.soleil)

@@ -199,6 +199,7 @@ class Start:
     general.planete.afficheTexte("Supression du système solaire", {}, None)
     general.tmp.detruit()
     general.tmp = None
+    general.io.positionneCamera()
     
   def ping(self, task):
     """Fonction exécutée à chaque image"""

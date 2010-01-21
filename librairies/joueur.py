@@ -19,7 +19,7 @@ class Joueur:
   gui = None
   type = None
   
-  def __init__(self, nom, couleur, besoinGUI):
+  def __init__(self, nom, couleur):
     """
     Gère un nouveau joueur
     nom : nom unique du joueur
@@ -32,9 +32,6 @@ class Joueur:
     self.sprites = []
     
     self.ressources = {"bouffe":10}
-    
-    if besoinGUI:
-      general.interface.ajouteJoueur(self)
 
   def ping(self, temps):
     #Calcul la zone en vue du joueur
@@ -77,20 +74,33 @@ class Joueur:
       
 class JoueurLocal(Joueur):
   """Le joueur devant le clavier"""
+  premierPing=None
+  
   def __init__(self, nom, couleur):
-    Joueur.__init__(self, nom, couleur, True)
+    Joueur.__init__(self, nom, couleur)
     self.type="local"
     #Définit globalement qui est le joueur local
     general.joueurLocal = proxy(self)
+    self.premierPing = True
+    
+  def ping(self, temps):
+    Joueur.ping(self, temps)
+    #On ne fait que ce qui suit au premier ping
+    if self.premierPing:
+      #Vire le menu "chargement" et affiche le menu en jeu
+      general.interface.ajouteJoueur(self)
+      #Met à jour la position de la caméra
+      general.io.positionneCamera()
+      self.premierPing = False
 
 class JoueurDistant(Joueur):
   """Un joueur qui provient du réseau, peut-être humain ou une IA qui est sur une autre machine"""
   def __init__(self, nom, couleur):
-    Joueur.__init__(self, nom, couleur, False)
+    Joueur.__init__(self, nom, couleur)
     self.type="distant"
 
 class JoueurIA(Joueur):
   """Une IA contrôlée sur cette machine"""
   def __init__(self, nom, couleur):
-    Joueur.__init__(self, nom, couleur, False)
+    Joueur.__init__(self, nom, couleur)
     self.type="ia"

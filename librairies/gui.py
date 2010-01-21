@@ -414,6 +414,11 @@ class Historique(MenuCirculaire):
         
     MenuCirculaire.MAJ(self, temps)
     
+  def clear(self):
+    for restant, type, message, composant in self.messages:
+      self.remove(composant)
+    MenuCirculaire.clear(self)
+    
 class FondCarte:
   carte = None
   image = None
@@ -712,7 +717,7 @@ class EnJeu():
   
   def __init__(self, gui):
     self.gui = gui
-    self.gui.historique = Historique(self.gui)
+    #self.gui.historique = Historique(self.gui)
     self.listeUnite = ListeUnite(self.gui)
     self.listeCommandes = ListeCommandes(self.gui)
     self.miniMap = self.gui.gui.add(MiniMap(self.gui))
@@ -1203,7 +1208,7 @@ class Interface:
     """Supprime les éléments de l'interface utilisés lors du chargement"""
     self.changeMenuVers(None)
     if self.historique != None:
-      self.historique.efface(None)
+      self.historique.clear()
       self.historique = None
     if self.chargement != None:
       self.gui.remove(self.chargement)
@@ -1212,6 +1217,8 @@ class Interface:
   def makeMain(self):
     """Construit les éléments de l'interface lors du chargement"""
     self.changeMenuVers(None)
+    if self.historique!=None:
+      raw_input("Zmoops !")
     self.historique = Historique(self)
     self.chargement = self.gui.add(Chargement())
     

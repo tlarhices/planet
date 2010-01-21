@@ -71,3 +71,160 @@ change les paramètres de construction de la planète|^|Change les paramètres d
 nombre de subdivision de la planète. plus ce nombre est élevé, plus la planète sera grande.|^|Nombre de subdivision de la planète. Plus ce nombre est élevé, plus la planète sera grande.
 change les règles de jeu actives sur la planète|^|Change les règles de jeu actives sur la planète
 change les paramètres de végétation|^|Change les paramètres de végétation
+parsing data... 0/2347|^|Parsing data... 0/2347
+parsing data... 500/2347|^|Parsing data... 500/2347
+parsing data... 1000/2347|^|Parsing data... 1000/2347
+parsing data... 1500/2347|^|Parsing data... 1500/2347
+parsing data... 2000/2347|^|Parsing data... 2000/2347
+computing neighborhood... 0/642|^|Computing neighborhood... 0/642
+computing neighborhood... 250/642|^|Computing neighborhood... 250/642
+computing neighborhood... 500/642|^|Computing neighborhood... 500/642
+perturbating surface... 0/642|^|Perturbating surface... 0/642
+perturbating surface... 250/642|^|Perturbating surface... 250/642
+perturbating surface... 500/642|^|Perturbating surface... 500/642
+bluring... 0/642|^|Bluring... 0/642
+bluring... 250/642|^|Bluring... 250/642
+bluring... 500/642|^|Bluring... 500/642
+normalisation... 0/642|^|Normalisation... 0/642
+normalisation... 250/642|^|Normalisation... 250/642
+normalisation... 500/642|^|Normalisation... 500/642
+creating navigation graph... 0/642|^|Creating navigation graph... 0/642
+creating navigation graph... 250/642|^|Creating navigation graph... 250/642
+creating navigation graph... 500/642|^|Creating navigation graph... 500/642
+vie : %i%%|^|Vie : %i%%
+occupation : %s|^|Occupation : %s
+creating model... 1/20|^|Creating model... 1/20
+creating vectrices : 0.00%|^|Creating vectrices : 0.00%
+creating vectrices : 38.94%|^|Creating vectrices : 38.94%
+creating vectrices : 77.88%|^|Creating vectrices : 77.88%
+creating model... 2/20|^|Creating model... 2/20
+creating model... 3/20|^|Creating model... 3/20
+creating model... 4/20|^|Creating model... 4/20
+creating model... 5/20|^|Creating model... 5/20
+creating model... 6/20|^|Creating model... 6/20
+creating model... 7/20|^|Creating model... 7/20
+creating model... 8/20|^|Creating model... 8/20
+creating model... 9/20|^|Creating model... 9/20
+creating model... 10/20|^|Creating model... 10/20
+creating model... 11/20|^|Creating model... 11/20
+creating model... 12/20|^|Creating model... 12/20
+creating model... 13/20|^|Creating model... 13/20
+creating model... 14/20|^|Creating model... 14/20
+creating model... 15/20|^|Creating model... 15/20
+creating model... 16/20|^|Creating model... 16/20
+creating model... 17/20|^|Creating model... 17/20
+creating model... 18/20|^|Creating model... 18/20
+creating model... 19/20|^|Creating model... 19/20
+creating model... 20/20|^|Creating model... 20/20
+rendering minimap : 0.00%|^|Rendering minimap : 0.00%
+rendering minimap : 5.00%|^|Rendering minimap : 5.00%
+rendering minimap : 10.00%|^|Rendering minimap : 10.00%
+rendering minimap : 15.00%|^|Rendering minimap : 15.00%
+rendering minimap : 20.00%|^|Rendering minimap : 20.00%
+rendering minimap : 25.00%|^|Rendering minimap : 25.00%
+rendering minimap : 30.00%|^|Rendering minimap : 30.00%
+rendering minimap : 35.00%|^|Rendering minimap : 35.00%
+rendering minimap : 40.00%|^|Rendering minimap : 40.00%
+rendering minimap : 45.00%|^|Rendering minimap : 45.00%
+rendering minimap : 50.00%|^|Rendering minimap : 50.00%
+rendering minimap : 55.00%|^|Rendering minimap : 55.00%
+rendering minimap : 60.00%|^|Rendering minimap : 60.00%
+rendering minimap : 65.00%|^|Rendering minimap : 65.00%
+rendering minimap : 70.00%|^|Rendering minimap : 70.00%
+rendering minimap : 75.00%|^|Rendering minimap : 75.00%
+rendering minimap : 80.00%|^|Rendering minimap : 80.00%
+rendering minimap : 85.00%|^|Rendering minimap : 85.00%
+rendering minimap : 90.00%|^|Rendering minimap : 90.00%
+rendering minimap : 95.00%|^|Rendering minimap : 95.00%
+supression du système solaire|^|Supression du système solaire
+autosaving game...|^|Autosaving game...
+saving game...|^|Saving game...
+game saved|^|Game saved
+sauvegarder la partie|^|Sauvegarder la partie
+retour en jeu|^|Retour en Jeu
+quitter la partie|^|Quitter la partie
+destruction du joueur|^|destruction du joueur
+parsing data... 0/9387|^|Parsing data... 0/9387
+parsing data... 500/9387|^|Parsing data... 500/9387
+parsing data... 1000/9387|^|Parsing data... 1000/9387
+parsing data... 1500/9387|^|Parsing data... 1500/9387
+parsing data... 2000/9387|^|Parsing data... 2000/9387
+parsing data... 2500/9387|^|Parsing data... 2500/9387
+parsing data... 3000/9387|^|Parsing data... 3000/9387
+parsing data... 3500/9387|^|Parsing data... 3500/9387
+parsing data... 4000/9387|^|Parsing data... 4000/9387
+parsing data... 4500/9387|^|Parsing data... 4500/9387
+parsing data... 5000/9387|^|Parsing data... 5000/9387
+parsing data... 5500/9387|^|Parsing data... 5500/9387
+parsing data... 6000/9387|^|Parsing data... 6000/9387
+parsing data... 6500/9387|^|Parsing data... 6500/9387
+parsing data... 7000/9387|^|Parsing data... 7000/9387
+parsing data... 7500/9387|^|Parsing data... 7500/9387
+parsing data... 8000/9387|^|Parsing data... 8000/9387
+parsing data... 8500/9387|^|Parsing data... 8500/9387
+parsing data... 9000/9387|^|Parsing data... 9000/9387
+computing neighborhood... 0/2562|^|Computing neighborhood... 0/2562
+computing neighborhood... 250/2562|^|Computing neighborhood... 250/2562
+computing neighborhood... 500/2562|^|Computing neighborhood... 500/2562
+computing neighborhood... 750/2562|^|Computing neighborhood... 750/2562
+computing neighborhood... 1000/2562|^|Computing neighborhood... 1000/2562
+computing neighborhood... 1250/2562|^|Computing neighborhood... 1250/2562
+computing neighborhood... 1500/2562|^|Computing neighborhood... 1500/2562
+computing neighborhood... 1750/2562|^|Computing neighborhood... 1750/2562
+computing neighborhood... 2000/2562|^|Computing neighborhood... 2000/2562
+computing neighborhood... 2250/2562|^|Computing neighborhood... 2250/2562
+computing neighborhood... 2500/2562|^|Computing neighborhood... 2500/2562
+perturbating surface... 0/2562|^|Perturbating surface... 0/2562
+perturbating surface... 250/2562|^|Perturbating surface... 250/2562
+perturbating surface... 500/2562|^|Perturbating surface... 500/2562
+perturbating surface... 750/2562|^|Perturbating surface... 750/2562
+perturbating surface... 1000/2562|^|Perturbating surface... 1000/2562
+perturbating surface... 1250/2562|^|Perturbating surface... 1250/2562
+perturbating surface... 1500/2562|^|Perturbating surface... 1500/2562
+perturbating surface... 1750/2562|^|Perturbating surface... 1750/2562
+perturbating surface... 2000/2562|^|Perturbating surface... 2000/2562
+perturbating surface... 2250/2562|^|Perturbating surface... 2250/2562
+perturbating surface... 2500/2562|^|Perturbating surface... 2500/2562
+bluring... 0/2562|^|Bluring... 0/2562
+bluring... 250/2562|^|Bluring... 250/2562
+bluring... 500/2562|^|Bluring... 500/2562
+bluring... 750/2562|^|Bluring... 750/2562
+bluring... 1000/2562|^|Bluring... 1000/2562
+bluring... 1250/2562|^|Bluring... 1250/2562
+bluring... 1500/2562|^|Bluring... 1500/2562
+bluring... 1750/2562|^|Bluring... 1750/2562
+bluring... 2000/2562|^|Bluring... 2000/2562
+bluring... 2250/2562|^|Bluring... 2250/2562
+bluring... 2500/2562|^|Bluring... 2500/2562
+normalisation... 0/2562|^|Normalisation... 0/2562
+normalisation... 250/2562|^|Normalisation... 250/2562
+normalisation... 500/2562|^|Normalisation... 500/2562
+normalisation... 750/2562|^|Normalisation... 750/2562
+normalisation... 1000/2562|^|Normalisation... 1000/2562
+normalisation... 1250/2562|^|Normalisation... 1250/2562
+normalisation... 1500/2562|^|Normalisation... 1500/2562
+normalisation... 1750/2562|^|Normalisation... 1750/2562
+normalisation... 2000/2562|^|Normalisation... 2000/2562
+normalisation... 2250/2562|^|Normalisation... 2250/2562
+normalisation... 2500/2562|^|Normalisation... 2500/2562
+creating navigation graph... 0/2562|^|Creating navigation graph... 0/2562
+creating navigation graph... 250/2562|^|Creating navigation graph... 250/2562
+creating navigation graph... 500/2562|^|Creating navigation graph... 500/2562
+creating navigation graph... 750/2562|^|Creating navigation graph... 750/2562
+creating navigation graph... 1000/2562|^|Creating navigation graph... 1000/2562
+creating navigation graph... 1250/2562|^|Creating navigation graph... 1250/2562
+creating navigation graph... 1500/2562|^|Creating navigation graph... 1500/2562
+creating navigation graph... 1750/2562|^|Creating navigation graph... 1750/2562
+creating navigation graph... 2000/2562|^|Creating navigation graph... 2000/2562
+creating navigation graph... 2250/2562|^|Creating navigation graph... 2250/2562
+creating navigation graph... 2500/2562|^|Creating navigation graph... 2500/2562
+creating vectrices : 9.76%|^|Creating vectrices : 9.76%
+creating vectrices : 19.52%|^|Creating vectrices : 19.52%
+creating vectrices : 29.27%|^|Creating vectrices : 29.27%
+creating vectrices : 39.03%|^|Creating vectrices : 39.03%
+creating vectrices : 48.79%|^|Creating vectrices : 48.79%
+creating vectrices : 58.55%|^|Creating vectrices : 58.55%
+creating vectrices : 68.31%|^|Creating vectrices : 68.31%
+creating vectrices : 78.06%|^|Creating vectrices : 78.06%
+creating vectrices : 87.82%|^|Creating vectrices : 87.82%
+creating vectrices : 97.58%|^|Creating vectrices : 97.58%
