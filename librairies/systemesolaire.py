@@ -8,6 +8,8 @@
 import general
 import random
 import math
+import os
+import zipfile
 from pandac.PandaModules import *
 
 class SystemeSolaire:
@@ -118,7 +120,19 @@ class SystemeSolaire:
         #planetemdl.setColor(random.random()*0.5, random.random()*0.5, random.random()*0.5)
         planetemdl.setPythonTag("type", "planete") #Pour dire que c'est une planète
         planetemdl.setPythonTag("nomPlanete", planete) #Pour indiquer de quelle planète il sagit et le retrouver facilement 
-        planetemdl.setTexture(loader.loadTexture("./data/cache/minimap.png"))
+        if planete!="--n/a--":
+          fichier = os.path.join(".","data","cache",planete+"-tex.png")
+          zip = zipfile.ZipFile(os.path.join(".","data","planetes",planete), "r")
+          if zip.testzip()!=None:
+            print "SystemeSolaire :: Charge :: Erreur : Fichier de sauvegarde corrompu !"
+          data = zip.read("minimap.png")
+          zip.close()
+          img = open(fichier, "w")
+          img.write(data)
+          img.close()
+          planetemdl.setTexture(loader.loadTexture("./data/cache/"+planete+"-tex.png"))
+        else:
+          planetemdl.setTexture(loader.loadTexture("./data/textures/degrad.jpeg"))
         planetemdl.setHpr(random.random()*360, random.random()*360, random.random()*360)
         self.planetes[i] = (planete, rayonplanete, rayonorbite, angleDepart, planetemdl, vitesse)
         anneau = self.racine.attachNewNode(self.dessineCercle(rayonorbite, 40))

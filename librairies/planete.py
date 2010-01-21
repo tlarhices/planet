@@ -151,6 +151,7 @@ class Planete:
     #On zip le fichier temporaire
     zip = zipfile.ZipFile(nomFichier, "w")
     zip.write(os.path.join(".", "data", "cache", "save.tmp"), os.path.basename(nomFichier), zipfile.ZIP_DEFLATED)
+    zip.write(os.path.join(".", "data", "cache", "minimap.png"), "minimap.png", zipfile.ZIP_DEFLATED)
     zip.close()
     #On enlève le fichier temporaire
     os.remove(os.path.join(".", "data", "cache", "save.tmp"))
