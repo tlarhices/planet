@@ -81,8 +81,10 @@ class IO:
       base.accept('wheel_down', self.presseTouche, ['wheel_down'])
       base.buttonThrowers[0].node().setButtonDownEvent('presseTouche')
       base.buttonThrowers[0].node().setButtonUpEvent('relacheTouche')
+      #base.buttonThrowers[0].node().setKeystrokeEvent('printTouche')
       base.accept('presseTouche', self.presseTouche)
       base.accept('relacheTouche', self.relacheTouche)
+      #base.accept('printTouche', self.printTouche)
       
       #Ajout du rayon magique de la souris
       base.cTrav = CollisionTraverser()
@@ -227,6 +229,9 @@ class IO:
 
     self.touches.append(touche)
     self.gereTouche()
+    
+  def printTouche(self, touche):
+    print "key",touche
     
   def relacheTouche(self, touche):
     """Une touche a été relâchée, on l'enlève de la liste des touches"""
@@ -563,9 +568,10 @@ class IO:
     
   def selectionneTout(self):
     self.selection = []
-    for sprite in general.planete.spritesJoueur:
-      if sprite.joueur == general.joueurLocal:
-        self.selection.append(sprite)
+    if not isinstance(general.planete, SystemeSolaire):
+      for sprite in general.planete.spritesJoueur:
+        if sprite.joueur == general.joueurLocal:
+          self.selection.append(sprite)
 
   def modifieAltitude(self, direction):
     """Change l'altitude d'un point, si direction>0 alors l'altitude sera accrue sinon diminuée"""
