@@ -321,6 +321,10 @@ class IO:
   
   def quitter(self):
     """Quitte l'application"""
+    #Purge la sélection actuelle
+    if self.selection:
+      self.selection=[]
+      return
     general.interface.quitter()
   
   def testeSouris(self, coords=None):

@@ -27,6 +27,8 @@ class Sprite:
   rac = None #Ce qui fait que le sprite garde les pieds en bas
   racine = None #Ce qui fait que le sprite garde la tête en haut
   zoneSurbrillance = None #Le disque au pied des personnages qui indique s'il est sélectionné ou non
+  barreDeVie = None #La barre de vie
+  barreDeVieRacine = None #La barre de vie est proportionnée par rapport à cette racine
   majTempsOrientation = None #La boucle qui s'assure qu'un sprite est bien orienté (les pieds par terre)
   majTempsOrientationMax = None #Le temps minimal à attendre entre 2 recalculs de l'orientation du sprite
   distanceSymbole = None #Distance à partir de laquelle on tranforme l'objet en symbole  (ou fait disparaitre l'objet si symbole==None)
@@ -168,15 +170,26 @@ class Sprite:
     if general.io.selection!=None:
       if self in general.io.selection:
         #Le sprite est selectionné, afficher sa barre de vie
-        general.TODO("Afficher la barre de vie sur les unités sélectionnées")
         if self.zoneSurbrillance:
           self.zoneSurbrillance.show()
+        if self.barreDeVie:
+          self.barreDeVie.show()
+          #Donne la taille de la barre de bie
+          self.barreDeVie.setScale(float(self.vie)/100, 1.0, 1.0)
+          if self.vie>50:
+            self.barreDeVie.setColor(0.0,1.0,0.0,0.75)
+          else:
+            self.barreDeVie.setColor(1.0,0.0,0.0,0.75)
       else:
         if self.zoneSurbrillance:
           self.zoneSurbrillance.hide()
+        if self.barreDeVie:
+          self.barreDeVie.hide()
     else:
       if self.zoneSurbrillance:
         self.zoneSurbrillance.hide()
+      if self.barreDeVie:
+        self.barreDeVie.hide()
         
     #On se casse pas la tête si le sprite est mort
     if self.vie<=0:
@@ -538,6 +551,7 @@ class Sprite:
     
     if self.joueur!=None:
       self.ajouteZoneSurbrillance().reparentTo(tmp)
+    self.ajouteBarreVie().reparentTo(tmp)
     
     tmp.reparentTo(self.modele)
     self.modele.setScale(self.echelle)
@@ -558,19 +572,32 @@ class Sprite:
     self.pointeRacineSol()
     return self.modele
     
-  def ajouteZoneSurbrillance(self):
-      cardMaker = CardMaker('sprite')
-      cardMaker.setFrame(-0.5, 0.5, -0.5, 0.5)
-      cardMaker.setHasNormals(True)
+  def ajouteBarreVie(self):
+    cardMaker = CardMaker('barreDeVie')
+    cardMaker.setFrame(-0.5, 0.5, 0.0, 0.1)
+    cardMaker.setHasNormals(True)
+  
+    #Construit une carte (un plan)
+    self.barreDeVieRacine = NodePath("barreDeVie")
+    self.barreDeVie = self.barreDeVieRacine.attachNewNode(cardMaker.generate())
+    self.barreDeVie.setTexture(loader.loadTexture("./theme/progress-top.png"))
+    self.barreDeVie.hide()
+    self.barreDeVie.setBillboardAxis()
+    return self.barreDeVie
     
-      #Construit une carte (un plan)
-      racine = NodePath("surbrillance")
-      self.zoneSurbrillance = racine.attachNewNode(cardMaker.generate())
-      self.zoneSurbrillance.setTexture(loader.loadTexture("./data/textures/flare/lens-reflex3.png"))
-      self.zoneSurbrillance.hide()
-      if self.joueur!=None:
-        self.zoneSurbrillance.setColor(*self.joueur.couleur)
-      return self.zoneSurbrillance
+  def ajouteZoneSurbrillance(self):
+    cardMaker = CardMaker('surbrillance')
+    cardMaker.setFrame(-0.5, 0.5, -0.5, 0.5)
+    cardMaker.setHasNormals(True)
+  
+    #Construit une carte (un plan)
+    racine = NodePath("surbrillance")
+    self.zoneSurbrillance = racine.attachNewNode(cardMaker.generate())
+    self.zoneSurbrillance.setTexture(loader.loadTexture("./data/textures/flare/lens-reflex3.png"))
+    self.zoneSurbrillance.hide()
+    if self.joueur!=None:
+      self.zoneSurbrillance.setColor(*self.joueur.couleur)
+    return self.zoneSurbrillance
 
   def fabriqueSymbole(self, fichierSymbole):
     """Affiche une icône dont la taille ne change pas avec la distance à la caméra"""
