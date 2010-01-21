@@ -583,6 +583,8 @@ class Sprite:
     self.barreDeVie.setTexture(loader.loadTexture("./theme/progress-top.png"))
     self.barreDeVie.hide()
     self.barreDeVie.setBillboardAxis()
+    self.barreDeVie.setPos(0.0, 0.0, 1.0)
+    self.barreDeVie.setTransparency(TransparencyAttrib.MDual)
     return self.barreDeVie
     
   def ajouteZoneSurbrillance(self):
@@ -593,10 +595,13 @@ class Sprite:
     #Construit une carte (un plan)
     racine = NodePath("surbrillance")
     self.zoneSurbrillance = racine.attachNewNode(cardMaker.generate())
-    self.zoneSurbrillance.setTexture(loader.loadTexture("./data/textures/flare/lens-reflex3.png"))
+    self.zoneSurbrillance.setTexture(loader.loadTexture("./data/textures/soleil.png"))
     self.zoneSurbrillance.hide()
     if self.joueur!=None:
       self.zoneSurbrillance.setColor(*self.joueur.couleur)
+    self.zoneSurbrillance.setP(-90)
+    self.zoneSurbrillance.setTwoSided(True)
+    self.zoneSurbrillance.setTransparency(TransparencyAttrib.MDual)
     return self.zoneSurbrillance
 
   def fabriqueSymbole(self, fichierSymbole):
