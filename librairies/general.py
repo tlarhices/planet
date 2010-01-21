@@ -8,19 +8,6 @@
 import math, os, sys
 from pandac.PandaModules import *
 
-
-DEBUG_GENERE_PLANETE = True #Donne des infos de debug sur la génération d'une nouvelle planète
-DEBUG_CHARGE_PLANETE = True #Donne des infos de debug sur le chargement des fichiers
-DEBUG_CHARGE_PLANETE_VERBOSE = False #Donne des infos de debug sur le chargement des sommets et facettes
-DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION = True #Donne des infos de debug sur la construction de l'arbre de déplacement
-DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE = True #Donne des infos de debug sur les tests de l'arbre de déplacement
-DEBUG_PANDAUI_GUI = False #Donne des infos sur la gestion de l'UI
-DEBUG_PANDAUI_CLIC = False #Donne des infos sur la gestion des clics dans l'UI
-DEBUG_PANDAUI_PURGE = False #Donne des infos sur la gestion de la suppression des composants dans l'UI
-DEBUG_CONSTRUCTION_SPHERE = False
-
-DEBUG_USE_STAT = True
-
 configuration = None
   
 def floatise(vecteur):
@@ -59,7 +46,7 @@ chronos={}
 chronchron={}
 def startChrono(nomChrono):
   """Sauvegarde l'heure de début"""
-  if not DEBUG_USE_STAT:
+  if not configuration.getConfiguration("debug", "general", "debug_utilise_statistiques", "f", bool):
     return
   nomChrono = nomChrono.lower().strip()
   if nomChrono in chronos.keys():
@@ -68,7 +55,7 @@ def startChrono(nomChrono):
   
 def stopChrono(nomChrono):
   """Sauvegarde l'heure de fin"""
-  if not DEBUG_USE_STAT:
+  if not configuration.getConfiguration("debug", "general", "debug_utilise_statistiques", "f", bool):
     return
   nomChrono = nomChrono.lower().strip()
   if not nomChrono in chronos.keys():
@@ -84,7 +71,7 @@ def stopChrono(nomChrono):
 
 def afficheStatChrono():
   """Affiche les statistiques de durées d'appels"""
-  if not DEBUG_USE_STAT:
+  if not configuration.getConfiguration("debug", "general", "debug_utilise_statistiques", "f", bool):
     return
   for element in chronchron.keys():
     print "########"

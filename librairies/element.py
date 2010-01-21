@@ -65,7 +65,7 @@ class Element:
     self.planete.sommetDansFace[p2].append(self)
     self.planete.sommetDansFace[p3].append(self)
     
-    if general.DEBUG_CONSTRUCTION_SPHERE:
+    if general.configuration.getConfiguration("debug", "planete", "debug_construction_sphere", "f", bool):
       delta = (random.random()-0.5)/10 +1.0
       self.modele = NodePath(self.id)
       self.modele.reparentTo(self.planete.racineModel)

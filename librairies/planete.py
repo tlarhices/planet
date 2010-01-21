@@ -122,6 +122,7 @@ class Planete:
   def fabriqueModel(self):
     """Produit un modèle 3D à partir du nuage des faces"""
     self.geoide.fabriqueModel()
+    render.analyze()
 
   # Fin Constructions géométriques -------------------------------------
       
@@ -166,7 +167,7 @@ class Planete:
     self.spritesNonJoueur = []
     self.joueurs = []
 
-    if general.DEBUG_CHARGE_PLANETE:
+    if general.configuration.getConfiguration("debug", "planete", "debug_charge_planete", "f", bool):
       self.afficheTexte("Lecture du fichier...", parametres={}, type="sauvegarde")
 
     #Lecture depuis le zip
@@ -177,14 +178,14 @@ class Planete:
     zip.close()
     lignes = data.split("\r\n")
 
-    if general.DEBUG_CHARGE_PLANETE:
+    if general.configuration.getConfiguration("debug", "planete", "debug_charge_planete", "f", bool):
       self.afficheTexte("Parsage des infos...", parametres={}, type="sauvegarde")
       
     lignes = self.geoide.charge(lignes, simple)
     tot = len(lignes)
       
     for i in range(0, tot):
-      if general.DEBUG_CHARGE_PLANETE:
+      if general.configuration.getConfiguration("debug", "planete", "debug_charge_planete", "f", bool):
         if i%500==0:
           self.afficheTexte("Parsage des infos... %{a}i/%{b}i", parametres={"a":i, "b":tot}, type="sauvegarde")
       ligne = lignes[i]

@@ -63,17 +63,6 @@ class Start:
       cam0.setTagStateKey( 'Normal' )
       cam0.setTagState( 'True' , RenderState.make( sa ) )
     
-    general.TODO("Passer les DEBUG_* en getConfiguration")
-    #Configuration de DEBUG
-    general.DEBUG_GENERE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_genere_planete", "f", bool)
-    general.DEBUG_CHARGE_PLANETE = general.configuration.getConfiguration("debug", "planete", "debug_charge_planete", "f", bool)
-    general.DEBUG_CHARGE_PLANETE_VERBOSE = general.configuration.getConfiguration("debug", "planete", "debug_charge_planete_verbose", "f", bool)
-    general.DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION = general.configuration.getConfiguration("debug", "ai", "debug_ai_graphe_deplacement_construction", "f", bool)
-    general.DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE = general.configuration.getConfiguration("debug", "ai", "debug_ai_graphe_deplacement_promenade", "f", bool)
-    general.DEBUG_AI_VA_VERS = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_VA_VERS", "f", bool)
-    general.DEBUG_AI_SUIT_CHEMIN = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_SUIT_CHEMIN", "f", bool)
-    general.DEBUG_AI_PING_PILE_COMPORTEMENT = general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_PING_PILE_COMPORTEMENT", "f", bool)
-    
     #Gère le dessin des cartes
     general.cartographie = Cartographie()
     
@@ -113,7 +102,7 @@ class Start:
       general.interface = DUMMY(self)
     
     #On lance PStats (debugger de panda3d) si la configuration dit qu'on en a envie
-    if general.configuration.getConfiguration("debug", "panda", "DEBUG_PANDA_VIA_PSTATS","f", bool):
+    if general.configuration.getConfiguration("debug", "panda", "debug_panda_via_pstats","f", bool):
       #Profile du code via PStat
       PStatClient.connect()
 

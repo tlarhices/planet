@@ -69,7 +69,7 @@ class Geoide:
     self.voisinage = {}
     totSommets = len(self.sommets)
     for sommet in range(0, totSommets):
-      if general.DEBUG_GENERE_PLANETE:
+      if general.configuration.getConfiguration("debug", "planete", "debug_genere_planete", "f", bool):
         if sommet%250==0:
           general.planete.afficheTexte("Calcul du voisinage... %(a)i/%(b)i", parametres={"a":sommet, "b":totSommets}, type="construction")
       faces = self.sommetDansFace[sommet]
@@ -149,7 +149,7 @@ class Geoide:
         tot=len(self.elements)
         for element in self.elements:
           cpt+=1
-          if general.DEBUG_GENERE_PLANETE:
+          if general.configuration.getConfiguration("debug", "planete", "debug_genere_planete", "f", bool):
             general.planete.afficheTexte("Tesselation en cours... %(a)i/%(b)i::%(c)i/%(d)i", parametres={"a": i+1, "b": self.tesselation, "c": cpt, "d": tot}, type="construction")
           element.tesselate()
         self.tesselation = int(tesselation)
@@ -293,7 +293,7 @@ class Geoide:
     totlen= len(self.sommets)
     for i in range(0, totlen):
       cpt+=1.0
-      if general.DEBUG_GENERE_PLANETE:
+      if general.configuration.getConfiguration("debug", "planete", "debug_genere_planete", "f", bool):
         if i%250==0:
           general.planete.afficheTexte("Perturbation de la surface... %(a)i/%(b)i", parametres={"a": i, "b": totlen}, type="construction")
       #On pousse chaque sommet aléatoirement
@@ -306,7 +306,7 @@ class Geoide:
     """
     Étend la gamme des valeurs aléatoires pour les ramener dans l'échelle [1.0-delta;1.0+delta]
     """
-    if general.DEBUG_GENERE_PLANETE:
+    if general.configuration.getConfiguration("debug", "planete", "debug_genere_planete", "f", bool):
       general.planete.afficheTexte("Normalisation...", parametres={}, type="construction")
     A=self.sommets[0].length()
     B=A
@@ -322,7 +322,7 @@ class Geoide:
     
     totlen= len(self.sommets)
     for i in range(0, len(self.sommets)):
-      if general.DEBUG_GENERE_PLANETE:
+      if general.configuration.getConfiguration("debug", "planete", "debug_genere_planete", "f", bool):
         if i%250==0:
           general.planete.afficheTexte("Normalisation... %(a)i/%(b)i", parametres={"a": i, "b": totlen}, type="construction")
       V=self.sommets[i].length()
@@ -338,7 +338,7 @@ class Geoide:
     cpt=0.0
     totclefs=len(self.voisinage.keys())
     for sommet in self.voisinage.keys():
-      if general.DEBUG_GENERE_PLANETE:
+      if general.configuration.getConfiguration("debug", "planete", "debug_genere_planete", "f", bool):
         if cpt%250==0:
           general.planete.afficheTexte("Flouification... %(a)i/%(b)i", parametres={"a": cpt, "b": totclefs}, type="construction")
       cpt+=1.0
@@ -376,7 +376,7 @@ class Geoide:
     #Dessine les triangles
     for element in self.elements:
       cpt+=1.0
-      if general.DEBUG_GENERE_PLANETE:
+      if general.configuration.getConfiguration("debug", "planete", "debug_genere_planete", "f", bool):
         general.planete.afficheTexte("Création du modèle... %(a)i/%(b)i", parametres={"a": cpt, "b": totlen}, type="construction")
       #Ce sont les faces qui vont se charger de faire le modèle pour nous
       element.fabriqueModel()
@@ -425,7 +425,7 @@ class Geoide:
   def fabriqueEau(self):
     """Ajoute une sphère qui représente l'eau"""
     
-    if general.DEBUG_CONSTRUCTION_SPHERE:
+    if general.configuration.getConfiguration("debug", "planete", "debug_construction_sphere", "f", bool):
       return
       
     general.startChrono("Planete::fabriqueEau")
@@ -457,7 +457,7 @@ class Geoide:
   def fabriqueCiel(self):
     """Ajoute une sphère qui représente l'eau"""
     
-    if general.DEBUG_CONSTRUCTION_SPHERE:
+    if general.configuration.getConfiguration("debug", "planete", "debug_construction_sphere", "f", bool):
       return
       
     general.startChrono("Planete::fabriqueCiel")
@@ -607,7 +607,7 @@ class Geoide:
     tot = len(lignes)
     inconnu = []
     for i in range(0, tot):
-      if general.DEBUG_CHARGE_PLANETE:
+      if general.configuration.getConfiguration("debug", "planete", "debug_charge_planete", "f", bool):
         if i%500==0:
           general.planete.afficheTexte("Parsage des infos... %(a)i/%(b)i", parametres={"a": i, "b": tot}, type="sauvegarde")
       ligne = lignes[i]

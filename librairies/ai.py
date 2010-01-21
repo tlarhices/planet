@@ -126,7 +126,7 @@ class AINavigation:
     totclef = len(general.planete.geoide.voisinage.keys())
     
     for source in general.planete.geoide.voisinage.keys():
-      if general.DEBUG_AI_GRAPHE_DEPLACEMENT_CONSTRUCTION:
+      if general.configuration.getConfiguration("debug", "ai", "debug_ai_graphe_deplacement_construction", "f", bool):
         if cpt%250==0:
           general.planete.afficheTexte("Création du graphe de déplacement... %(a)i/%(b)i", parametres={"a": cpt, "b": totclef}, type="ai")
       for voisin in general.planete.geoide.voisinage[source]:
@@ -399,7 +399,7 @@ class SuitChemin(AIComportementUnitaire):
     if self.chemin==None:
       return
       
-    if general.DEBUG_AI_SUIT_CHEMIN:
+    if general.configuration.getConfiguration("debug", "ai", "debug_ai_suit_chemin", "f", bool):
       prev=None
       for element in self.chemin:
         if isinstance(element, int):
@@ -444,7 +444,7 @@ class SuitChemin(AIComportementUnitaire):
       
     if self.courant == None:
       #On change de point de contrôle
-      if general.DEBUG_AI_SUIT_CHEMIN:
+      if general.configuration.getConfiguration("debug", "ai", "debug_ai_suit_chemin", "f", bool):
         print "va vers checkpoint suivant..."
       general.TODO("Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est")
 
@@ -460,7 +460,7 @@ class SuitChemin(AIComportementUnitaire):
       #On prend le point suivant sur le chemin
       cible = self.getCoord(self.chemin.pop(0))
       
-      if general.configuration.getConfiguration("debug", "ai", "DEBUG_AI_GRAPHE_DEPLACEMENT_PROMENADE", "t", bool):
+      if general.configuration.getConfiguration("debug", "ai", "debug_ai_graphe_deplacement_promenade", "t", bool):
         general.planete.geoide.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((1.0,0.0,0.0), self.comportement.ai.sprite.position * 1.2, cible * 1.2))
         mdl = loader.loadModel("./data/modeles/sphere.egg")
         mdl.setScale(0.1)
@@ -472,7 +472,7 @@ class SuitChemin(AIComportementUnitaire):
       #On ajoute le comportement à l'IA
       self.comportement.comportements.append(self.courant)
     elif self.courant.fini:
-      if general.DEBUG_AI_SUIT_CHEMIN:
+      if general.configuration.getConfiguration("debug", "ai", "debug_ai_suit_chemin", "f", bool):
         print "arrivé au checkpoint"
       #On a fini d'aller au point courant
       self.courant = None
@@ -495,12 +495,12 @@ class VaVers(AIComportementUnitaire):
     
     position = self.comportement.ai.sprite.position
     dist = (position - self.cible).length()
-    if general.DEBUG_AI_VA_VERS:
+    if general.configuration.getConfiguration("debug", "ai", "debug_ai_va_vers", "f", bool):
       print self.comportement.ai.sprite.id,"va vers",self.cible
       print self.comportement.ai.sprite.id,"distance",dist
     
     if dist<=self.comportement.ai.sprite.distanceProche:
-      if general.DEBUG_AI_VA_VERS:
+      if general.configuration.getConfiguration("debug", "ai", "debug_ai_va_vers", "f", bool):
         print "arrivé au checkpoint"
       #on est arrivé
       self.cible=None
@@ -511,11 +511,11 @@ class VaVers(AIComportementUnitaire):
     #vecteur -position-cible->
     v = self.cible-position
     #la force de steering ici est le vecteur vitesse selon ce vecteur
-    if general.DEBUG_AI_VA_VERS:
+    if general.configuration.getConfiguration("debug", "ai", "debug_ai_va_vers", "f", bool):
       print self.comportement.ai.sprite.id,"position",position
     v.normalize()
     self.force = v * self.comportement.ai.sprite.vitesse*temps
-    if general.DEBUG_AI_VA_VERS:
+    if general.configuration.getConfiguration("debug", "ai", "debug_ai_va_vers", "f", bool):
       print self.comportement.ai.sprite.id,"force vavers", self.force
     
 class AppelFonction(AIComportementUnitaire):
@@ -670,7 +670,7 @@ class AIComportement:
       while self.comportements.count(comportement)>0:
         self.comportements.remove(comportement)
       
-    if general.DEBUG_AI_PING_PILE_COMPORTEMENT:
+    if general.configuration.getConfiguration("debug", "ai", "debug_ai_ping_pile_comportement", "f", bool):
       print self.ai.sprite.id,"somme forces",force
       print self.ai.sprite.id,"somme facteurs", facteurs
       
@@ -681,7 +681,7 @@ class AIComportement:
       delta = 0.0
     force = force*delta
     self.steeringForce = force
-    if general.DEBUG_AI_PING_PILE_COMPORTEMENT:
+    if general.configuration.getConfiguration("debug", "ai", "debug_ai_ping_pile_comportement", "f", bool):
       print self.ai.sprite.id,"steering force", facteurs
       
     #On met à jour les hook de l'IA
