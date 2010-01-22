@@ -278,12 +278,14 @@ class AI:
   sprite = None
   comportement = None
   bulbe = None
+  iconeAction = None
   
   def __init__(self, sprite):
     """Construit une IA pour sprite"""
     self.sprite = proxy(sprite)
     #Prépare les moulinettes de base
     self.comportement = AIComportement(self)
+    self.iconeAction = "./theme/icones/quote.png"
     
   def stop(self):
     """Stoppe toutes les actions de l'IA"""

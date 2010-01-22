@@ -37,6 +37,7 @@ class IO:
                  #X peut être un dictionnaire {"nom parametre":valeur, ...}
                  
   selection = None #Ce que le joueur a sélectionné
+  _selection = None #Ce que le joueur avait sélectionné le pind précédent
   groupesUnites = None #Le dictionnaire des groupes d'unités
                  
   def __init__(self):
@@ -104,6 +105,18 @@ class IO:
     else:
       deltaT = task.time
     self.preImage = task.time
+    
+    #On met à jour les états sélectionné / non sélectionné des unités
+    if self.selection != self._selection:
+      if self._selection!=None:
+        for sprite in self._selection:
+          sprite.deselectionne()
+      if self.selection!=None:
+        for sprite in self.selection:
+          sprite.selectionne()
+      self._selection = self.selection[:]
+
+    
     
     if base.mouseWatcherNode !=None:
       #Teste de la position de la souris
@@ -353,6 +366,8 @@ class IO:
     if self.myHandler.getNumEntries() > 0:
       self.myHandler.sortEntries()
       objet = self.myHandler.getEntry(0).getIntoNodePath().findNetPythonTag('type')
+      
+      ### clic sur le sol ### ---------------------------------------------------------------
       if objet.getPythonTag('type') == "sol":
         coord = self.myHandler.getEntry(0).getSurfacePoint(planete.geoide.racine)
         if self.selection:
@@ -363,12 +378,16 @@ class IO:
         else:
           idsommet = general.planete.geoide.trouveSommet(coord)
           planete.geoide.survol = idsommet
+
+      ### clic sur un sprite ### ------------------------------------------------------------
       elif objet.getPythonTag('type') == "sprite":
           print "clic sprite"
           if "shift" not in self.touchesControles:
             self.selection = []
           if objet.getPythonTag('instance') not in self.selection:
             self.selection.append(objet.getPythonTag('instance'))
+
+      ### clic sur une planete du systeme solaire ### ----------------------------------------
       elif objet.getPythonTag('type') == "planete":
           nomPlanete = objet.getPythonTag("nomPlanete")
           from gui import MenuVierge
@@ -491,7 +510,7 @@ class IO:
     """Passe un point en pixels dans le champ [-1:1][-1:1] de render2D"""
     if point==None:
       return None
-    return (point[0]/base.win.getXSize()*2-1.0, -point[1]/base.win.getYSize()*2-1.0)
+    return (point[0]/base.win.getXSize()*2-1.0, -(point[1]/base.win.getYSize()*2-1.0))
     
   def selectionne(self, coordSouris):
     """Fait un clic"""

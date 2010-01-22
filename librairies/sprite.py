@@ -27,6 +27,7 @@ class Sprite:
   rac = None #Ce qui fait que le sprite garde les pieds en bas
   racine = None #Ce qui fait que le sprite garde la tête en haut
   zoneSurbrillance = None #Le disque au pied des personnages qui indique s'il est sélectionné ou non
+  iconeAction = None #Une icone qui indique ce que le sprite est en train de faire
   barreDeVie = None #La barre de vie
   barreDeVieRacine = None #La barre de vie est proportionnée par rapport à cette racine
   majTempsOrientation = None #La boucle qui s'assure qu'un sprite est bien orienté (les pieds par terre)
@@ -79,14 +80,10 @@ class Sprite:
     modele : le nom du fichier 3D à charger
     planete : la planète de laquelle cet objet dépend
     """
-    general.TODO("Ajouter des sprites qui ne vivent que durant un certain temps (utile pour faire des cadavres et autres trucs qui disparaissent après un moment)")
     general.TODO("Ajouter la gestion des boulots")
-    general.TODO("Ajouter sprite.regardeVers")
     general.TODO("Ajouter la gestion des animations de sprite")
     general.TODO("Support des objets non ponctuels")
     general.TODO("Faire dépendre la vitesse du sprite selon l'angle du sol sur lequel il se déplace")
-    general.TODO("Gestion des barres de vie")
-    general.TODO("Gestion d'une icone pour indiquer les activité (glandage, construction, baston, ...)")
     if joueur !=None:
       self.joueur = proxy(joueur)
     else:
@@ -167,30 +164,6 @@ class Sprite:
     Appelé à chaque image, met à jour l'état de l'objet
     temps : le nombre de secondes depuis la dernière mise à jour
     """
-    if general.io.selection!=None:
-      if self in general.io.selection:
-        #Le sprite est selectionné, afficher sa barre de vie
-        if self.zoneSurbrillance:
-          self.zoneSurbrillance.show()
-        if self.barreDeVie:
-          self.barreDeVie.show()
-          #Donne la taille de la barre de bie
-          self.barreDeVie.setScale(float(self.vie)/100, 1.0, 1.0)
-          if self.vie>50:
-            self.barreDeVie.setColor(0.0,1.0,0.0,0.75)
-          else:
-            self.barreDeVie.setColor(1.0,0.0,0.0,0.75)
-      else:
-        if self.zoneSurbrillance:
-          self.zoneSurbrillance.hide()
-        if self.barreDeVie:
-          self.barreDeVie.hide()
-    else:
-      if self.zoneSurbrillance:
-        self.zoneSurbrillance.hide()
-      if self.barreDeVie:
-        self.barreDeVie.hide()
-        
     #On se casse pas la tête si le sprite est mort
     if self.vie<=0:
       return False
@@ -554,6 +527,9 @@ class Sprite:
       self.zoneSurbrillance.setScale(self.echelle)
     self.ajouteBarreVie().reparentTo(self.racine)
     self.barreDeVie.setScale(self.echelle)
+    if self.ai:
+      self.ajouteIcone().reparentTo(self.racine)
+      self.iconeAction.setScale(self.echelle)
     
     tmp.reparentTo(self.modele)
     self.modele.setScale(self.echelle)
@@ -574,6 +550,21 @@ class Sprite:
     self.pointeRacineSol()
     return self.modele
     
+  def ajouteIcone(self):
+    cardMaker = CardMaker('icone')
+    cardMaker.setFrame(-0.2, 0.2, 0.0, 0.4)
+    cardMaker.setHasNormals(True)
+  
+    #Construit une carte (un plan)
+    racine = NodePath("icone")
+    self.iconeAction = racine.attachNewNode(cardMaker.generate())
+    self.iconeAction.setTexture(loader.loadTexture("./theme/icones/quote.png"))
+    self.iconeAction.hide()
+    self.iconeAction.setBillboardAxis()
+    self.iconeAction.setPos(0.0, 0.0, 1.6)
+    self.iconeAction.setTransparency(TransparencyAttrib.MDual)
+    return self.iconeAction
+
   def ajouteBarreVie(self):
     cardMaker = CardMaker('barreDeVie')
     cardMaker.setFrame(-0.5, 0.5, 0.0, 0.1)
@@ -714,6 +705,30 @@ class Sprite:
     ls.moveTo(*depart)
     ls.drawTo(*arrivee)
     return ls.create()
+    
+  def selectionne(self):
+    #Le sprite est selectionné, afficher sa barre de vie
+    if self.zoneSurbrillance:
+      self.zoneSurbrillance.show()
+    if self.barreDeVie:
+      self.barreDeVie.show()
+      #Donne la taille de la barre de bie
+      self.barreDeVie.setScale(float(self.vie)/100, 1.0, 1.0)
+      if self.vie>50:
+        self.barreDeVie.setColor(0.0,1.0,0.0,0.75)
+      else:
+        self.barreDeVie.setColor(1.0,0.0,0.0,0.75)
+    if self.iconeAction:
+      self.iconeAction.setTexture(loader.loadTexture(self.ai.iconeAction))
+      self.iconeAction.show()
+    
+  def deselectionne(self):
+    if self.zoneSurbrillance:
+      self.zoneSurbrillance.hide()
+    if self.barreDeVie:
+      self.barreDeVie.hide()
+    if self.iconeAction:
+      self.iconeAction.hide()
 
 class SpritePlan(Sprite):
   """Support d'objets non ponctuels"""
@@ -863,4 +878,3 @@ class Nuage(Sprite):
     
   def _syncCheck(self):
     return ""
-
