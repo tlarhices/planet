@@ -610,6 +610,122 @@ class MiniMap(Pane):
     Pane.clear(self)
     self.carte.clear()
                 
+class Chat(Pane):
+  #Incrémentez etat lors d'une modification entrainera à une maj du menu (etat!=_etat)
+  etat = None
+  _etat = None
+  
+  lignes = None #Le contenu du chat
+  nonLut = None #Vaut True s'il y a un message non lut
+  
+  ouvert = None #Si True, alors la zone d'affichage est visible
+  ongletActif = None
+  LARGEUR_DIALOGUE = None
+  HAUTEUR_DIALOGUE = None
+  
+  def __init__(self, gui):
+    Pane.__init__(self)
+    self.gui = gui
+    self.children = []
+    self.etat = 0
+    self._etat = 0
+    self.nonLut = None
+    self.lignes = []
+    self.LARGEUR_DIALOGUE = 80
+    self.HAUTEUR_DIALOGUE = 80
+    self.ouvert = False
+    self.ongletActif = None
+    self.fabrique()
+    
+  #@general.accepts(None, (str, unicode, type(None)))
+  def ouvreDialogue(self, onglet):
+    if onglet==None:
+      onglet = self.ongletActif
+    if onglet==None: #Arrive si self.ongletActif == None
+      onglet = "chat"
+    if onglet==self.ongletActif and self.ouvert:
+      self.fermeDialogue()
+      return
+    self.ouvert = True
+    self.etat += 1
+    self.ongletActif = onglet
+
+  def fermeDialogue(self):
+    self.ouvert = False
+    self.etat += 1
+
+  def fabrique(self):
+    self.clear()
+    self._etat = self.etat
+    grp=self.add(Groupe(hauteur=4, x=PAD, y=PAD))
+    btn = grp.add(IconButton("icones/inutilisees/crew.png"))
+    btn.callback = self.ouvreDialogue
+    btn.callbackParams = {"onglet":"allies"}
+    btn = grp.add(IconButton("icones/inutilisees/cart.png"))
+    btn.callback = self.ouvreDialogue
+    btn.callbackParams = {"onglet":"echanges"}
+    btn = grp.add(IconButton("icones/inutilisees/enemy.png"))
+    btn.callback = self.ouvreDialogue
+    btn.callbackParams = {"onglet":"ennemis"}
+    btn = grp.add(IconButton("icones/inutilisees/graph.png"))
+    btn.callback = self.ouvreDialogue
+    btn.callbackParams = {"onglet":"statistiques"}
+    btn = grp.add(IconButton("icones/inutilisees/group.png"))
+    btn.callback = self.ouvreDialogue
+    btn.callbackParams = {"onglet":"toutlemonde"}
+    btn = grp.add(IconButton("icones/inutilisees/properties.png"))
+    btn.callback = self.ouvreDialogue
+    btn.callbackParams = {"onglet":"alignements"}
+    if self.nonLut:
+      btn = grp.add(IconButton("icones/quote-over.png"))
+      btn.callback = self.ouvreDialogue
+      btn.callbackParams = {"onglet":"chat"}
+    else:
+      btn = grp.add(IconButton("icones/quote.png"))
+      btn.callback = self.ouvreDialogue
+      btn.callbackParams = {"onglet":"chat"}
+    if self.ouvert:
+      btn = grp.add(IconButton("icones/arrow-right.png"))
+      btn.callback = self.fermeDialogue
+      btn.callbackParams = None
+    else:
+      btn = grp.add(IconButton("icones/arrow-left.png"))
+      btn.callback = self.ouvreDialogue
+      btn.callbackParams = {"onglet":None}
+    grp.MAJ()
+    
+    if self.ongletActif in ["allies", "ennemis", "chat", "toutlemonde"]
+      texte = self.add(TextArea("", height=self.HAUTEUR_DIALOGUE - HAUTEUR_TEXTE - PAD, width=self.LARGEUR_DIALOGUE, x=grp.width + PAD*2))
+      filtres = {
+        "allies":("allies",),
+        "ennemis":("ennemis",),
+        "toutlemonde":("allies","ennemis"),
+        "echanges":("echanges",),
+        "alignements":("alignements",),
+        "chat":("allies","ennemis"),
+        "statistiques":("statistiques",)
+      }
+      
+      for filtre, ligne in self.lignes:
+        if self.ongletActif in filtres[filtre]:
+          texte.text+="\r\n"+ligne
+        
+      self.add(Entry("", height=HAUTEUR_TEXTE, width=self.LARGEUR_DIALOGUE, x=grp.width + PAD*2, y=self.HAUTEUR_DIALOGUE-HAUTEUR_TEXTE))
+    
+    self.x="right"
+    self.y="bottom"
+    self.height = grp.height + PAD*2
+    self.width = grp.width + PAD*2
+    if self.ouvert:
+      self.width+=PAD+self.LARGEUR_DIALOGUE
+      self.height=max(self.height, self.HAUTEUR_DIALOGUE+PAD)
+    
+  @general.accepts(None, float)
+  def MAJ(self, temps):
+    if self.etat!=self._etat:
+      self.fabrique()
+    
+                
 class ListeCommandes(MenuCirculaire):
   select = None #L'unité sélctionnée en ce moment
   liste = None
@@ -626,6 +742,26 @@ class ListeCommandes(MenuCirculaire):
     self.clear()
     if self.liste==None:
       return
+      
+    def ajouteActions():
+      grp = self.ajouteGauche(Groupe(largeur=4))
+      btn = grp.add(Icon("icones/gear.png"))
+      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Utiliser un truc")
+      btn.__onHover__ = btn.onHover
+      btn.onHover = general.interface.hover
+      btn = grp.add(Icon("icones/move.png"))
+      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Marcher vers")
+      btn.__onHover__ = btn.onHover
+      btn.onHover = general.interface.hover
+      btn = grp.add(Icon("icones/target.png"))
+      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Cibler")
+      btn.__onHover__ = btn.onHover
+      btn.onHover = general.interface.hover
+      btn = grp.add(Icon("icones/rangearrow.png"))
+      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Attaquer")
+      btn.__onHover__ = btn.onHover
+      btn.onHover = general.interface.hover
+      
     if len(self.liste)==0:
       pass
     elif len(self.liste)==1:
@@ -657,26 +793,12 @@ class ListeCommandes(MenuCirculaire):
       btn.tooltip = general.i18n.getText("Activité : %s") %general.i18n.getText("Marche")
       btn.__onHover__ = btn.onHover
       btn.onHover = general.interface.hover
-      
-      grp = self.ajouteGauche(Groupe(largeur=4))
-      btn = grp.add(Icon("icones/gear.png"))
-      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Utiliser un truc")
-      btn.__onHover__ = btn.onHover
-      btn.onHover = general.interface.hover
-      btn = grp.add(Icon("icones/move.png"))
-      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Marcher vers")
-      btn.__onHover__ = btn.onHover
-      btn.onHover = general.interface.hover
-      btn = grp.add(Icon("icones/target.png"))
-      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Cibler")
-      btn.__onHover__ = btn.onHover
-      btn.onHover = general.interface.hover
-      btn = grp.add(Icon("icones/rangearrow.png"))
-      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Attaquer")
-      btn.__onHover__ = btn.onHover
-      btn.onHover = general.interface.hover
+      ajouteActions()
     else:
-      pass
+      btn = self.ajouteGauche(Label("Groupe"))
+      btn.style = "DEFAULT"
+      btn.width = LARGEUR_BOUTON
+      ajouteActions()
     MenuCirculaire.fabrique(self)
     
   def anime(self, temps):
@@ -763,6 +885,7 @@ class EnJeu():
   """Contient la liste des unitées que l'on peut construire"""
   listeUnite = None #La liste des icones des unités sélectionnées
   listeCommandes = None
+  chat = None
   miniMap = None #La carte
   
   def __init__(self, gui):
@@ -770,7 +893,8 @@ class EnJeu():
     #self.gui.historique = Historique(self.gui)
     self.listeUnite = ListeUnite(self.gui)
     self.listeCommandes = ListeCommandes(self.gui)
-    self.miniMap = self.gui.gui.add(MiniMap(self.gui))
+    self.chat = self.gui.add(Chat(self.gui))
+    #self.miniMap = self.gui.gui.add(MiniMap(self.gui))
     
   def alerte(self, type, message, coord):
     """Ajoute un nouveau message"""
@@ -780,19 +904,25 @@ class EnJeu():
     self.gui.historique.MAJ(temps)
     self.listeUnite.MAJ(temps)
     self.listeCommandes.MAJ(temps)
+    if self.chat != None:
+      self.chat.MAJ(temps)
     
   def efface(self, classe):
     self.clear()
     self.gui.menuCourant = classe(self.gui)
     
   def clear(self):
-    if self.gui.historique !=None:
+    if self.gui.historique != None:
       self.gui.historique.clear()
     self.listeUnite.clear()
     #Purge tous les points de la carte
-    self.miniMap.clear()
+    if self.miniMap != None:
+      self.miniMap.clear()
+      self.gui.gui.remove(self.miniMap)
+    if self.chat != None:
+      self.chat.clear()
+      self.gui.remove(self.chat)
     self.listeCommandes.clear()
-    self.gui.gui.remove(self.miniMap)
     
   def changeMenu(self):
     if isinstance(self.listeCommandes, ListeCommandes):

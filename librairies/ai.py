@@ -38,6 +38,7 @@ class AIPlugin:
           if general.configuration.getConfiguration("Debug", "ai", "debug_aiplugin_scan_plugin", "f", bool):
             print "Avertissement :: ",os.path.join(".","librairies","ai",fichier),"n'est pas un plugin d'IA valide"
           
+  @general.accepts(None, (str, unicode))
   def getIA(self, type):
     """Retourne le plugin d'IA demandé s'il existe ou None"""
     if not type in self.plugins.keys():
@@ -64,6 +65,8 @@ class AINavigation:
     self.graph = None
     
   # Création d'infos ---------------------------------------------------    
+  @general.accepts(None, int, int, bool)
+  @general.returns(float)
   def anglePassage(self, idxSommet1, idxSommet2, estSommets):
     """Retourne l'angle necessaire pour passer du sommet idxSommet1 au sommet idxSommet2"""
     general.TODO("Vérifier que l'angle soit calculé comme il devrait être")
@@ -81,6 +84,8 @@ class AINavigation:
       
     return angle
     
+  @general.accepts(None, int, int, (type(None), float))
+  @general.returns(bool)
   def peutPasser(self, idxSommet1, idxSommet2, angleSolMax=None):
     """
     Retourne True si l'angle pour passer de idxSommet1 à idxSommet2
@@ -135,6 +140,7 @@ class AINavigation:
       cpt+=1.0
     general.stopChrono("AINavigation::grapheDeplacement")
         
+  @general.accepts(None, int, int)
   def ajouteNoeud(self, pt1, pt2):
     """Ajoute un noeud au graphe"""
     general.startChrono("AINavigation::ajouteNoeud")
@@ -145,6 +151,7 @@ class AINavigation:
     self.graph[pt1][pt2] = angle
     general.stopChrono("AINavigation::ajouteNoeud")
       
+  @general.accepts(None, int)
   def maj(self, idxSommet):
     """
     Met à jour les données après modifications d'un sommet
@@ -158,6 +165,7 @@ class AINavigation:
   # Fin création d'infos -----------------------------------------------
   
   # Recherche d'itinéraire ---------------------------------------------
+  @general.accepts(None, int, int, (float, type(None)), int)
   def aStar(self, deb, fin, angleSolMax=None, horizonAStar=1):
     """
     Calcule la trajectoire la plus courte allant du sommet deb vers le sommet fin selon le graphe self.graph
@@ -233,6 +241,7 @@ class AINavigation:
     #On a rien trouvé
     return atteindHorizon
     
+  @general.accepts(None, int, int)
   def angle(self, x, y):
     """Calcul l'angle pour passer du sommet x au sommet y"""
     if x in self.graph.keys():
@@ -243,6 +252,7 @@ class AINavigation:
     print "AStar : Erreur calcul d'angle de",x,"à",y
     return None    
     
+  @general.accepts(None, int, (float, type(None)))
   def noeudsVoisins(self, id, angleSolMax=None):
     """Retourne les indices des sommets voisins au sommet id"""
     general.startChrono("AINavigation::noeudsVoisins")
@@ -259,6 +269,7 @@ class AINavigation:
     general.stopChrono("AINavigation::noeudsVoisins")
     return voisins
    
+  @general.accepts(None, list, (int, Vec3))
   def fabriqueChemin(self, promenade,fin):
     """Construit le chemin calculé par A*"""
     if fin in promenade.keys():
@@ -293,6 +304,7 @@ class AI:
     if self.bulbe != None:
       self.bulbe.stop()
     
+  @general.accepts(None, (unicode, str))
   def choisitComportement(self, type):
     """Choisit un type de comportement pour cette IA"""
     #On charge un nouveau type de comportement depuis le plugin
@@ -302,6 +314,7 @@ class AI:
     else:
       self.bulbe=self.bulbe(self.sprite)
     
+  @general.accepts(None, float)
   def ping(self, temps):
     """Boucle de calcul de l'IA"""
     general.TODO("RÉactiver l'IA")
@@ -356,6 +369,7 @@ class AIComportementUnitaire:
     general.TODO("Sauvegarde des comportements unitaires de type :"+str(self.__class__))
     return out
     
+  @general.accepts(None, float)
   def ping(self, temps):
     self.supprime()
     
@@ -410,6 +424,7 @@ class SuitChemin(AIComportementUnitaire):
           general.planete.geoide.racine.attachNewNode(self.comportement.ai.sprite.dessineLigne((0.0,1.0,0.0), prev * 1.2, element * 1.2))
         prev = element
         
+  @general.accepts(None, (int, Vec3))
   def getCoord(self, point):
     """
     Retourne les coordonnées du point
@@ -419,6 +434,7 @@ class SuitChemin(AIComportementUnitaire):
       return general.planete.geoide.sommets[point]
     return point
     
+  @general.accepts(None, float)
   def ping(self, temps):
     """Boucle de calcul"""
     
@@ -488,6 +504,7 @@ class VaVers(AIComportementUnitaire):
     AIComportementUnitaire.__init__(self, comportement, priorite)
     self.cible = cible
     
+  @general.accepts(None, float)
   def ping(self, temps):
     """Boucle de calcul"""
     if self.cible == None:
@@ -537,6 +554,7 @@ class AppelFonction(AIComportementUnitaire):
     self.fonction = fonction
     self.dico = dico
     
+  @general.accepts(None, float)
   def ping(self, temps):
     """Boucle de calcul"""
     if self.fini:
@@ -561,6 +579,7 @@ class Routine(AIComportementUnitaire):
     self.elements = []
     self.comportementBC = comportement
     
+  @general.accepts(None, None, bool, float)
   def ajouteCheck(self, element, cyclique, priorite):
     """Ajoute une nouvelle tâche, si cyclique==True, alors elle sera replacée à la fin de la liste lors de son exécution"""
     if self.elements == None:
@@ -570,6 +589,7 @@ class Routine(AIComportementUnitaire):
       self.comportement = self.comportementBC
     self.elements.append((element, cyclique, priorite))
     
+  @general.accepts(None, float)
   def ping(self, temps):
     """La boucle de calcul"""
     if self.elements == None:
@@ -602,6 +622,7 @@ class Routine(AIComportementUnitaire):
       #On a fini la tâche courante
       self.courant = None
       
+  @general.accepts(None, None, float)
   def produitTache(self, tache, priorite):
     """Tranforme la tache en quelque chose d'utilisable"""
     if True:#isinstance(tache, list):
@@ -651,6 +672,7 @@ class AIComportement:
       out+=comportement.sauvegarde()
     return out
     
+  @general.accepts(None, float)
   def ping(self, temps):
     """Boucle de calcul"""
     force = Vec3(0.0,0.0,0.0)
@@ -698,6 +720,7 @@ class AIComportement:
   def clear(self):
     self.ai = None
     
+  @general.accepts(None, bool, (list, int), None, bool)
   def chercheSpriteProche(self, stock, ressources, joueur, strict):
     """
     Recherche le sprite le plus proche qui correspond aux critères de recherche
@@ -719,6 +742,7 @@ class AIComportement:
     else:
       return self._chercheSpriteProche_thread(None, stock, ressources, joueur, strict)
 
+  @general.accepts(None, bool, (list, int), None, bool)
   def _chercheSpriteProche_thread(self, conn, stock, ressources, joueur, strict):
     """A ne pas appeler directement, utiliser chercheSpriteProche"""
     proche = None

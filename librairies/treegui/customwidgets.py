@@ -158,7 +158,7 @@ class Groupe(Pane):
     
     ligne = 0
     colone = 0
-    for composant in self.children:
+    for composant in reversed(self.children):
       if colone >= largeur:
         ligne+=1
         colone = 0

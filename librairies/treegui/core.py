@@ -57,7 +57,6 @@ class Holder:
         """ removes all ui components """
         for child in list(self.children):            
             self.remove(child)
-        return child
             
     def sendToFront(self,child):
         """ move the current ui component before all others """
