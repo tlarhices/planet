@@ -625,6 +625,7 @@ class Chat(Pane):
   
   def __init__(self, gui):
     Pane.__init__(self)
+    self.style = None
     self.gui = gui
     self.children = []
     self.etat = 0
@@ -635,6 +636,7 @@ class Chat(Pane):
     self.HAUTEUR_DIALOGUE = 80
     self.ouvert = False
     self.ongletActif = None
+    
     self.fabrique()
     
   #@general.accepts(None, (str, unicode, type(None)))
@@ -694,8 +696,9 @@ class Chat(Pane):
       btn.callbackParams = {"onglet":None}
     grp.MAJ()
     
-    if self.ongletActif in ["allies", "ennemis", "chat", "toutlemonde"]
-      texte = self.add(TextArea("", height=self.HAUTEUR_DIALOGUE - HAUTEUR_TEXTE - PAD, width=self.LARGEUR_DIALOGUE, x=grp.width + PAD*2))
+    zoneDialogue = self.add(Pane(x=grp.width+PAD*2, width=self.LARGEUR_DIALOGUE, height=self.LARGEUR_DIALOGUE))
+    if self.ongletActif in ["allies", "ennemis", "chat", "toutlemonde"]:
+      texte = zoneDialogue.add(TextArea("", height=self.HAUTEUR_DIALOGUE - HAUTEUR_TEXTE - PAD, width=self.LARGEUR_DIALOGUE, x=0))
       filtres = {
         "allies":("allies",),
         "ennemis":("ennemis",),
@@ -710,7 +713,7 @@ class Chat(Pane):
         if self.ongletActif in filtres[filtre]:
           texte.text+="\r\n"+ligne
         
-      self.add(Entry("", height=HAUTEUR_TEXTE, width=self.LARGEUR_DIALOGUE, x=grp.width + PAD*2, y=self.HAUTEUR_DIALOGUE-HAUTEUR_TEXTE))
+      zoneDialogue.add(Entry("", height=HAUTEUR_TEXTE, width=self.LARGEUR_DIALOGUE, x=0, y=self.HAUTEUR_DIALOGUE-HAUTEUR_TEXTE))
     
     self.x="right"
     self.y="bottom"
