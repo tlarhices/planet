@@ -45,7 +45,8 @@ if not os.path.exists(os.path.join(".", "sauvegardes")):
   os.makedirs(os.path.join(".", "sauvegardes"))
 if not os.path.exists(os.path.join(".", "data", "planetes")):
   os.makedirs(os.path.join(".", "data", "planetes"))
-      
+    
+
 class Start:
   """Gère le début de la partie"""
   ### Initialisation ---------------------------------------------------
@@ -123,6 +124,8 @@ class Start:
     #On affiche le menu principal
     general.interface.lanceInterface()
     
+  @general.accepts(None)
+  @general.returns(type(None))
   def fabriqueSystemeSolaire(self):
     """Construit le système solaire"""
     
@@ -140,6 +143,8 @@ class Start:
       general.planete.ajoutePlanete("--n/a--")
     general.planete.fabriqueModel()
     
+  @general.accepts(None)
+  @general.returns(type(None))
   def start(self):
     """Lance le rendu et la boucle de jeu"""
 
@@ -200,6 +205,8 @@ class Start:
   ### Fin initialisation -----------------------------------------------
       
   ### Gestion de la planète --------------------------------------------
+  @general.accepts(None)
+  @general.returns(type(None))
   def fabriquePlanete(self):
     """Construit une nouvelle planète via les gentils algos"""
     #On place la planète courante comme fond de menu
@@ -215,6 +222,8 @@ class Start:
       delta = general.configuration.getConfiguration("planete", "generation", "delta", "0.2", float)
     )
     
+  @general.accepts(None, str)
+  @general.returns(type(None))
   def chargePlanete(self, fichierPlanete):
     """Charge une planète depuis un fichier"""
     #On place la planète courante comme fond de menu
@@ -226,6 +235,8 @@ class Start:
     #On charge la planète
     general.planete.charge(fichier=fichierPlanete)
     
+  @general.accepts(None)
+  @general.returns(type(None))
   def detruit(self):
     """Supprime le modèle et retire les structures de données"""
     if general.planete != None:
