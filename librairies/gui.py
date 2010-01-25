@@ -23,6 +23,8 @@ LARGEUR_BOUTON = 190 #Largeur d'un bouton
 HAUTEUR_CHECK = 15 #Hauteur d'une checkbox
 HAUTEUR_TEXTE = 15 #Hauteur d'une ligne de texte
 TAILLE_ICONE = 15 #Hauteur==Largeur d'une icone
+LARGEUR_DIALOGUE = 120
+HAUTEUR_DIALOGUE = 250
 
 class Console(Pane):
   """Une console qui permet d'exécuter du code python sans quitter l'appli"""
@@ -323,7 +325,7 @@ class MenuCirculaire:
     """Retourne au menu précédent"""
     self.gui.changeMenuVers(MenuPrincipal)
     
-class Historique(MenuCirculaire):
+class Historique(Pane):
   """Affiche les messages sous forme d'icones s'empilant sur le coté droit de l'écran"""
   messages = None
   
@@ -344,10 +346,14 @@ class Historique(MenuCirculaire):
   
   def __init__(self, gui):
     self.messages = []
-    MenuCirculaire.__init__(self, gui)
+    Pane.__init__(self)
     self.angleOuverture = 80.0
     self.besoinRetour = False
-    self.fabrique()
+    self.y = base.win.getYSize() - TAILLE_ICONE*2 - PAD*2
+    self.style=None
+    self.width=base.win.getXSize()
+    self.height=TAILLE_ICONE+PAD*2
+    #self.fabrique()
   
   def ajouteMessage(self, type, message, position=None):
     """
@@ -357,13 +363,18 @@ class Historique(MenuCirculaire):
     position : le point au dessus duquel la caméra doit aller lors d'un clic sur l'icône
     """
     self.animation = 0
-    self.tailleHistorique = 10
-    self.messages.append((self.dureeMessage, type, message, self.ajouteBas(self.fabriqueMessage(type, message))))
+    self.tailleHistorique = (base.win.getXSize() - LARGEUR_DIALOGUE )/TAILLE_ICONE
+    self.messages.append((0.0, type, message, self.add(self.fabriqueMessage(type, message))))
     general.interface.tip(self.icones.get(type, self.icones["inconnu"]), message)
     deb = self.messages[:-self.tailleHistorique]
     for message in deb:
       self.remove(message[3])
     self.messages = self.messages[-self.tailleHistorique:]
+    pos=0
+    for message in self.messages:
+      message[3].x = pos
+      message[3].y = 0
+      pos+=TAILLE_ICONE
     #self.clear()
     #for msg in self.messages:
     #  self.ajouteBas(self.fabriqueMessage(msg[1], msg[2], compact=True))
@@ -371,7 +382,6 @@ class Historique(MenuCirculaire):
     if position!=None:
       self.messages[-1][3].callback = general.io.placeCameraAuDessusDe
       self.messages[-1][3].callbackParams = {"point":position}
-    self.fabrique()
     
   def fabriqueMessage(self, type, message):
     """
@@ -388,40 +398,10 @@ class Historique(MenuCirculaire):
     cmp.onHover = general.interface.hover
     return cmp
     
-  def MAJ(self, temps):
-    """Gère la pulsation des icones et supprime les icones périmées"""
-    if self.lastDraw == None:
-      self.lastDraw = temps
-      
-    tps = temps - self.lastDraw
-    aVirer = []
-        
-    for i in range(0, len(self.messages)):
-      restant, type, message, composant = self.messages[i]
-      restant = max(0.0, restant-tps)
-      if restant == 0:
-        #Composant périmé
-        self.remove(composant)
-        aVirer.append(self.messages[i])
-      else:
-        #Fait pulser
-        #composant.width = int(HAUTEUR_TEXTE*abs((restant%2-1)/2+0.5))
-        #composant.height = int(HAUTEUR_TEXTE*abs((restant%2-1)/2-0.5))
-        #print composant.width, composant.height
-        #composant.color = (composant.color[0], composant.color[1], composant.color[2], abs(restant%2-1))
-        pass
-      self.messages[i] = (restant, type, message, composant)
-      
-    for message in aVirer:
-      while self.messages.count(message)>0:
-        self.messages.remove(message)
-        
-    MenuCirculaire.MAJ(self, temps)
-    
   def clear(self):
     for restant, type, message, composant in self.messages:
       self.remove(composant)
-    MenuCirculaire.clear(self)
+    Pane.clear(self)
     
 class FondCarte:
   carte = None
@@ -620,8 +600,6 @@ class Chat(Pane):
   
   ouvert = None #Si True, alors la zone d'affichage est visible
   ongletActif = None
-  LARGEUR_DIALOGUE = None
-  HAUTEUR_DIALOGUE = None
   
   def __init__(self, gui):
     Pane.__init__(self)
@@ -632,14 +610,12 @@ class Chat(Pane):
     self._etat = 0
     self.nonLut = None
     self.lignes = []
-    self.LARGEUR_DIALOGUE = 80
-    self.HAUTEUR_DIALOGUE = 80
     self.ouvert = False
     self.ongletActif = None
     
     self.fabrique()
     
-  @general.accepts(None, (str, unicode, type(None)))
+  #@general.accepts(None, (str, unicode, type(None)))
   def ouvreDialogue(self, onglet):
     if onglet==None:
       onglet = self.ongletActif
@@ -696,9 +672,9 @@ class Chat(Pane):
       btn.callbackParams = {"onglet":None}
     grp.MAJ()
     
-    zoneDialogue = self.add(Pane(x=grp.width+PAD*2, width=self.LARGEUR_DIALOGUE, height=self.LARGEUR_DIALOGUE))
+    zoneDialogue = self.add(Pane(x=grp.width+PAD*2, width=LARGEUR_DIALOGUE, height=HAUTEUR_DIALOGUE))
     if self.ongletActif in ["allies", "ennemis", "chat", "toutlemonde"]:
-      texte = zoneDialogue.add(TextArea("", height=self.HAUTEUR_DIALOGUE - HAUTEUR_TEXTE - PAD, width=self.LARGEUR_DIALOGUE, x=0))
+      texte = zoneDialogue.add(TextAreaRO("", height=HAUTEUR_DIALOGUE - HAUTEUR_TEXTE - PAD, width=LARGEUR_DIALOGUE, x=0))
       filtres = {
         "allies":("allies",),
         "ennemis":("ennemis",),
@@ -713,7 +689,7 @@ class Chat(Pane):
         if self.ongletActif in filtres[filtre]:
           texte.text+="\r\n"+ligne
         
-      entree = zoneDialogue.add(Entry("", height=HAUTEUR_TEXTE, width=self.LARGEUR_DIALOGUE, x=0, y=self.HAUTEUR_DIALOGUE-HAUTEUR_TEXTE))
+      entree = zoneDialogue.add(Entry("", height=HAUTEUR_TEXTE, width=LARGEUR_DIALOGUE, x=0, y=HAUTEUR_DIALOGUE-HAUTEUR_TEXTE))
     else:
       general.TODO("Ajouter au GUI l'onglet %s" %self.ongletActif)
     
@@ -722,8 +698,10 @@ class Chat(Pane):
     self.height = grp.height + PAD*2
     self.width = grp.width + PAD*2
     if self.ouvert:
-      self.width+=PAD+self.LARGEUR_DIALOGUE
-      self.height=max(self.height, self.HAUTEUR_DIALOGUE+PAD)
+      self.width += PAD+LARGEUR_DIALOGUE
+      self.height = max(self.height, HAUTEUR_DIALOGUE+PAD)
+      
+    self.height += HAUTEUR_TEXTE + PAD*3
     
   @general.accepts(None, float)
   def MAJ(self, temps):
@@ -731,25 +709,29 @@ class Chat(Pane):
       self.fabrique()
     
                 
-class ListeCommandes(MenuCirculaire):
+class ListeCommandes(Pane):
   select = None #L'unité sélctionnée en ce moment
   liste = None
   dicoUnite = None
   
   def __init__(self, gui):
-    MenuCirculaire.__init__(self, gui)
-    self.besoinRetour = False
-    self.animation = 0
-    self.angleOuverture = 40
+    Pane.__init__(self)
+    self.gui = gui
+    self.children = []
+    self.style=None
     self.fabrique()
+    self.y = 2*TAILLE_ICONE + PAD*6
+    self.x = "left"
+    self.height = HAUTEUR_DIALOGUE
+    self.width = LARGEUR_BOUTON + PAD *2
 
   def fabrique(self):
     self.clear()
     if self.liste==None:
       return
       
-    def ajouteActions():
-      grp = self.ajouteGauche(Groupe(largeur=4))
+    def ajouteActions(delta=0):
+      grp = self.add(Groupe(largeur=4, x=PAD, y=PAD*2+HAUTEUR_BOUTON+delta))
       btn = grp.add(Icon("icones/gear.png"))
       btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Utiliser un truc")
       btn.__onHover__ = btn.onHover
@@ -771,10 +753,10 @@ class ListeCommandes(MenuCirculaire):
       pass
     elif len(self.liste)==1:
       sprite = self.liste[0]
-      btn = self.ajouteGauche(Label(sprite.id))
+      btn = self.add(Label(sprite.id, x=PAD, y=PAD))
       btn.style = "DEFAULT"
       btn.width = LARGEUR_BOUTON
-      grp = self.ajouteGauche(Groupe(largeur=3))
+      grp = self.add(Groupe(largeur=3, x=PAD, y=PAD*2+HAUTEUR_BOUTON))
       img = "fill100"
       if sprite.vie>80:
         img = "fill80"
@@ -798,46 +780,54 @@ class ListeCommandes(MenuCirculaire):
       btn.tooltip = general.i18n.getText("Activité : %s") %general.i18n.getText("Marche")
       btn.__onHover__ = btn.onHover
       btn.onHover = general.interface.hover
-      ajouteActions()
+      ajouteActions(TAILLE_ICONE+PAD*4)
     else:
-      btn = self.ajouteGauche(Label("Groupe"))
+      btn = self.add(Label("Groupe", x=PAD, y=PAD))
       btn.style = "DEFAULT"
       btn.width = LARGEUR_BOUTON
       ajouteActions()
-    MenuCirculaire.fabrique(self)
     
-  def anime(self, temps):
+  def MAJ(self, temps):
     if self.liste != general.io.selection:
       self.liste = general.io.selection[:]
       self.fabrique()
-    MenuCirculaire.anime(self, temps)
     
-class ListeUnite(MenuCirculaire):
+class ListeUnite(Pane):
   select = None #L'unité sélctionnée en ce moment
   liste = None
   dicoUnite = None
   
   def __init__(self, gui):
-    MenuCirculaire.__init__(self, gui)
-    self.angleOuverture = 30.0
-    self.decalageOuverture = 15
-    self.besoinRetour = False
+    Pane.__init__(self)
+    self.gui = gui
+    self.children=[]
     self.liste = []
     self.dicoUnite = {}
+    
+    self.width="100%"
+    self.height=2*TAILLE_ICONE + PAD*5
+    self.x = "left"
+    self.y = "top"
+    self.style=None
+    
     self.fabrique()
     
   def fabrique(self):
     self.clear()
+    pos = PAD
     if self.dicoUnite:
       for nom in self.dicoUnite.keys():
-        groupe = self.ajouteHaut(Groupe())
+        groupe = self.add(Groupe(hauteur=2))
         liste = self.dicoUnite[nom]
         for icone, couleur, sprite in liste:
           ic = groupe.add(IconButton(icone))
           ic.color = couleur
           ic.callback = self.clic
           ic.callbackParams = {"bouton":sprite.id, "etat":sprite}
-    MenuCirculaire.fabrique(self)
+        groupe.x = pos
+        groupe.y = 0
+        groupe.MAJ()
+        pos+=groupe.width + PAD*3
            
   def calculDicoUnite(self):
     self.dicoUnite = {}
@@ -852,12 +842,11 @@ class ListeUnite(MenuCirculaire):
       courant.append((sprite.icone, couleur, sprite))
       self.dicoUnite[sprite.definition["nom"]]=courant
             
-  def anime(self, temps):
+  def MAJ(self, temps):
     if self.liste != general.io.selection:
       self.liste = general.io.selection[:]
       self.calculDicoUnite()
       self.fabrique()
-    MenuCirculaire.anime(self, temps)
 
   def clic(self, bouton, etat):
     """
@@ -896,17 +885,17 @@ class EnJeu():
   def __init__(self, gui):
     self.gui = gui
     #self.gui.historique = Historique(self.gui)
-    self.listeUnite = ListeUnite(self.gui)
-    self.listeCommandes = ListeCommandes(self.gui)
+    self.listeUnite = self.gui.add(ListeUnite(self.gui))
+    self.listeCommandes = self.gui.add(ListeCommandes(self.gui))
     self.chat = self.gui.add(Chat(self.gui))
-    #self.miniMap = self.gui.gui.add(MiniMap(self.gui))
+    self.miniMap = self.gui.gui.add(MiniMap(self.gui))
     
   def alerte(self, type, message, coord):
     """Ajoute un nouveau message"""
     self.gui.historique.ajouteMessage(type, message, coord)
     
   def MAJ(self, temps):
-    self.gui.historique.MAJ(temps)
+    #self.gui.historique.MAJ(temps)
     self.listeUnite.MAJ(temps)
     self.listeCommandes.MAJ(temps)
     if self.chat != None:
@@ -920,6 +909,7 @@ class EnJeu():
     if self.gui.historique != None:
       self.gui.historique.clear()
     self.listeUnite.clear()
+    self.gui.remove(self.listeUnite)
     #Purge tous les points de la carte
     if self.miniMap != None:
       self.miniMap.clear()
@@ -928,6 +918,7 @@ class EnJeu():
       self.chat.clear()
       self.gui.remove(self.chat)
     self.listeCommandes.clear()
+    self.gui.remove(self.listeCommandes)
     
   def changeMenu(self):
     if isinstance(self.listeCommandes, ListeCommandes):
@@ -1367,8 +1358,8 @@ class Interface:
   def ping(self, task):
     if self.menuCourant!=None:
       self.menuCourant.MAJ(task.time)
-    if self.historique!=None:
-      self.historique.MAJ(task.time)
+    #if self.historique!=None:
+    #  self.historique.MAJ(task.time)
     return task.cont
     
   def changeMenuVers(self, classe):
@@ -1394,6 +1385,7 @@ class Interface:
     self.changeMenuVers(None)
     if self.historique != None:
       self.historique.clear()
+      self.remove(self.historique)
       self.historique = None
     if self.chargement != None:
       self.gui.remove(self.chargement)
@@ -1402,9 +1394,7 @@ class Interface:
   def makeMain(self):
     """Construit les éléments de l'interface lors du chargement"""
     self.changeMenuVers(None)
-    if self.historique!=None:
-      raw_input("Zmoops !")
-    self.historique = Historique(self)
+    self.historique = self.add(Historique(self))
     self.chargement = self.gui.add(Chargement())
     
   def configurer(self):
@@ -1442,6 +1432,7 @@ class Interface:
     jeu = self.menuCourant
     self.menuCourant = None
     self.historique.clear()
+    self.remove(self.historique)
     self.historique = None
     jeu.efface(MenuPrincipal)
     general.planete.detruit()

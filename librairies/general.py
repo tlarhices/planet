@@ -293,7 +293,6 @@ def accepts(*types, **kw):
     try:
         def decorator(f):
             def newf(*args, **kargs):
-                print args, kargs
                 if debug == 0:
                     return f(*args)
                     

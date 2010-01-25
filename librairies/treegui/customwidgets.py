@@ -196,4 +196,16 @@ class EntryHistory(Entry):
       
   def history(self, move):
     return None
+    
+class TextAreaRO(Label):
+  """ single line entry for people to fight text with """
+    
+  def onKey(self,char):
+    pass
+    
+  def onFocus(self):
+    self.caret = -1 
+        
+  def onUnfocus(self):
+    self.caret = -1 
       
