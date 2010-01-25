@@ -228,3 +228,16 @@ creating vectrices : 68.31%|^|Creating vectrices : 68.31%
 creating vectrices : 78.06%|^|Creating vectrices : 78.06%
 creating vectrices : 87.82%|^|Creating vectrices : 87.82%
 creating vectrices : 97.58%|^|Creating vectrices : 97.58%
+vie : 100%|^|Vie : 100%
+métier : bucheron|^|Métier : bucheron
+activité : marche|^|Activité : Marche
+action : attaquer...|^|Action : Attaquer...
+métier : %s|^|Métier : %s
+bucheron|^|Bucheron
+activité : %s|^|Activité : %s
+marche|^|Marche
+action : %s...|^|Action : %s...
+utiliser un truc|^|Utiliser un truc
+marcher vers|^|Marcher vers
+cibler|^|Cibler
+attaquer|^|Attaquer

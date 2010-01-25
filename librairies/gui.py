@@ -383,7 +383,7 @@ class Historique(MenuCirculaire):
       general.TODO("Il manque l'icone "+type+" pour l'affichage des message")
       type="inconnu"
     cmp = Icon(self.icones[type], width=LARGEUR_BOUTON)
-    cmp.tooltip = message
+    cmp.tooltip = general.i18n.getText(message)
     cmp.__onHover__ = cmp.onHover
     cmp.onHover = general.interface.hover
     return cmp
@@ -405,7 +405,11 @@ class Historique(MenuCirculaire):
         aVirer.append(self.messages[i])
       else:
         #Fait pulser
-        composant.color = (composant.color[0], composant.color[1], composant.color[2], abs(restant%2-1))
+        #composant.width = int(HAUTEUR_TEXTE*abs((restant%2-1)/2+0.5))
+        #composant.height = int(HAUTEUR_TEXTE*abs((restant%2-1)/2-0.5))
+        #print composant.width, composant.height
+        #composant.color = (composant.color[0], composant.color[1], composant.color[2], abs(restant%2-1))
+        pass
       self.messages[i] = (restant, type, message, composant)
       
     for message in aVirer:
@@ -616,24 +620,70 @@ class ListeCommandes(MenuCirculaire):
     self.besoinRetour = False
     self.animation = 0
     self.angleOuverture = 40
-    btn = self.ajouteGauche(Label("Hubert Gardaniek"))
-    btn.style = "DEFAULT"
-    btn.width = LARGEUR_BOUTON
-    btn = self.ajouteGauche(Label("Bucheron"))
-    btn.style = "DEFAULT"
-    btn.width = LARGEUR_BOUTON
-    btn = self.ajouteGauche(Label(general.i18n.getText("Vie : %i%%")%72))
-    btn.style = "DEFAULT"
-    btn.width = LARGEUR_BOUTON
-    btn = self.ajouteGauche(Label(general.i18n.getText("Occupation : %s")%"Coupe un arbre"))
-    btn.style = "DEFAULT"
-    btn.width = LARGEUR_BOUTON
-    grp = self.ajouteGauche(Groupe())
-    btn = grp.add(Icon("icones/gear.png"))
-    btn = grp.add(Icon("icones/move.png"))
-    btn = grp.add(Icon("icones/target.png"))
-    btn = grp.add(Icon("icones/rangearrow.png"))
     self.fabrique()
+
+  def fabrique(self):
+    self.clear()
+    if self.liste==None:
+      return
+    if len(self.liste)==0:
+      pass
+    elif len(self.liste)==1:
+      sprite = self.liste[0]
+      btn = self.ajouteGauche(Label(sprite.id))
+      btn.style = "DEFAULT"
+      btn.width = LARGEUR_BOUTON
+      grp = self.ajouteGauche(Groupe(largeur=3))
+      img = "fill100"
+      if sprite.vie>80:
+        img = "fill80"
+      elif sprite.vie>60:
+        img = "fill60"
+      elif sprite.vie>40:
+        img = "fill40"
+      elif sprite.vie>20:
+        img = "fill20"
+      else:
+        img = "fill0"
+      btn = grp.add(Icon("icones/"+img+".png"))
+      btn.tooltip = general.i18n.getText("Vie : %i%%") %sprite.vie
+      btn.__onHover__ = btn.onHover
+      btn.onHover = general.interface.hover
+      btn = grp.add(Icon("icones/vegetable.png"))
+      btn.tooltip = general.i18n.getText("Métier : %s") %general.i18n.getText("Bucheron")
+      btn.__onHover__ = btn.onHover
+      btn.onHover = general.interface.hover
+      btn = grp.add(Icon("icones/reinforcement.png"))
+      btn.tooltip = general.i18n.getText("Activité : %s") %general.i18n.getText("Marche")
+      btn.__onHover__ = btn.onHover
+      btn.onHover = general.interface.hover
+      
+      grp = self.ajouteGauche(Groupe(largeur=4))
+      btn = grp.add(Icon("icones/gear.png"))
+      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Utiliser un truc")
+      btn.__onHover__ = btn.onHover
+      btn.onHover = general.interface.hover
+      btn = grp.add(Icon("icones/move.png"))
+      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Marcher vers")
+      btn.__onHover__ = btn.onHover
+      btn.onHover = general.interface.hover
+      btn = grp.add(Icon("icones/target.png"))
+      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Cibler")
+      btn.__onHover__ = btn.onHover
+      btn.onHover = general.interface.hover
+      btn = grp.add(Icon("icones/rangearrow.png"))
+      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Attaquer")
+      btn.__onHover__ = btn.onHover
+      btn.onHover = general.interface.hover
+    else:
+      pass
+    MenuCirculaire.fabrique(self)
+    
+  def anime(self, temps):
+    if self.liste != general.io.selection:
+      self.liste = general.io.selection[:]
+      self.fabrique()
+    MenuCirculaire.anime(self, temps)
     
 class ListeUnite(MenuCirculaire):
   select = None #L'unité sélctionnée en ce moment
@@ -1290,13 +1340,16 @@ class Interface:
       general.interface.gui.keys.focus = self.console.texte
       self.console.texte.onFocus()
       
+  @general.accepts(None, (unicode, str, type(None)), (unicode, type(None)))
   def tip(self, icone, message):
+    if message==None:
+      return
     if icone==None:
-      self.tooltip.text = general.i18n.getText(message)
+      self.tooltip.text = message
       self.tooltip.icon = None
     else:
       #On laisse de la place pour l'icône
-      self.tooltip.text = "     "+general.i18n.getText(message)
+      self.tooltip.text = "     "+message
       self.tooltip.icon = icone
       
   def afficheTexte(self, texte, parametres, type="normal", forceRefresh=False):

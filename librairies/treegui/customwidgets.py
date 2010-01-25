@@ -106,7 +106,12 @@ class SetterBar(ProgressBar):
       pass
       
 class Groupe(Pane):
-  def __init__(self, **placement):
+  largeur = None
+  hauteur = None
+  
+  def __init__(self, largeur=None, hauteur=None, **placement):
+    self.largeur = largeur
+    self.hauteur = hauteur
     self.doPlacement(placement)
     self.children=[]
     
@@ -125,13 +130,36 @@ class Groupe(Pane):
       self.width = 15
       self.height = 15
       return
-    cote = int(math.sqrt(len(self.children))+0.5)
-    self.width = cote*self.children[0].width+(cote-2)*PAD
+      
+    if self.largeur==None and self.hauteur==None:
+      cote = int(math.sqrt(len(self.children))+0.5)
+      largeur = cote
+      hauteur = cote
+      
+    elif self.largeur == None:
+      hauteur = self.hauteur
+      largeur = int(float(len(self.children))/hauteur+0.5)
+      
+    elif self.hauteur == None:
+      largeur = self.largeur
+      hauteur = int(float(len(self.children))/largeur+0.5)
+      
+    else:
+      largeur = self.largeur
+      hauteur = self.hauteur
+      
+      
+    if largeur<1:
+      largeur=1
+    if hauteur<1:
+      hauteur=1
+      
+    self.width = largeur*self.children[0].width+(largeur-2)*PAD
     
     ligne = 0
     colone = 0
     for composant in self.children:
-      if colone >= cote:
+      if colone >= largeur:
         ligne+=1
         colone = 0
       composant.x=colone*PAD+colone*composant.width

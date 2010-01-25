@@ -296,22 +296,23 @@ def accepts(*types, **kw):
                 if debug == 0:
                     return f(*args)
                     
-                _args = args[:]
-                typs = types
-                if types:
-                  if types[0]==None:
-                    args=args[1:]
-                    typs=types[1:]
+                assert len(args) == len(types)
 
-                assert len(args) == len(typs)
                 argtypes = tuple(map(type, args))
-                if argtypes != typs:
-                    msg = info(f.__name__, types, argtypes, 0)
-                    if debug == 1:
-                        print >> sys.stderr, 'TypeWarning: ', msg
-                    elif debug == 2:
-                        raise TypeError, msg
-                return f(*_args)
+                for i in range(0, len(types)):
+                  typ = types[i]
+                  atype = argtypes[i]
+                  if typ!=None:
+                    if not isinstance(typ, tuple):
+                      typ = typ, 
+                    if atype not in typ:
+                      msg = info(f.__name__, types, argtypes, 0)
+                      if debug == 1:
+                          print >> sys.stderr, 'TypeWarning: ', msg
+                          break
+                      elif debug == 2:
+                          raise TypeError, msg
+                return f(*args)
             newf.__name__ = f.__name__
             return newf
         return decorator

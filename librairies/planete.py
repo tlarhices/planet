@@ -151,7 +151,7 @@ class Planete:
     
     #On zip le fichier temporaire
     zip = zipfile.ZipFile(nomFichier, "w")
-    zip.write(os.path.join(".", "data", "cache", "save.tmp"), os.path.basename(nomFichier), zipfile.ZIP_DEFLATED)
+    zip.write(os.path.join(".", "data", "cache", "save.tmp"), "sauvegarde", zipfile.ZIP_DEFLATED)
     zip.write(os.path.join(".", "data", "cache", "minimap.png"), "minimap.png", zipfile.ZIP_DEFLATED)
     zip.close()
     #On enlève le fichier temporaire
@@ -174,7 +174,7 @@ class Planete:
     zip = zipfile.ZipFile(fichier, "r")
     if zip.testzip()!=None:
       print "PLANETE :: Charge :: Erreur : Fichier de sauvegarde corrompu !"
-    data = zip.read(os.path.basename(fichier))
+    data = zip.read("sauvegarde")
     zip.close()
     lignes = data.split("\r\n")
 
