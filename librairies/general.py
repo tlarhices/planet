@@ -292,19 +292,42 @@ def accepts(*types, **kw):
         debug = kw['debug']
     try:
         def decorator(f):
-            def newf(*args):
+            def newf(*args, **kargs):
+                print args, kargs
                 if debug == 0:
                     return f(*args)
                     
-                assert len(args) == len(types)
+                #assert len(args) == len(types)
 
                 argtypes = tuple(map(type, args))
-                for i in range(0, len(types)):
-                  typ = types[i]
-                  atype = argtypes[i]
+                for i in range(0, max(len(types), len(args))):
+                  if len(types)>i:
+                    typ = types[i]
+                  else:
+                    msg = info(f.__name__, types, argtypes, 0)
+                    if debug == 1:
+                        print >> sys.stderr, 'IndexWarning: ', msg
+                        break
+                    elif debug == 2:
+                      raise IndexError, msg
+                      
                   if typ!=None:
                     if not isinstance(typ, tuple):
                       typ = typ, 
+
+                    if len(argtypes)>i:
+                      atype = argtypes[i]
+                    else:
+                      if not "opt" in typ:
+                        msg = info(f.__name__, types, argtypes, 0)
+                        if debug == 1:
+                            print >> sys.stderr, 'IndexWarning: ', msg
+                            break
+                        elif debug == 2:
+                          raise IndexError, msg
+                      else:
+                        pass #Valeur optionnelle
+
                     if atype not in typ:
                       msg = info(f.__name__, types, argtypes, 0)
                       if debug == 1:
@@ -369,3 +392,4 @@ def info(fname, expected, actual, flag):
           + ("accepts", "returns")[flag] + " (%s), but " % expected\
           + ("was given", "result is")[flag] + " (%s)" % actual
     return msg
+    

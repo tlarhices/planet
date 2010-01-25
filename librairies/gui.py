@@ -639,7 +639,7 @@ class Chat(Pane):
     
     self.fabrique()
     
-  #@general.accepts(None, (str, unicode, type(None)))
+  @general.accepts(None, (str, unicode, type(None)))
   def ouvreDialogue(self, onglet):
     if onglet==None:
       onglet = self.ongletActif
@@ -713,7 +713,9 @@ class Chat(Pane):
         if self.ongletActif in filtres[filtre]:
           texte.text+="\r\n"+ligne
         
-      zoneDialogue.add(Entry("", height=HAUTEUR_TEXTE, width=self.LARGEUR_DIALOGUE, x=0, y=self.HAUTEUR_DIALOGUE-HAUTEUR_TEXTE))
+      entree = zoneDialogue.add(Entry("", height=HAUTEUR_TEXTE, width=self.LARGEUR_DIALOGUE, x=0, y=self.HAUTEUR_DIALOGUE-HAUTEUR_TEXTE))
+    else:
+      general.TODO("Ajouter au GUI l'onglet %s" %self.ongletActif)
     
     self.x="right"
     self.y="bottom"
