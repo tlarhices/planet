@@ -8,8 +8,141 @@
 import math, os, sys
 from pandac.PandaModules import *
 
-configuration = None
+def accepts(*types, **kw):
+  """ Function decorator. Checks that inputs given to decorated function
+  are of the expected type.
+
+  Parameters:
+  types -- The expected types of the inputs to the decorated function.
+           Must specify type for each parameter.
+  kw    -- Optional specification of 'debug' level (this is the only valid
+           keyword argument, no other should be given).
+           debug = ( 0 | 1 | 2 )
+
+  """
+  if not kw:
+    # default level: MEDIUM
+    debug = 2
+  else:
+    debug = kw['debug']
+  try:
+    def decorator(f):
+      def newf(*args, **kargs):
+        if debug == 0:
+          return f(*args, **kargs)
+          
+        def raiseErr(msg=None, dbg=None):
+          if not msg:
+            msg = info(f.__name__, types, argtypes, 0)
+          if dbg==None:
+            dbg=debug
+            
+          if dbg == 1:
+            print >> sys.stderr, 'IndexWarning: ', msg
+          elif dbg == 2:
+            raise IndexError, msg
+          
+        if kargs:
+          raiseErr("Impossible de tester les parametres nommés dans "+f.__name__, min(debug, 1))
+          return f(*args, **kargs)
+
+        argtypes = tuple(map(type, args))
+        for i in range(0, max(len(types), len(args))):
+          if len(types)>i:
+            typ = types[i]
+          else:
+            raiseErr()
+            break;
+          if typ!=None:
+            if not isinstance(typ, tuple):
+              typ = typ, 
+
+            if len(argtypes)>i:
+              atype = argtypes[i]
+            else:
+              if not "opt" in typ:
+                raiseErr()
+                break
+            if atype not in typ:
+              if str(atype).split("'")[1]=="instance":
+                if "instance" not in typ:
+                  if str(args[i].__class__) not in typ:
+                    raiseErr(str(args[i].__class__)+" ou 'instance' non trouvé dans "+f.__name__)
+                    break
+              else:
+                if str(args[i].__class__).split("'")[1] not in typ:
+                  if debug>0:
+                    print "Err param :", str(args[i].__class__).split("'")[1]
+                  raiseErr()
+                  break
+        return f(*args)
+      newf.__name__ = f.__name__
+      return newf
+    return decorator
+  except KeyError, key:
+    raise KeyError, key + "is not a valid keyword argument"
+  except TypeError, msg:
+    raise TypeError, msg
+
+
+def returns(ret_type, **kw):
+  """ Function decorator. Checks that return value of decorated function
+  is of the expected type.
+
+  Parameters:
+  ret_type -- The expected type of the decorated function's return value.
+              Must specify type for each parameter.
+  kw       -- Optional specification of 'debug' level (this is the only valid
+              keyword argument, no other should be given).
+              debug=(0 | 1 | 2)
+
+  """
+  try:
+    if not kw:
+      # default level: MEDIUM
+      debug = 1
+    else:
+      debug = kw['debug']
+    def decorator(f):
+      def newf(*args, **kargs):
+        result = f(*args, **kargs)
+        if debug == 0:
+          return result
+        res_type = type(result)
+        typ = ret_type
+        
+        if not isinstance(typ, tuple):
+          typ=(typ, )
+        
+        if res_type not in typ:
+          msg = info(f.__name__, (ret_type,), (res_type,), 1)
+          if debug == 1:
+            print >> sys.stderr, 'TypeWarning: ', msg
+          elif debug == 2:
+            raise TypeError, msg
+        return result
+      newf.__name__ = f.__name__
+      return newf
+    return decorator
+  except KeyError, key:
+    raise KeyError, key + "is not a valid keyword argument"
+  except TypeError, msg:
+    raise TypeError, msg
+
+def info(fname, expected, actual, flag):
+    """ Convenience function returns nicely formatted error/warning msg. """
+    format = lambda types: ', '.join([str(t) for t in types])
+    expected, actual = format(expected), format(actual)
+    msg = "'%s' method " % fname \
+          + ("accepts :\r\n", "returns :\r\n")[flag] + " (%s), but " % expected\
+          + ("was given :\r\n", "result is :\r\n")[flag] + " (%s)" % actual
+    return msg
+
+
+
+
   
+@accepts((list, tuple))
 def floatise(vecteur):
   """Caste les éléments d'un vecteur vers float"""
   out = []
@@ -17,6 +150,7 @@ def floatise(vecteur):
     out.append(float(element))
   return out
   
+@accepts(float)
 def degVersRad(angle):
   """Transforme des degrés en radiants"""
   return float(angle)/180*math.pi
@@ -41,52 +175,7 @@ def spheriqueVersCartesien(rayon, anglex, angley):
   return [x,y,z]
   """
   
-import time
-chronos={}
-chronchron={}
-def startChrono(nomChrono):
-  """Sauvegarde l'heure de début"""
-  if not configuration.getConfiguration("debug", "general", "debug_utilise_statistiques", "f", bool):
-    return
-  nomChrono = nomChrono.lower().strip()
-  if nomChrono in chronos.keys():
-    print "chrono ",nomChrono,"déjà existant, écrasement"
-  chronos[nomChrono] = time.time()
-  
-def stopChrono(nomChrono):
-  """Sauvegarde l'heure de fin"""
-  if not configuration.getConfiguration("debug", "general", "debug_utilise_statistiques", "f", bool):
-    return
-  nomChrono = nomChrono.lower().strip()
-  if not nomChrono in chronos.keys():
-    print "chrono ",nomChrono,"innexistant"
-    return None
-  A = chronos[nomChrono]
-  
-  if nomChrono not in chronchron.keys():
-    chronchron[nomChrono] = []
-    
-  chronchron[nomChrono].append(time.time() -A)
-  del chronos[nomChrono]
-
-def afficheStatChrono():
-  """Affiche les statistiques de durées d'appels"""
-  if not configuration.getConfiguration("debug", "general", "debug_utilise_statistiques", "f", bool):
-    return
-  for element in chronchron.keys():
-    print "########"
-    print element
-    cpt = 0.0
-    tot = 0.0
-    for temps in chronchron[element]:
-      cpt+=1
-      tot+=temps
-    print "Itérations :", cpt
-    print "Total :", tot
-    print "Moyen :", tot/cpt
-    print "########"
-    
-
+@accepts("libpanda.NodePath", Point3)
 def map3dToRender2d(node, point):
     """Maps the indicated 3-d point (a Point3), which is relative to
     the indicated NodePath, to the corresponding point in the aspect2d
@@ -101,6 +190,7 @@ def map3dToRender2d(node, point):
        return None
     return Point3(p2[0], 0, p2[1])
 
+@accepts("libpanda.NodePath", Point3)
 def map3dToAspect2d(node, point):
     """Maps the indicated 3-d point (a Point3), which is relative to
     the indicated NodePath, to the corresponding point in the aspect2d
@@ -114,7 +204,8 @@ def map3dToAspect2d(node, point):
     return a2d 
     
     
-    
+@accepts((list, tuple, Point3), (list, tuple, Point3))
+@returns(list)
 def pluck(p1, p2):
   pluck = []
   pluck.append(p1[0]*p2[1]-p2[0]*p1[1])
@@ -125,11 +216,15 @@ def pluck(p1, p2):
   pluck.append(p2[1]-p1[1])
   return pluck
 
+@accepts((list, tuple, Point3), (list, tuple, Point3), (list, tuple, Point3), (list, tuple, Point3))
+@returns(float)
 def sideProduct(p11, p12, p21, p22):
   pl1 = pluck(p11, p12)
   pl2 = pluck(p21, p22)
   return pl1[0]*pl1[4]+pl1[1]*pl2[5]+pl1[2]*pl2[3]+pl1[3]*pl2[2]+pl1[4]*pl2[0]+pl1[5]*pl2[1]
   
+@accepts((list, tuple, Point3), (list, tuple, Point3), (list, tuple, Point3), (list, tuple, Point3), (list, tuple, Point3))
+@returns((type(None), list))
 def testIntersectionTriangleDroite(p1, p2, p3, l1, l2):
   s1 = sideProduct(l1, l2, p1, p2)
   s2 = sideProduct(l1, l2, p2, p3)
@@ -165,6 +260,8 @@ def testIntersectionTriangleDroite(p1, p2, p3, l1, l2):
     
     
     
+@accepts((list, tuple, Point3, "libpanda.Vec3"), (list, tuple, Point3, "libpanda.Vec3"), (list, tuple, Point3, "libpanda.Vec3"), float)
+@returns((type(None), list))
 def ligneCroiseSphere(l1, l2, c, r):
   """Retourne None si la ligne n'intersecte pas la sphère, sinon retourne le ou les points d'intersection"""
   #Teste si le segment croise la sphere
@@ -204,6 +301,8 @@ def ligneCroiseSphere(l1, l2, c, r):
   else:
     return [coordDepuisU(l1, l2, (-b + math.sqrt(facteur))/2*a), coordDepuisU(l1, l2, (-b - math.sqrt(facteur))/2*a)] #2 collisions
     
+@accepts((list, tuple, Point3), (list, tuple, Point3), (list, tuple, Point3))
+@returns(tuple)
 def projetePointSurPlan(normale, pointPlan, pointProj):
   #Calcul du plan
   #a*x + b*y + c*z + d = 0
@@ -225,6 +324,8 @@ def projetePointSurPlan(normale, pointPlan, pointProj):
   zp=z-k*a
   return xp, yp, zp
   
+@accepts((list, tuple, Point3), (list, tuple, Point3), (list, tuple, Point3), (list, tuple, Point3), (list, tuple, Point3), (list, tuple, Point3), (list, tuple, Point3))
+@returns(float)
 def lerp(pt1, v1, pt2, v2, pt3, v3, pt):
   d1=(pt1-pt).length()
   d2=(pt2-pt).length()
@@ -234,7 +335,6 @@ def lerp(pt1, v1, pt2, v2, pt3, v3, pt):
   d2 = d2/s
   d3 = d3/s
   return v1*d1+v2*d2+v3*d3
-  
   
 LISTE_TODO = []
 def chargeTODO():
@@ -251,6 +351,7 @@ def sauveTODO():
   fichier = open(os.path.join("todo.txt"), "w")
   for todo in LISTE_TODO:
     fichier.write(todo+"\r\n")
+@accepts(str)
 def TODO(texte):
   #On attrape le fichier et la fonction qui a appelé le TODO
   frame = sys._getframe(1)
@@ -272,123 +373,4 @@ def plop(func):
     finally:
       print func.__dict__, func.func_name, time.time()-t
   return newFunction
-      
-def accepts(*types, **kw):
-    """ Function decorator. Checks that inputs given to decorated function
-    are of the expected type.
-
-    Parameters:
-    types -- The expected types of the inputs to the decorated function.
-             Must specify type for each parameter.
-    kw    -- Optional specification of 'debug' level (this is the only valid
-             keyword argument, no other should be given).
-             debug = ( 0 | 1 | 2 )
-
-    """
-    if not kw:
-        # default level: MEDIUM
-        debug = 2
-    else:
-        debug = kw['debug']
-    try:
-        def decorator(f):
-            def newf(*args, **kargs):
-                if debug == 0:
-                    return f(*args)
-                    
-                #assert len(args) == len(types)
-
-                argtypes = tuple(map(type, args))
-                for i in range(0, max(len(types), len(args))):
-                  if len(types)>i:
-                    typ = types[i]
-                  else:
-                    msg = info(f.__name__, types, argtypes, 0)
-                    if debug == 1:
-                        print >> sys.stderr, 'IndexWarning: ', msg
-                        break
-                    elif debug == 2:
-                      raise IndexError, msg
-                      
-                  if typ!=None:
-                    if not isinstance(typ, tuple):
-                      typ = typ, 
-
-                    if len(argtypes)>i:
-                      atype = argtypes[i]
-                    else:
-                      if not "opt" in typ:
-                        msg = info(f.__name__, types, argtypes, 0)
-                        if debug == 1:
-                            print >> sys.stderr, 'IndexWarning: ', msg
-                            break
-                        elif debug == 2:
-                          raise IndexError, msg
-                      else:
-                        pass #Valeur optionnelle
-
-                    if atype not in typ:
-                      msg = info(f.__name__, types, argtypes, 0)
-                      if debug == 1:
-                          print >> sys.stderr, 'TypeWarning: ', msg
-                          break
-                      elif debug == 2:
-                          raise TypeError, msg
-                return f(*args)
-            newf.__name__ = f.__name__
-            return newf
-        return decorator
-    except KeyError, key:
-        raise KeyError, key + "is not a valid keyword argument"
-    except TypeError, msg:
-        raise TypeError, msg
-
-
-def returns(ret_type, **kw):
-    """ Function decorator. Checks that return value of decorated function
-    is of the expected type.
-
-    Parameters:
-    ret_type -- The expected type of the decorated function's return value.
-                Must specify type for each parameter.
-    kw       -- Optional specification of 'debug' level (this is the only valid
-                keyword argument, no other should be given).
-                debug=(0 | 1 | 2)
-
-    """
-    try:
-        if not kw:
-            # default level: MEDIUM
-            debug = 1
-        else:
-            debug = kw['debug']
-        def decorator(f):
-            def newf(*args):
-                result = f(*args)
-                if debug == 0:
-                    return result
-                res_type = type(result)
-                if res_type != ret_type:
-                    msg = info(f.__name__, (ret_type,), (res_type,), 1)
-                    if debug == 1:
-                        print >> sys.stderr, 'TypeWarning: ', msg
-                    elif debug == 2:
-                        raise TypeError, msg
-                return result
-            newf.__name__ = f.__name__
-            return newf
-        return decorator
-    except KeyError, key:
-        raise KeyError, key + "is not a valid keyword argument"
-    except TypeError, msg:
-        raise TypeError, msg
-
-def info(fname, expected, actual, flag):
-    """ Convenience function returns nicely formatted error/warning msg. """
-    format = lambda types: ', '.join([str(t) for t in types])
-    expected, actual = format(expected), format(actual)
-    msg = "'%s' method " % fname \
-          + ("accepts", "returns")[flag] + " (%s), but " % expected\
-          + ("was given", "result is")[flag] + " (%s)" % actual
-    return msg
-    
+  

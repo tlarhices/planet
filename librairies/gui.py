@@ -611,7 +611,7 @@ class Chat(Pane):
     self.nonLut = None
     self.lignes = []
     self.ouvert = False
-    self.ongletActif = None
+    self.ongletActif = "chat"
     
     self.fabrique()
     
@@ -619,11 +619,11 @@ class Chat(Pane):
   def ouvreDialogue(self, onglet):
     if onglet==None:
       onglet = self.ongletActif
-    if onglet==None: #Arrive si self.ongletActif == None
-      onglet = "chat"
+
     if onglet==self.ongletActif and self.ouvert:
       self.fermeDialogue()
       return
+      
     self.ouvert = True
     self.etat += 1
     self.ongletActif = onglet
@@ -685,12 +685,25 @@ class Chat(Pane):
         "statistiques":("statistiques",)
       }
       
-      for filtre, ligne in self.lignes:
+      for filtre, joueur, ligne in self.lignes:
         if self.ongletActif in filtres[filtre]:
-          texte.text+="\r\n"+ligne
+          texte.text+="\r\n"+joueur+" >> "+ligne
         
       entree = zoneDialogue.add(Entry("", height=HAUTEUR_TEXTE, width=LARGEUR_DIALOGUE, x=0, y=HAUTEUR_DIALOGUE-HAUTEUR_TEXTE))
+    elif self.ongletActif=="echanges":
+      zoneDialogue.add(Label("Échanges commerciaux"))
+    elif self.ongletActif=="alignements":
+      zoneDialogue.add(Label("Alignements"))
+      pos=HAUTEUR_TEXTE+PAD
+      for joueur in general.planete.joueurs:
+        if joueur != general.joueurLocal:
+          zoneDialogue.add(Label(joueur.nom+" : Ennemi", y=pos))
+          pos+=HAUTEUR_TEXTE+PAD
+    elif self.ongletActif=="statistiques":
+      zoneDialogue.add(Label("Statistiques"))
+      zoneDialogue.add(Label("Nombre de gugusses : "+str(len(general.joueurLocal.sprites)), y=HAUTEUR_TEXTE+PAD))
     else:
+      print "Onglet inconnu : ", self.ongletActif
       general.TODO("Ajouter au GUI l'onglet %s" %self.ongletActif)
     
     self.x="right"
@@ -707,6 +720,11 @@ class Chat(Pane):
   def MAJ(self, temps):
     if self.etat!=self._etat:
       self.fabrique()
+      
+  @general.accepts(None, ("joueur.JoueurLocal", "joueur.JoueurLocal", "joueur.JoueurDistant", "joueur.JoueurIA"), (str, unicode))
+  def chat(self, joueur, message):
+    filtre = "ennemis"
+    self.lignes.append((filtre, joueur, message))
     
                 
 class ListeCommandes(Pane):
@@ -879,7 +897,7 @@ class EnJeu():
   """Contient la liste des unitées que l'on peut construire"""
   listeUnite = None #La liste des icones des unités sélectionnées
   listeCommandes = None
-  chat = None
+  zoneChat = None
   miniMap = None #La carte
   
   def __init__(self, gui):
@@ -887,9 +905,16 @@ class EnJeu():
     #self.gui.historique = Historique(self.gui)
     self.listeUnite = self.gui.add(ListeUnite(self.gui))
     self.listeCommandes = self.gui.add(ListeCommandes(self.gui))
-    self.chat = self.gui.add(Chat(self.gui))
+    self.zoneChat = self.gui.add(Chat(self.gui))
     self.miniMap = self.gui.gui.add(MiniMap(self.gui))
     
+  @general.accepts(None, ("joueur.JoueurLocal", "joueur.JoueurLocal", "joueur.JoueurDistant", "joueur.JoueurIA"), (str, unicode))
+  def chat(self, joueur, message):
+    if self.zoneChat != None:
+      self.zoneChat.chat(joueur, message)
+    self.alerte("chat", joueur.nom+" >> "+message, None)
+    
+  @general.accepts(None, (str, unicode), (str, unicode), (Point3, Vec3, tuple, list, type(None)))
   def alerte(self, type, message, coord):
     """Ajoute un nouveau message"""
     self.gui.historique.ajouteMessage(type, message, coord)
@@ -898,8 +923,8 @@ class EnJeu():
     #self.gui.historique.MAJ(temps)
     self.listeUnite.MAJ(temps)
     self.listeCommandes.MAJ(temps)
-    if self.chat != None:
-      self.chat.MAJ(temps)
+    if self.zoneChat != None:
+      self.zoneChat.MAJ(temps)
     
   def efface(self, classe):
     self.clear()
@@ -914,9 +939,9 @@ class EnJeu():
     if self.miniMap != None:
       self.miniMap.clear()
       self.gui.gui.remove(self.miniMap)
-    if self.chat != None:
-      self.chat.clear()
-      self.gui.remove(self.chat)
+    if self.zoneChat != None:
+      self.zoneChat.clear()
+      self.gui.remove(self.zoneChat)
     self.listeCommandes.clear()
     self.gui.remove(self.listeCommandes)
     
@@ -1355,6 +1380,7 @@ class Interface:
     else:
       self.menuCourant.back()
     
+  @general.accepts(None, "libpanda.PythonTask")
   def ping(self, task):
     if self.menuCourant!=None:
       self.menuCourant.MAJ(task.time)
@@ -1401,6 +1427,7 @@ class Interface:
     """Passe au menu de configuration"""
     self.changeMenuVers(MenuConfiguration)
     
+  @general.accepts(None, str)
   def planeteVierge(self, fichier):
     """Charge un prototype de planète pré-construit"""
     self.makeMain()
@@ -1417,6 +1444,7 @@ class Interface:
     """Charge un partie sauvegardée"""
     self.changeMenuVers(MenuCharge)
     
+  @general.accepts(None, str)
   def chargerPartie2(self, fichier):
     """Charge une partie en cours"""
     self.makeMain()
@@ -1438,18 +1466,18 @@ class Interface:
     general.planete.detruit()
     general.start.fabriqueSystemeSolaire()
     
+  @general.accepts("gui.Interface", "joueur.JoueurLocal")
   def ajouteJoueur(self, joueur):
     """Indique qu'on passe du mode chargement au mode joueur"""
     self.joueur = joueur
     
-    #On ajoute les composants manquants
-    self.menuCourant = EnJeu(self)
     self.gui.remove(self.chargement)
     self.chargement = None
+
+    #On ajoute les composants manquants
+    self.menuCourant = EnJeu(self)
     
-  def getText(self, texte):
-    return general.i18n.getText(texte)
-    
+  @general.accepts(None, (str, unicode), dict, str, Vec3)
   def alerte(self, message, parametres, type, coord):
     """Ajoute un nouveau message"""
     message = general.i18n.getText(message)
@@ -1478,10 +1506,11 @@ class Interface:
       self.tooltip.text = "     "+message
       self.tooltip.icon = icone
       
+  @general.accepts(None, (unicode, str), dict, (str, "opt"), (bool, "opt"))
   def afficheTexte(self, texte, parametres, type="normal", forceRefresh=False):
     """Affiche le texte sur l'écran, si texte==None, alors efface le dernier texte affiché"""
-    texte = self.getText(texte)
-    parametres = self.getText(parametres)
+    texte = general.i18n.getText(texte)
+    parametres = general.i18n.getText(parametres)
     
     texte = texte %parametres
     if texte!=None:

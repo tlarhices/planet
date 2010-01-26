@@ -99,9 +99,11 @@ class Planete:
     return hashlib.sha256(self._syncCheck()).hexdigest()
   # Fin Initialisation -------------------------------------------------
     
+  @general.accepts(None, (str, unicode), dict, (str, unicode, "opt"))
   def afficheTexte(self, texte, parametres, type=None):
     """Affiche le texte sur l'écran"""
-    general.interface.afficheTexte(texte=texte, parametres=parametres, type=type, forceRefresh=True)
+    print texte, parametres, type
+    general.interface.afficheTexte(texte, parametres, type, True)
     
   # Constructions géométriques -----------------------------------------
   def fabriqueNouvellePlanete(self, tesselation, delta):

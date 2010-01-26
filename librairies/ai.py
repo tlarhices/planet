@@ -124,7 +124,6 @@ class AINavigation:
     Fabrique le graphe de deplacement de la planète
     graph[sommet de départ][sommet d'arrivée possible]=angle entre les 2
     """
-    general.startChrono("AINavigation::grapheDeplacement")
     cpt=0.0
     self.graph = {}
     
@@ -138,30 +137,25 @@ class AINavigation:
         if source!=voisin:
           self.ajouteNoeud(source, voisin)
       cpt+=1.0
-    general.stopChrono("AINavigation::grapheDeplacement")
         
   @general.accepts(None, int, int)
   def ajouteNoeud(self, pt1, pt2):
     """Ajoute un noeud au graphe"""
-    general.startChrono("AINavigation::ajouteNoeud")
     angle = self.anglePassage(pt1, pt2, True)
     if pt1 not in self.graph.keys():
       self.graph[pt1]={}
     
     self.graph[pt1][pt2] = angle
-    general.stopChrono("AINavigation::ajouteNoeud")
       
   @general.accepts(None, int)
   def maj(self, idxSommet):
     """
     Met à jour les données après modifications d'un sommet
     """
-    general.startChrono("AINavigation::maj")
     voisins = self.graph[idxSommet].keys()
     for voisin in voisins:
       self.ajouteNoeud(idxSommet, voisin)
       self.ajouteNoeud(voisin, idxSommet)
-    general.stopChrono("AINavigation::maj")
   # Fin création d'infos -----------------------------------------------
   
   # Recherche d'itinéraire ---------------------------------------------
@@ -172,7 +166,6 @@ class AINavigation:
     Prend en compte les changements d'élévation et la présence d'eau.
     Retourne None s'il n'y a pas de chemin possible
     """
-    general.startChrono("AINavigation::aStar")
     g={} #Le cout jusqu'à présent
     h={} #Le cout estimé jusqu'à la cible
     f={} #présent + cible
@@ -200,7 +193,6 @@ class AINavigation:
       #On est arrivé 
       if x == fin:
         #On retourne le chemin
-        general.stopChrono("AINavigation::aStar")
         return self.fabriqueChemin(promenade,fin)
         
       #On retire le sommet des sommets à tester
@@ -237,7 +229,6 @@ class AINavigation:
               f[y] = g[y] + h[y]
             
     #general.interface.afficheTexte("Impossible de trouver une trajectoire pour aller de %(a)s à %(b)s.", parametres={"a": deb, "b":fin}, type="avertissement")
-    general.stopChrono("AINavigation::aStar")
     #On a rien trouvé
     return atteindHorizon
     
@@ -255,7 +246,6 @@ class AINavigation:
   @general.accepts(None, int, (float, type(None)))
   def noeudsVoisins(self, id, angleSolMax=None):
     """Retourne les indices des sommets voisins au sommet id"""
-    general.startChrono("AINavigation::noeudsVoisins")
     
     if angleSolMax==None:
       angleSolMax = self.angleSolMax
@@ -266,7 +256,6 @@ class AINavigation:
     for elem in self.graph[id].keys():
       if self.graph[id][elem] <= angleSolMax:
         voisins.append(elem)
-    general.stopChrono("AINavigation::noeudsVoisins")
     return voisins
    
   @general.accepts(None, list, (int, Vec3))

@@ -428,8 +428,6 @@ class Geoide:
     if general.configuration.getConfiguration("debug", "planete", "debug_construction_sphere", "f", bool):
       return
       
-    general.startChrono("Planete::fabriqueEau")
-    
     #Crée le modèle de l'eau
     self.modeleEau = loader.loadModel("data/modeles/sphere.egg")
     self.modeleEau.reparentTo(self.racine)
@@ -452,7 +450,6 @@ class Geoide:
     
     #On coupe la collision avec le ciel pour pas qu'on détecte de clics dans l'eau
     self.modeleEau.setCollideMask(BitMask32.allOff())
-    general.stopChrono("Planete::fabriqueEau")
       
   def fabriqueCiel(self):
     """Ajoute une sphère qui représente l'eau"""
@@ -460,8 +457,6 @@ class Geoide:
     if general.configuration.getConfiguration("debug", "planete", "debug_construction_sphere", "f", bool):
       return
       
-    general.startChrono("Planete::fabriqueCiel")
-    
     #Crée le modèle du ciel
     self.modeleCiel = NodePath("ciel")
     self.modeleCiel.reparentTo(self.racine)
@@ -539,7 +534,6 @@ class Geoide:
     
     #On coupe la collision avec le ciel pour pas qu'on détecte de clics sur le ciel
     self.modeleCiel.setCollideMask(BitMask32.allOff())
-    general.stopChrono("Planete::fabriqueCiel")
 
   # Fin Constructions géométriques -------------------------------------
       
@@ -609,6 +603,9 @@ class Geoide:
     for i in range(0, tot):
       if general.configuration.getConfiguration("debug", "planete", "debug_charge_planete", "f", bool):
         if i%500==0:
+          print ["Parsage des infos... %(a)i/%(b)i"]
+          print [{"a": i, "b": tot}]
+          print ["sauvegarde"]
           general.planete.afficheTexte("Parsage des infos... %(a)i/%(b)i", parametres={"a": i, "b": tot}, type="sauvegarde")
       ligne = lignes[i]
         
@@ -697,7 +694,6 @@ class Geoide:
     Retourne le sommet le plus proche
     point : le point à rechercher
     """
-    general.startChrono("Planete::trouveSommet")
     if angleSolMax==None:
       angleSolMax = general.planete.aiNavigation.angleSolMax
       
@@ -713,7 +709,6 @@ class Geoide:
         elif general.planete.aiNavigation.anglePassage(point, s, False)<angleSolMax:
           id = self.sommets.index(s)
           dst = d
-    general.stopChrono("Planete::trouveSommet")
     return id
     
   def trouveFace(self, point, sub=None):
@@ -723,7 +718,6 @@ class Geoide:
     sub : la liste des faces à parcourir (utiliser None dans le doute)
     """
     general.TODO("Utiliser testIntersectionTriangleDroite pour plus de rapidité (voir #B#)")
-    general.startChrono("Planete::trouveFace")
     ## ------------ Version avec self.sommetDansFace
     sommetProche = self.trouveSommet(point)
     faces = self.sommetDansFace[sommetProche]
@@ -751,7 +745,6 @@ class Geoide:
       if math.sqrt(da*da+db*db+dc*dc) < math.sqrt(d1*d1+d2*d2+d3*d3):
         d1, d2, d3 = da, db, dc
         f = face
-    general.stopChrono("Planete::trouveFace")
     return f
     ## ------------ Version avec self.sommetDansFace
         
@@ -789,9 +782,7 @@ class Geoide:
     #Si la face que l'on trouvé a été subdivisée
     if f.enfants!=None:
       #On recherche dans ses enfants
-      general.stopChrono("Planete::trouveFace")
       return self.trouveFace(point, f.enfants)
-    general.stopChrono("Planete::trouveFace")
     return f
     ## ------------ Version avec self.elements
     
@@ -814,18 +805,14 @@ class Geoide:
         #Si la face que l'on trouvé a été subdivisée
         if tria.enfants!=None:
           #On recherche dans ses enfants
-          general.stopChrono("Planete::trouveFace")
           return self.trouveFace(point, tria.enfants)
         else:
-          general.stopChrono("Planete::trouveFace")
           return tria
-    general.stopChrono("Planete::trouveFace")
     return None
     ## ------------ Version avec testIntersectionTriangleDroite
     
   def altitudeCarre(self, point):
     """Retourne l'altitude (rayon) à laquelle le point devrait se trouver pour être juste sur la face en dessous (au dessus) de lui (coord cartésiennes)"""
-    general.startChrono("Planete::altitude")
     #Cherche la face dans laquelle se trouve le point
     face = self.trouveFace(point).sommets
     if face==None:
@@ -837,7 +824,6 @@ class Geoide:
     d1 = pt1.lengthSquared()
     d2 = pt2.lengthSquared()
     d3 = pt3.lengthSquared()
-    general.stopChrono("Planete::altitude")
     return general.lerp(pt1, d1, pt2, d2, pt3, d3, point)
     
   def altitude(self, point):
