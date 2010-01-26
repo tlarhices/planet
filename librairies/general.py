@@ -363,14 +363,36 @@ def TODO(texte):
     
     print "TODO :: "+texte
     
-import time
-def plop(func):
-  def newFunction(*args, **kw):
     
+__temps__ = {}
+import time
+def chrono(func):
+  def chronometre(*args, **kw):
+    if False:
+      return func(*args, **kw)
     t = time.time()
     try:
       return func(*args, **kw)
     finally:
-      print func.__dict__, func.func_name, time.time()-t
-  return newFunction
+      nom=func.__name__
+      
+      temps = __temps__.get(nom, [0, 0.0, 100000000000, 0.0])
+      temps[0] += 1
+      nouv = time.time()-t
+      temps[1] += nouv
+      temps[2] = min(nouv, temps[2])
+      temps[3] = max(nouv, temps[3])
+      __temps__[nom] = temps
+  return chronometre
   
+def afficheStatChrono():
+  if __temps__:
+    print
+    print
+    print "Resultat des moulinettes chronometrees :"
+    print
+    print "nom de la fonction, nombre appels, temps total, temps moyen, temps min, temps max, delta"
+    for fonction in sorted(__temps__.keys()):
+      print fonction+", ",
+      temps = __temps__[fonction]
+      print temps[0], ",", temps[1], ",", temps[1]/temps[0], ",", temps[2], ",", temps[3], ",", temps[3]-temps[2]

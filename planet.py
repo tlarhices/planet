@@ -274,7 +274,22 @@ except getopt.GetoptError, err:
     aideCommande()
     sys.exit(2)
 
+def finPanda():
+  """Cette fonction est appelee quand la fenetre est fermee"""
+  general.afficheStatChrono()
+
+
+
 def deb():
+  
+  #On glisse un appel à finPanda lors d'un CTRL+C
+  taskMgrKeyboardInterruptHandler = taskMgr.keyboardInterruptHandler
+  def keyboardInterruptHandler(signalNumber, stackFrame):
+    finPanda()
+    taskMgrKeyboardInterruptHandler(signalNumber, stackFrame)
+  taskMgr.keyboardInterruptHandler = keyboardInterruptHandler
+  
+  
   #Création de l'instance
   print "Initialisation..."  
   start = Start()
@@ -288,13 +303,17 @@ def deb():
   #On va faire exécuter self.ping a chaque image
   taskMgr.add(start.ping, "BouclePrincipale")
 
+  base.exitFunc = finPanda
+
   #On lance la boucle magique de panda
   run()
-  #Boucle qui fait presque tout comme "run()"
-  """while True:
-    taskMgr.step()
-    #VSynch à 60FPS
-    time.sleep(1.0 / 60.0)"""
+  if False:
+    #Boucle qui fait presque tout comme "run()"
+    import time
+    while True:
+      taskMgr.step()
+      #VSynch à 60FPS
+      time.sleep(1.0 / 60.0)
 
 if __name__=="__main__":
   fichierConfig = None
@@ -360,7 +379,6 @@ if __name__=="__main__":
   #Change le frontclip
   if base.camLens != None:
     base.camLens.setNear(0.001)
-
   if not profile:
     deb()
   else:

@@ -603,9 +603,6 @@ class Geoide:
     for i in range(0, tot):
       if general.configuration.getConfiguration("debug", "planete", "debug_charge_planete", "f", bool):
         if i%500==0:
-          print ["Parsage des infos... %(a)i/%(b)i"]
-          print [{"a": i, "b": tot}]
-          print ["sauvegarde"]
           general.planete.afficheTexte("Parsage des infos... %(a)i/%(b)i", parametres={"a": i, "b": tot}, type="sauvegarde")
       ligne = lignes[i]
         
@@ -940,10 +937,19 @@ class Geoide:
     nWriter.setRow(indice)
     nWriter.setData3f(self.sommetDansFace[indice][0].calculNormale(self.sommets[indice]))
     
+    c1=self.elements[0].couleurSommet(self.sommets[indice])[0]
+    if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap", str)=="shader":
+      minAlt = (1.0-self.delta)
+      maxAlt = (1.0+self.delta)
+      altitude = p.length()
+      c1 = ((altitude-minAlt)/(maxAlt-minAlt), 0.0, 0.0, 0.0)
+    elif general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap", str)=="heightmap":
+      c1 = (1.0, 1.0, 1.0, 1.0)
+
     #On change sa couleur
     cWriter = GeomVertexWriter(self.vdata, 'color')
     cWriter.setRow(indice)
-    cWriter.setData4f(self.elements[0].couleurSommet(self.sommets[indice])[0])
+    cWriter.setData4f(c1)
       
     #On met à jour la minimap
     if MAJ:

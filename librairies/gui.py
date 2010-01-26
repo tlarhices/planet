@@ -600,6 +600,7 @@ class Chat(Pane):
   
   ouvert = None #Si True, alors la zone d'affichage est visible
   ongletActif = None
+  filtre = None
   
   def __init__(self, gui):
     Pane.__init__(self)
@@ -612,10 +613,11 @@ class Chat(Pane):
     self.lignes = []
     self.ouvert = False
     self.ongletActif = "chat"
+    self.filtre = [general.joueurLocal.nom]
     
     self.fabrique()
     
-  #@general.accepts(None, (str, unicode, type(None)))
+  @general.accepts(None, (str, unicode, type(None)))
   def ouvreDialogue(self, onglet):
     if onglet==None:
       onglet = self.ongletActif
@@ -631,26 +633,37 @@ class Chat(Pane):
   def fermeDialogue(self):
     self.ouvert = False
     self.etat += 1
-
+    
+  @general.accepts(None, (str, unicode))
+  def changeFiltre(self, filtre):
+    select = []
+    if filtre=="tous":
+      for joueur in general.planete.joueurs:
+        if joueur.nom not in select:
+          select.append(joueur.nom)
+    elif filtre=="allies":
+      general.TODO("Ajouter les filtres pour les listes alliés/ennemis")
+    elif filtre=="ennemis":
+      general.TODO("Ajouter les filtres pour les listes alliés/ennemis")
+      for joueur in general.planete.joueurs:
+        if joueur.nom not in select:
+          select.append(joueur.nom)
+    else:
+      select.append(filtre)
+      
+    select.append(general.joueurLocal.nom)
+    self.filtre=select
+      
   def fabrique(self):
     self.clear()
     self._etat = self.etat
-    grp=self.add(Groupe(hauteur=4, x=PAD, y=PAD))
-    btn = grp.add(IconButton("icones/inutilisees/crew.png"))
-    btn.callback = self.ouvreDialogue
-    btn.callbackParams = {"onglet":"allies"}
+    grp=self.add(Groupe(hauteur=5, x=PAD, y=PAD))
     btn = grp.add(IconButton("icones/inutilisees/cart.png"))
     btn.callback = self.ouvreDialogue
     btn.callbackParams = {"onglet":"echanges"}
-    btn = grp.add(IconButton("icones/inutilisees/enemy.png"))
-    btn.callback = self.ouvreDialogue
-    btn.callbackParams = {"onglet":"ennemis"}
     btn = grp.add(IconButton("icones/inutilisees/graph.png"))
     btn.callback = self.ouvreDialogue
     btn.callbackParams = {"onglet":"statistiques"}
-    btn = grp.add(IconButton("icones/inutilisees/group.png"))
-    btn.callback = self.ouvreDialogue
-    btn.callbackParams = {"onglet":"toutlemonde"}
     btn = grp.add(IconButton("icones/inutilisees/properties.png"))
     btn.callback = self.ouvreDialogue
     btn.callbackParams = {"onglet":"alignements"}
@@ -673,20 +686,33 @@ class Chat(Pane):
     grp.MAJ()
     
     zoneDialogue = self.add(Pane(x=grp.width+PAD*2, width=LARGEUR_DIALOGUE, height=HAUTEUR_DIALOGUE))
-    if self.ongletActif in ["allies", "ennemis", "chat", "toutlemonde"]:
+    if self.ongletActif in ["chat"]:
       texte = zoneDialogue.add(TextAreaRO("", height=HAUTEUR_DIALOGUE - HAUTEUR_TEXTE - PAD, width=LARGEUR_DIALOGUE, x=0))
-      filtres = {
-        "allies":("allies",),
-        "ennemis":("ennemis",),
-        "toutlemonde":("allies","ennemis"),
-        "echanges":("echanges",),
-        "alignements":("alignements",),
-        "chat":("allies","ennemis"),
-        "statistiques":("statistiques",)
-      }
+
+      grp=zoneDialogue.add(Groupe(largeur=3, y=HAUTEUR_DIALOGUE - HAUTEUR_TEXTE*2 - PAD*2 ))
+      btn = grp.add(IconButton("icones/inutilisees/crew.png"))
+      btn.callback = self.changeFiltre
+      btn.callbackParams = {"filtre":"allies"}
+      btn = grp.add(IconButton("icones/inutilisees/enemy.png"))
+      btn.callback = self.changeFiltre
+      btn.callbackParams = {"filtre":"ennemis"}
+      btn = grp.add(IconButton("icones/inutilisees/group.png"))
+      btn.callback = self.changeFiltre
+      btn.callbackParams = {"filtre":"tous"}
+
+      grp=zoneDialogue.add(Groupe(largeur=LARGEUR_DIALOGUE/TAILLE_ICONE, y=HAUTEUR_DIALOGUE - HAUTEUR_TEXTE*2 - PAD*2 - grp.height ))
+      for joueur in general.planete.joueurs:
+        if joueur != general.joueurLocal:
+          if joueur in self.filtre:
+            couleur = (0.5, 0.5, 0.5, 1.0)
+          else:
+            couleur = (0.0, 0.0, 0.0, 1.0)
+          btn = grp.add(IconButtonCouleur("icones/blank.png", joueur.couleur, couleur))
+          btn.callback = self.changeFiltre
+          btn.callbackParams = {"filtre":joueur.nom}
       
-      for filtre, joueur, ligne in self.lignes:
-        if self.ongletActif in filtres[filtre]:
+      for joueur, ligne in self.lignes:
+        if joueur.nom in self.filtre:
           texte.text+="\r\n"+joueur+" >> "+ligne
         
       entree = zoneDialogue.add(Entry("", height=HAUTEUR_TEXTE, width=LARGEUR_DIALOGUE, x=0, y=HAUTEUR_DIALOGUE-HAUTEUR_TEXTE))

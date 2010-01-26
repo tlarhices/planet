@@ -102,7 +102,6 @@ class Planete:
   @general.accepts(None, (str, unicode), dict, (str, unicode, "opt"))
   def afficheTexte(self, texte, parametres, type=None):
     """Affiche le texte sur l'écran"""
-    print texte, parametres, type
     general.interface.afficheTexte(texte, parametres, type, True)
     
   # Constructions géométriques -----------------------------------------

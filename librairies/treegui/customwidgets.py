@@ -86,7 +86,36 @@ class IconButton(Icon):
     else:
       self.callback()
             
-  def callback(self, text, value):
+  def callback(self):
+    pass
+    
+class IconButtonCouleur(Pane):
+  colorCenter = None
+  colorAround = None
+  iconFile = None
+  callbackParams = None
+  
+  def __init__(self, icon, colorCenter, colorAround, **placement):
+    Pane.__init__(self, **placement)
+    self.colorCenter = colorCenter
+    self.colorAround = colorAround
+    self.iconFile = icon
+    button = self.add(IconButton(self.iconFile))
+    button.callBack = self.buttonCallback
+    button.x=2
+    button.y=2
+    button.color = colorCenter
+    self.color = colorAround
+    self.width=19 #15 pour l'icone + contour de 2
+    self.height=19
+    
+  def buttonCallback(self):
+    if self.callbackParams!=None:
+      self.callback(**self.callbackParams)
+    else:
+      self.callback()
+            
+  def callback(self):
     pass
 
 class SetterBar(ProgressBar):

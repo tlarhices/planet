@@ -118,6 +118,7 @@ class Cartographie:
       y=0.0
     return (x, y, z)
 
+  @general.chrono
   def calculZoneOmbre(self, taille, listeElements=None):
     if self.zoneOmbre == None:
       self.zoneOmbre = Image.new(mode="RGB",size=taille,color=(0,0,0))
@@ -180,6 +181,7 @@ class Cartographie:
       out = ImageMath.eval("int(float(a) * float(b))", a=self.miniMap, b=image)
       out.save(os.path.join(".","data","cache","minimapombre.png"), "PNG")
 
+  @general.chrono
   def calculHeightMap(self, listeElements=None):
     tailleHeightMap = 800
     if self.heightMap == None:
@@ -229,6 +231,7 @@ class Cartographie:
       a3 = int(a3[0]+0.5), int(a3[1]+0.5)
       draw.polygon((a1,a2,a3), fill=c, outline=None)
   
+  @general.chrono
   def calculMiniMap(self, taille, listeElements=None):
     if self.miniMap == None:
       self.miniMap = Image.new(mode="RGB",size=taille,color=(0,0,0))
