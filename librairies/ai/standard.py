@@ -19,7 +19,7 @@ class Bulbe:
     self.sprite = sprite
     self.attaquants = {}
     
-  def ping(self, temps):
+  def pingBulbe(self, temps):
     finAttaque = []
     for attaquant in self.attaquants:
       self.attaquants[attaquant]+=temps

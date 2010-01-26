@@ -58,7 +58,7 @@ class Geoide:
     
     self.fini = False
     
-    taskMgr.add(self.ping, "BouclePrincipale-geoide")
+    taskMgr.add(self.pingGeoide, "BouclePrincipale-geoide")
     
   def fabriqueVoisinage(self):
     """
@@ -652,7 +652,7 @@ class Geoide:
   # Fin Import / Export ------------------------------------------------
       
   lastPing = None
-  def ping(self, task):
+  def pingGeoide(self, task):
     """Fonction appelée a chaque image, temps indique le temps écoulé depuis l'image précédente"""
     if self.lastPing==None:
       self.lastPing = task.time-1.0/60
@@ -941,11 +941,12 @@ class Geoide:
     if general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap", str)=="shader":
       minAlt = (1.0-self.delta)
       maxAlt = (1.0+self.delta)
-      altitude = p.length()
+      altitude = max(min(self.sommets[indice].length(), maxAlt), minAlt)
       c1 = ((altitude-minAlt)/(maxAlt-minAlt), 0.0, 0.0, 0.0)
     elif general.configuration.getConfiguration("affichage","general", "multitexturage","heightmap", str)=="heightmap":
       c1 = (1.0, 1.0, 1.0, 1.0)
 
+    print c1
     #On change sa couleur
     cWriter = GeomVertexWriter(self.vdata, 'color')
     cWriter.setRow(indice)

@@ -28,7 +28,7 @@ class SystemeSolaire:
     self.racine.reparentTo(render)
     self.fini = False
     self.nom = nom
-    taskMgr.add(self.ping, "BouclePrincipale-syssol")
+    taskMgr.add(self.pingSystemeSolaire, "BouclePrincipale-syssol")
     
   def ajoutePlanete(self, planete):
     """"""
@@ -143,7 +143,7 @@ class SystemeSolaire:
         anneau.setDepthWrite(False)
         anneau.setLightOff()
         
-  def ping(self, task):
+  def pingSystemeSolaire(self, task):
     lastorb = 10.0
     for planete, rayonplanete, rayonorbite, angleDepart, planetemdl, vitesse in self.planetes:
       px = rayonorbite * math.cos((angleDepart + task.time*vitesse)/180.0*math.pi)

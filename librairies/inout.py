@@ -96,9 +96,9 @@ class IO:
       self.pickerRay=CollisionRay()
       self.pickerNode.addSolid(self.pickerRay)
       base.cTrav.addCollider(self.pickerNP, self.myHandler)
-      taskMgr.add(self.ping, "Boucle IO")
+      taskMgr.add(self.pingInOut, "Boucle IO")
       
-  def ping(self, task):
+  def pingInOut(self, task):
     #Calculs du temps écoulé depuis l'image précédente
     if self.preImage != None:
       deltaT = task.time - self.preImage
@@ -540,7 +540,7 @@ class IO:
     for sprite in general.planete.spritesJoueur:
       #On ne prend en compte que les sprites du joueur local
       if sprite.joueur == general.joueurLocal:
-        pos = general.map3dToRender2d(sprite.rac, Vec3(0.0,0.0,0.0))
+        pos = general.map3dToRender2d(sprite.rac, Point3(0.0,0.0,0.0))
         if pos!=None:
           if pos[0]>=pt1[0] and pos[0]<=pt2[0]:
             if pos[1]>=pt1[1] and pos[1]<=pt2[1]:

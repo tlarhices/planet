@@ -43,7 +43,7 @@ def accepts(*types, **kw):
             raise IndexError, msg
           
         if kargs:
-          raiseErr("Impossible de tester les parametres nommés dans "+f.__name__, min(debug, 1))
+          #raiseErr("Impossible de tester les parametres nommés dans "+f.__name__, min(debug, 1))
           return f(*args, **kargs)
 
         argtypes = tuple(map(type, args))
@@ -59,22 +59,26 @@ def accepts(*types, **kw):
 
             if len(argtypes)>i:
               atype = argtypes[i]
+              if atype not in typ:
+                if str(atype).split("'")[1]=="instance":
+                  if "instance" not in typ:
+                    if str(args[i].__class__) not in typ:
+                      raiseErr(str(args[i].__class__)+" ou 'instance' non trouvé dans "+f.__name__)
+                      break
+                else:
+                  if str(args[i].__class__).find("'")>0:
+                    classe = str(args[i].__class__).split("'")[1]
+                  else:
+                    classe = str(args[i].__class__)
+                  if classe not in typ:
+                    if debug>0:
+                      print "Err param :", str(args[i].__class__).split("'")[1]
+                    raiseErr()
+                    break
             else:
               if not "opt" in typ:
                 raiseErr()
                 break
-            if atype not in typ:
-              if str(atype).split("'")[1]=="instance":
-                if "instance" not in typ:
-                  if str(args[i].__class__) not in typ:
-                    raiseErr(str(args[i].__class__)+" ou 'instance' non trouvé dans "+f.__name__)
-                    break
-              else:
-                if str(args[i].__class__).split("'")[1] not in typ:
-                  if debug>0:
-                    print "Err param :", str(args[i].__class__).split("'")[1]
-                  raiseErr()
-                  break
         return f(*args)
       newf.__name__ = f.__name__
       return newf
@@ -142,7 +146,7 @@ def info(fname, expected, actual, flag):
 
 
   
-@accepts((list, tuple))
+@accepts((list, tuple, Vec3, Point3))
 def floatise(vecteur):
   """Caste les éléments d'un vecteur vers float"""
   out = []

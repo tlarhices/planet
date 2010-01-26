@@ -97,17 +97,22 @@ class IconButtonCouleur(Pane):
   
   def __init__(self, icon, colorCenter, colorAround, **placement):
     Pane.__init__(self, **placement)
+    self.style=None
     self.colorCenter = colorCenter
     self.colorAround = colorAround
     self.iconFile = icon
     button = self.add(IconButton(self.iconFile))
-    button.callBack = self.buttonCallback
+    button.callback = self.buttonCallback
     button.x=2
     button.y=2
     button.color = colorCenter
-    self.color = colorAround
-    self.width=19 #15 pour l'icone + contour de 2
-    self.height=19
+    fond = self.add(Pane(width="100%", height="100%"))
+    fond.color = colorAround
+    self.width=20 #15 pour l'icone + contour de 2
+    self.height=20
+    
+  def onClick(self):
+    self.buttonCallback()
     
   def buttonCallback(self):
     if self.callbackParams!=None:

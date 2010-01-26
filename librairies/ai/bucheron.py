@@ -19,8 +19,8 @@ class Bulbe(std):
   def __init__(self, sprite):
     std.__init__(self, sprite)
     
-  def ping(self, temps):
-    std.ping(self, temps)
+  def pingBulbe(self, temps):
+    std.pingBulbe(self, temps)
     if self.rechercheSprite!=None:
       if isinstance(self.rechercheSprite, str) or self.rechercheSprite.poll():
         if isinstance(self.rechercheSprite, str):

@@ -504,7 +504,7 @@ class MiniMap(Pane):
     
     self.carte = FondCarte(self.tailleMiniMapX, self.tailleMiniMapY)
     
-    taskMgr.add(self.ping, "Boucle minimap")
+    taskMgr.add(self.pingMiniMap, "Boucle minimap")
     
   def onClick(self):
     general.io.placeCameraAuDessusDe(general.cartographie.carteVersPoint3D(self.souris, (256, 128)))
@@ -563,7 +563,7 @@ class MiniMap(Pane):
       self.blips[blipid].color = couleur
 
   textureMiniMap=None
-  def ping(self, task):
+  def pingMiniMap(self, task):
     """Boucle qui met à jour la carte"""
     if self.textureMiniMap==None or (general.miniMapAchangee and task.time-self.derniereMAJ>1.0):
       if self.textureMiniMap!=None:
@@ -639,57 +639,58 @@ class Chat(Pane):
     select = []
     if filtre=="tous":
       for joueur in general.planete.joueurs:
-        if joueur.nom not in select:
-          select.append(joueur.nom)
+        if joueur.nom != general.joueurLocal.nom:
+          if joueur.nom not in select:
+            select.append(joueur.nom)
     elif filtre=="allies":
       general.TODO("Ajouter les filtres pour les listes alliés/ennemis")
     elif filtre=="ennemis":
       general.TODO("Ajouter les filtres pour les listes alliés/ennemis")
       for joueur in general.planete.joueurs:
-        if joueur.nom not in select:
-          select.append(joueur.nom)
+        if joueur.nom != general.joueurLocal.nom:
+          if joueur.nom not in select:
+            select.append(joueur.nom)
     else:
       select.append(filtre)
       
     select.append(general.joueurLocal.nom)
     self.filtre=select
+    self.fabrique()
       
   def fabrique(self):
     self.clear()
     self._etat = self.etat
-    grp=self.add(Groupe(hauteur=5, x=PAD, y=PAD))
-    btn = grp.add(IconButton("icones/inutilisees/cart.png"))
+    grpBtn=self.add(Groupe(hauteur=5, x=PAD, y=PAD))
+    btn = grpBtn.add(IconButton("icones/inutilisees/cart.png"))
     btn.callback = self.ouvreDialogue
     btn.callbackParams = {"onglet":"echanges"}
-    btn = grp.add(IconButton("icones/inutilisees/graph.png"))
+    btn = grpBtn.add(IconButton("icones/inutilisees/graph.png"))
     btn.callback = self.ouvreDialogue
     btn.callbackParams = {"onglet":"statistiques"}
-    btn = grp.add(IconButton("icones/inutilisees/properties.png"))
+    btn = grpBtn.add(IconButton("icones/inutilisees/properties.png"))
     btn.callback = self.ouvreDialogue
     btn.callbackParams = {"onglet":"alignements"}
     if self.nonLut:
-      btn = grp.add(IconButton("icones/quote-over.png"))
+      btn = grpBtn.add(IconButton("icones/quote-over.png"))
       btn.callback = self.ouvreDialogue
       btn.callbackParams = {"onglet":"chat"}
     else:
-      btn = grp.add(IconButton("icones/quote.png"))
+      btn = grpBtn.add(IconButton("icones/quote.png"))
       btn.callback = self.ouvreDialogue
       btn.callbackParams = {"onglet":"chat"}
     if self.ouvert:
-      btn = grp.add(IconButton("icones/arrow-right.png"))
+      btn = grpBtn.add(IconButton("icones/arrow-right.png"))
       btn.callback = self.fermeDialogue
       btn.callbackParams = None
     else:
-      btn = grp.add(IconButton("icones/arrow-left.png"))
+      btn = grpBtn.add(IconButton("icones/arrow-left.png"))
       btn.callback = self.ouvreDialogue
       btn.callbackParams = {"onglet":None}
-    grp.MAJ()
+    grpBtn.MAJ()
     
-    zoneDialogue = self.add(Pane(x=grp.width+PAD*2, width=LARGEUR_DIALOGUE, height=HAUTEUR_DIALOGUE))
+    zoneDialogue = self.add(Pane(x=grpBtn.width+PAD*3, width=LARGEUR_DIALOGUE, height=HAUTEUR_DIALOGUE))
     if self.ongletActif in ["chat"]:
-      texte = zoneDialogue.add(TextAreaRO("", height=HAUTEUR_DIALOGUE - HAUTEUR_TEXTE - PAD, width=LARGEUR_DIALOGUE, x=0))
-
-      grp=zoneDialogue.add(Groupe(largeur=3, y=HAUTEUR_DIALOGUE - HAUTEUR_TEXTE*2 - PAD*2 ))
+      grp=zoneDialogue.add(Groupe(largeur=3, y=PAD, x=PAD ))
       btn = grp.add(IconButton("icones/inutilisees/crew.png"))
       btn.callback = self.changeFiltre
       btn.callbackParams = {"filtre":"allies"}
@@ -699,30 +700,34 @@ class Chat(Pane):
       btn = grp.add(IconButton("icones/inutilisees/group.png"))
       btn.callback = self.changeFiltre
       btn.callbackParams = {"filtre":"tous"}
+      grp.MAJ()
 
-      grp=zoneDialogue.add(Groupe(largeur=LARGEUR_DIALOGUE/TAILLE_ICONE, y=HAUTEUR_DIALOGUE - HAUTEUR_TEXTE*2 - PAD*2 - grp.height ))
+      grp=zoneDialogue.add(Groupe(largeur=LARGEUR_DIALOGUE/TAILLE_ICONE, y=PAD*3 + grp.height, x=PAD))
       for joueur in general.planete.joueurs:
-        if joueur != general.joueurLocal:
-          if joueur in self.filtre:
-            couleur = (0.5, 0.5, 0.5, 1.0)
+        if joueur.nom != general.joueurLocal.nom:
+          if joueur.nom in self.filtre:
+            couleur = (1.5, 1.5, 1.5, 1.0)
           else:
-            couleur = (0.0, 0.0, 0.0, 1.0)
+            couleur = (1.0, 1.0, 1.0, 1.0)
           btn = grp.add(IconButtonCouleur("icones/blank.png", joueur.couleur, couleur))
           btn.callback = self.changeFiltre
           btn.callbackParams = {"filtre":joueur.nom}
+      grp.MAJ()
       
+      texte = zoneDialogue.add(TextAreaRO("", height=HAUTEUR_DIALOGUE - grp.height - grp.y - PAD*2 - HAUTEUR_TEXTE, width=LARGEUR_DIALOGUE, x=0, y=grp.height + grp.y + PAD))
       for joueur, ligne in self.lignes:
         if joueur.nom in self.filtre:
-          texte.text+="\r\n"+joueur+" >> "+ligne
+          texte.text+="\r\n"+joueur.nom+" :\r\n>> "+ligne
         
-      entree = zoneDialogue.add(Entry("", height=HAUTEUR_TEXTE, width=LARGEUR_DIALOGUE, x=0, y=HAUTEUR_DIALOGUE-HAUTEUR_TEXTE))
+      entree = zoneDialogue.add(Entry("", height=HAUTEUR_TEXTE, width=LARGEUR_DIALOGUE-PAD*2, x=PAD, y=HAUTEUR_DIALOGUE-HAUTEUR_TEXTE))
+      entree.onEnter = self.envoieMessage
     elif self.ongletActif=="echanges":
-      zoneDialogue.add(Label("Échanges commerciaux"))
+      zoneDialogue.add(Label(u"Échanges commerciaux"))
     elif self.ongletActif=="alignements":
       zoneDialogue.add(Label("Alignements"))
       pos=HAUTEUR_TEXTE+PAD
       for joueur in general.planete.joueurs:
-        if joueur != general.joueurLocal:
+        if joueur.nom != general.joueurLocal.nom:
           zoneDialogue.add(Label(joueur.nom+" : Ennemi", y=pos))
           pos+=HAUTEUR_TEXTE+PAD
     elif self.ongletActif=="statistiques":
@@ -734,13 +739,17 @@ class Chat(Pane):
     
     self.x="right"
     self.y="bottom"
-    self.height = grp.height + PAD*2
-    self.width = grp.width + PAD*2
+    self.height = grpBtn.height + PAD*2
+    self.width = grpBtn.width + PAD*2
     if self.ouvert:
-      self.width += PAD+LARGEUR_DIALOGUE
+      self.width += PAD*2+LARGEUR_DIALOGUE
       self.height = max(self.height, HAUTEUR_DIALOGUE+PAD)
       
     self.height += HAUTEUR_TEXTE + PAD*3
+    
+  @general.accepts(None, (str, unicode))
+  def envoieMessage(self, texte):
+    self.chat(general.joueurLocal, texte)
     
   @general.accepts(None, float)
   def MAJ(self, temps):
@@ -750,7 +759,8 @@ class Chat(Pane):
   @general.accepts(None, ("joueur.JoueurLocal", "joueur.JoueurLocal", "joueur.JoueurDistant", "joueur.JoueurIA"), (str, unicode))
   def chat(self, joueur, message):
     filtre = "ennemis"
-    self.lignes.append((filtre, joueur, message))
+    self.lignes.append((joueur, message))
+    self.fabrique()
     
                 
 class ListeCommandes(Pane):
@@ -1379,7 +1389,7 @@ class Interface:
     ##On place un bouton quitter en haut à droite de l'écran
     #self.quit = self.gui.add(Icon("icones/x.png", x="right", y="top"))
     #self.quit.onClick = sys.exit
-    taskMgr.add(self.ping, "Boucle GUI", 10)
+    taskMgr.add(self.pingInterface, "Boucle GUI", 10)
     self.tooltip = self.gui.add(Label("", x=0, y="bottom", width="100%"))
     self.tooltip.style="DEFAULT"
     self.makeMain()
@@ -1407,7 +1417,7 @@ class Interface:
       self.menuCourant.back()
     
   @general.accepts(None, "libpanda.PythonTask")
-  def ping(self, task):
+  def pingInterface(self, task):
     if self.menuCourant!=None:
       self.menuCourant.MAJ(task.time)
     #if self.historique!=None:

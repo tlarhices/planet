@@ -33,7 +33,7 @@ class Joueur:
     
     self.ressources = {"bouffe":10}
 
-  def ping(self, temps):
+  def pingJoueur(self, temps):
     #Calcul la zone en vue du joueur
     #Synchronise la planète courante avec la la vraie planète
     #Le ping des sprite est géré par la planète
@@ -83,8 +83,8 @@ class JoueurLocal(Joueur):
     general.joueurLocal = proxy(self)
     self.premierPing = True
     
-  def ping(self, temps):
-    Joueur.ping(self, temps)
+  def pingJoueur(self, temps):
+    Joueur.pingJoueur(self, temps)
     #On ne fait que ce qui suit au premier ping
     if self.premierPing:
       #Vire le menu "chargement" et affiche le menu en jeu

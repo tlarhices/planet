@@ -23,7 +23,8 @@ class AIPlugin:
   def __init__(self):
     """Gère les plugins d'IA, à ne créer qu'une fois"""
     self.plugins={}
-    
+  
+  @general.chrono
   def scan(self):
     """Scan le dossier de plugins d'IA et en fait la liste"""
     for fichier in os.listdir(os.path.join(".","librairies","ai")):
@@ -119,6 +120,7 @@ class AINavigation:
       
     return connu
           
+  @general.chrono
   def grapheDeplacement(self):
     """
     Fabrique le graphe de deplacement de la planète
@@ -147,6 +149,7 @@ class AINavigation:
     
     self.graph[pt1][pt2] = angle
       
+  @general.chrono
   @general.accepts(None, int)
   def maj(self, idxSommet):
     """
@@ -159,8 +162,9 @@ class AINavigation:
   # Fin création d'infos -----------------------------------------------
   
   # Recherche d'itinéraire ---------------------------------------------
-  @general.accepts(None, int, int, (float, type(None)), int)
-  def aStar(self, deb, fin, angleSolMax=None, horizonAStar=1):
+  @general.chrono
+  @general.accepts(None, int, int, (float, type(None), "opt"))
+  def aStar(self, deb, fin, angleSolMax=None):
     """
     Calcule la trajectoire la plus courte allant du sommet deb vers le sommet fin selon le graphe self.graph
     Prend en compte les changements d'élévation et la présence d'eau.
@@ -177,8 +181,6 @@ class AINavigation:
     g[deb] = 0 #On a pas bougé, donc ce cout vaut 0
     h[deb] = (general.planete.geoide.sommets[deb] - general.planete.geoide.sommets[fin]).lengthSquared() #L'estimation se fait selon la distance euclidienne (on utilise le carré car sqrt est trop lent et c'est juste pour une comparaison)
     f[deb] = g[deb]+h[deb] # == h[deb] ;)
-    
-    atteindHorizon = False
     
     #On boucle tant que l'on a des sommets à parcourir
     while afaire:
@@ -199,38 +201,34 @@ class AINavigation:
       afaire.remove(x)
       #On l'ajoute dans ceux que l'on a testé
       fait.append(x)
-      if f[x]>horizonAStar*general.configuration.getConfiguration("ai", "navigation", "profondeurmax", "0.2", float):
-        #On coupe la branche car elle est trop longue
-        atteindHorizon = True
-      else:
-        #On parcours la liste des noeuds voisins
-        for y in self.noeudsVoisins(x, angleSolMax):
-          if not y in fait:
-            #Si on ne l'a pas déjà parcourut
-            angle = self.angle(x, y)
-            tmpG = g[x] + angle*(general.planete.geoide.sommets[x]-general.planete.geoide.sommets[y]).lengthSquared()
+      #On parcours la liste des noeuds voisins
+      for y in self.noeudsVoisins(x, angleSolMax):
+        if not y in fait:
+          #Si on ne l'a pas déjà parcourut
+          angle = self.angle(x, y)
+          tmpG = g[x] + angle*(general.planete.geoide.sommets[x]-general.planete.geoide.sommets[y]).lengthSquared()
+          
+          if not y in afaire:
+            #S'il n'est pas en attente, on l'y met
+            afaire.append(y)
+            mieux = True
+          elif tmpG < g[y]:
+            #S'il est en attente et a une meilleure statistique en passant par ici (g plus petit)
+            mieux = True
+          else:
+            #On peut atteindre ce sommet par un chemin plus court
+            mieux = False
             
-            if not y in afaire:
-              #S'il n'est pas en attente, on l'y met
-              afaire.append(y)
-              mieux = True
-            elif tmpG < g[y]:
-              #S'il est en attente et a une meilleure statistique en passant par ici (g plus petit)
-              mieux = True
-            else:
-              #On peut atteindre ce sommet par un chemin plus court
-              mieux = False
-              
-            if mieux:
-              #On met a jour les infos de parcours pour ce point
-              promenade[y] = x
-              g[y] = tmpG
-              h[y] = angle*(general.planete.geoide.sommets[x]-general.planete.geoide.sommets[y]).lengthSquared()
-              f[y] = g[y] + h[y]
+          if mieux:
+            #On met a jour les infos de parcours pour ce point
+            promenade[y] = x
+            g[y] = tmpG
+            h[y] = angle*(general.planete.geoide.sommets[x]-general.planete.geoide.sommets[y]).lengthSquared()
+            f[y] = g[y] + h[y]
             
     #general.interface.afficheTexte("Impossible de trouver une trajectoire pour aller de %(a)s à %(b)s.", parametres={"a": deb, "b":fin}, type="avertissement")
     #On a rien trouvé
-    return atteindHorizon
+    return None
     
   @general.accepts(None, int, int)
   def angle(self, x, y):
@@ -258,7 +256,7 @@ class AINavigation:
         voisins.append(elem)
     return voisins
    
-  @general.accepts(None, list, (int, Vec3))
+  @general.accepts(None, dict, (int, Vec3))
   def fabriqueChemin(self, promenade,fin):
     """Construit le chemin calculé par A*"""
     if fin in promenade.keys():
@@ -303,14 +301,12 @@ class AI:
     else:
       self.bulbe=self.bulbe(self.sprite)
     
+  @general.chrono
   @general.accepts(None, float)
-  def ping(self, temps):
+  def pingAI(self, temps):
     """Boucle de calcul de l'IA"""
-    general.TODO("RÉactiver l'IA")
-    return #BUG : Pour le moment l'IA est en pause
-    
     #On calcul chaque comportement
-    self.comportement.ping(temps)
+    self.comportement.pingComportement(temps)
     
     #On calcul l'accélération et la direction du déplacement
     acceleration = self.comportement.steeringForce / self.sprite.masse
@@ -320,7 +316,7 @@ class AI:
     
     #On ping l'IA comportementale
     if self.bulbe != None:
-      self.bulbe.ping(temps)
+      self.bulbe.pingBulbe(temps)
     
   def clear(self):
     """Purge l'IA"""
@@ -359,7 +355,7 @@ class AIComportementUnitaire:
     return out
     
   @general.accepts(None, float)
-  def ping(self, temps):
+  def pingComportementUnitaire(self, temps):
     self.supprime()
     
   def stop(self):
@@ -424,7 +420,7 @@ class SuitChemin(AIComportementUnitaire):
     return point
     
   @general.accepts(None, float)
-  def ping(self, temps):
+  def pingComportementUnitaire(self, temps):
     """Boucle de calcul"""
     
     if self.chemin == None:
@@ -455,13 +451,14 @@ class SuitChemin(AIComportementUnitaire):
         print "va vers checkpoint suivant..."
       general.TODO("Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est")
 
-      if isinstance(self.chemin[0], int):
-        if not self.chemin[0] in general.planete.aiNavigation.graph[general.planete.trouveSommet(self.comportement.sprite.position)]:
+      """if isinstance(self.chemin[0], int):
+        position = general.planete.geoide.trouveSommet(self.comportement.ai.sprite.position)
+        if not self.chemin[0] in general.planete.aiNavigation.graph[position]:
           print "bout de chemin desormais impraticable"
-          chemin = self.comportement.calculChemin(sprite.position, self.chemin[-1])
+          chemin = self.comportement.calculChemin(position, general.planete.geoide.trouveSommet(self.chemin[-1]), self.priorite)
           self.comportement.suitChemin(chemin, self.chemin[-1], self.priorite)
           self.chemin = None
-          return
+          return"""
 
       #Comme on a pas de cible au chemin pour le moment
       #On prend le point suivant sur le chemin
@@ -494,7 +491,7 @@ class VaVers(AIComportementUnitaire):
     self.cible = cible
     
   @general.accepts(None, float)
-  def ping(self, temps):
+  def pingComportementUnitaire(self, temps):
     """Boucle de calcul"""
     if self.cible == None:
       #on a nulle part où aller
@@ -544,7 +541,7 @@ class AppelFonction(AIComportementUnitaire):
     self.dico = dico
     
   @general.accepts(None, float)
-  def ping(self, temps):
+  def pingComportementUnitaire(self, temps):
     """Boucle de calcul"""
     if self.fini:
       return
@@ -579,7 +576,7 @@ class Routine(AIComportementUnitaire):
     self.elements.append((element, cyclique, priorite))
     
   @general.accepts(None, float)
-  def ping(self, temps):
+  def pingComportementUnitaire(self, temps):
     """La boucle de calcul"""
     if self.elements == None:
       #on a rien à faire
@@ -631,7 +628,6 @@ class AIComportement:
   steeringForce = None #La force produite par l'IA (la direction et la vitesse à laquelle on y va)
   comportements = None #La liste de tous les bouts d'IA qu'il faut prendre en compte pour le calcul
   ennui = None #Vaut True si l'IA s'ennuie (elle n'a rien à faire) (hook vers le plugin)
-  horizonAStar = None #Cette valeur augmente à chaque fois qu'un chemin n'a pas été trouvé et que l'horizon de calcul de AStar a été atteint
   
   def __init__(self, AI):
     """Le centre de la partie steering de l'IA"""
@@ -640,7 +636,6 @@ class AIComportement:
     self.steeringForce = Vec3(0.0, 0.0, 0.0)
     self.comportements = []
     self.ennui = False
-    self.horizonAStar=1
     
   def stop(self):
     for comportement in self.comportements:
@@ -661,8 +656,9 @@ class AIComportement:
       out+=comportement.sauvegarde()
     return out
     
+  @general.chrono
   @general.accepts(None, float)
-  def ping(self, temps):
+  def pingComportement(self, temps):
     """Boucle de calcul"""
     force = Vec3(0.0,0.0,0.0)
     facteurs = 0.0
@@ -671,7 +667,7 @@ class AIComportement:
     
     #On ping chaque comportement et on regarde là où il tente d'emmener l'IA
     for comportement in self.comportements:
-      comportement.ping(temps)
+      comportement.pingComportementUnitaire(temps)
       if not comportement.fini:
         force = force+comportement.force*comportement.priorite
         facteurs+=comportement.priorite
@@ -723,7 +719,7 @@ class AIComportement:
     strict : si True, alors le sprite retourné possédera tous les types de ressource demandé, sinon le plus proche qui en a au moins une
     DANGER : retourne une Socket
     """
-    if True: #Passer à False pour faciliter le debug (danger, fait toutes les recherches en bloquant)
+    if False: #Passer à False pour faciliter le debug (danger, fait toutes les recherches en bloquant)
       parent_conn, child_conn = Pipe()
       p = Process(target=self._chercheSpriteProche_thread, args=(child_conn, stock, ressources, joueur, strict))
       p.start()
@@ -731,7 +727,8 @@ class AIComportement:
     else:
       return self._chercheSpriteProche_thread(None, stock, ressources, joueur, strict)
 
-  @general.accepts(None, bool, (list, int), None, bool)
+  @general.chrono
+  @general.accepts(None, None, bool, (list, int), None, bool)
   def _chercheSpriteProche_thread(self, conn, stock, ressources, joueur, strict):
     """A ne pas appeler directement, utiliser chercheSpriteProche"""
     proche = None
@@ -757,42 +754,28 @@ class AIComportement:
       if stock==-1 or stock==sprite.stock:
         if joueur==-1 or sprite.joueur==joueur or sprite.joueur.nom==joueur:
           if ressources==-1 or testeRessources(ressources, sprite, stock, strict):
-            return general.planete.aiNavigation.aStar(general.planete.geoide.trouveSommet(self.ai.sprite.position), general.planete.geoide.trouveSommet(sprite.position), horizonAStar=self.horizonAStar)
-
+            chemin = general.planete.aiNavigation.aStar(general.planete.geoide.trouveSommet(self.ai.sprite.position), general.planete.geoide.trouveSommet(sprite.position))
+            return chemin
       
     #On cherche dans tous les sprites le sprite le plus proche (en longueur de chemin et pas à vol d'oiseau) qui correspond à la requète
-    for sprite in general.planete.spritesJoueur:
+    sprites = general.planete.spritesJoueur + general.planete.spritesNonJoueur
+    cheminProche = None
+    for sprite in sprites:
       chemin = testeSprite(sprite, stock, joueur, ressources, strict)
       if isinstance(chemin,list):
         distA=len(chemin)
       else:
-        if chemin:
-          #On a atteint l'horizon de recherche de chemin et rien trouvé, on l'étend
-          self.horizonAStar+=1
         chemin=None
       if chemin!=None:
         if distanceA==None or distanceA>distA:
           proche = sprite
-          distanceA = distA       
-    for sprite in general.planete.spritesNonJoueur:
-      chemin = testeSprite(sprite, stock, joueur, ressources, strict)
-      if isinstance(chemin,list):
-        distA=len(chemin)
-      else:
-        if chemin:
-          #On a atteint l'horizon de recherche de chemin et rien trouvé, on l'étend
-          self.horizonAStar+=1
-        chemin=None
-      if chemin!=None:
-        if distanceA==None or distanceA>distA:
-          proche = sprite
-          distanceA = distA       
+          distanceA = distA
+          cheminProche = chemin
     if proche!=None:
-      self.horizonAStar=1
       if conn!=None:
-        conn.send(proche.id+"||"+str(chemin))
+        conn.send(proche.id+"||"+str(cheminProche))
       else:
-        return proche.id+"||"+str(chemin)
+        return proche.id+"||"+str(cheminProche)
     else:
       if conn!=None:
         conn.send(None)
@@ -804,7 +787,7 @@ class AIComportement:
     Calcule le chemin allant de debut à fin (retourne une chaine de caractère)
     DANGER : retourne une Socket
     """
-    if True:
+    if False:
       parent_conn, child_conn = Pipe()
       p = Process(target=self._calculChemin_thread, args=(child_conn, debut, fin, priorite))
       p.start()
@@ -812,6 +795,7 @@ class AIComportement:
     else:
       self.suitChemin(self._calculChemin_thread(None, debut, fin, priorite), fin, priorite)
     
+  @general.chrono
   def _calculChemin_thread(self, conn, debut, fin, priorite):
     """A ne pas appeler directement, utiliser calculChemin"""
     try:
@@ -825,20 +809,14 @@ class AIComportement:
       else:
         idC = general.planete.geoide.trouveSommet(fin, tiensCompteDeLAngle=True)
       #Fait le calcul de navigation
-      chemin = general.planete.aiNavigation.aStar(idP, idC, horizonAStar=self.horizonAStar)
+      chemin = general.planete.aiNavigation.aStar(idP, idC)
       
       print "De",idP,"à",idC,":",
       if isinstance(chemin, list):
         print chemin
       else:
-        if chemin:
-          #On a atteint l'horizon de recherche, on le repousse un peu pour la prochaine recherche
-          self.horizonAStar+=1
-          chemin = self._calculChemin_thread(None, debut, fin, priorite)
-          self.horizonAStar=1
-        else:
-          print "impossible"
-          chemin = None
+        print "impossible"
+        chemin = None
       #Retourne le chemin
       if conn!=None:
         conn.send(str(chemin))

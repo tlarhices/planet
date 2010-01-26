@@ -159,7 +159,7 @@ class Sprite:
     self.rac.setPos(*self.position)
     self.rac.lookAt(general.planete.geoide.racine,0,0,0)
     
-  def ping(self, temps):
+  def pingSprite(self, temps):
     """
     Appelé à chaque image, met à jour l'état de l'objet
     temps : le nombre de secondes depuis la dernière mise à jour
@@ -186,7 +186,7 @@ class Sprite:
     
     #On mouline l'AI
     if self.ai != None:
-      self.ai.ping(temps)
+      self.ai.pingAI(temps)
       
     #Deplace
     self.appliqueInertie(temps)
@@ -771,7 +771,7 @@ class Nuage(Sprite):
     #else:
     #  Sprite.tue(self, type)
     
-  def ping(self, temps):
+  def pingSprite(self, temps):
     """Les nuages ne sont pas affectés par la gravité"""
     self.deplace(temps)
     #self.blip()

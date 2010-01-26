@@ -195,7 +195,7 @@ class Start:
     general.tmp = None
     general.io.positionneCamera()
     
-  def ping(self, task):
+  def pingPlanet(self, task):
     """Fonction exécutée à chaque image"""
     #On met à jour l'heure actuelle pour les calculs dans les shaders
     render.setShaderInput( 'time', task.time )
@@ -301,7 +301,7 @@ def deb():
   print "Initialisation terminée"
   print "Lancement..."
   #On va faire exécuter self.ping a chaque image
-  taskMgr.add(start.ping, "BouclePrincipale")
+  taskMgr.add(start.pingPlanet, "BouclePrincipale")
 
   base.exitFunc = finPanda
 

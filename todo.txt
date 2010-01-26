@@ -11,15 +11,24 @@
 ./librairies/cartographie.py::??::point3DVersCarte > voir pourquoi type=1 fait des jolies cartes et un mauvais texturage alors que type=0 a un texturage parfait, mais des cartes moches
 ./librairies/general.py::??::newf > Ajouter la gestion des animations de sprite
 ./librairies/general.py::??::newf > Ajouter la gestion des boulots
+./librairies/general.py::??::newf > Ajouter les filtres pour les listes alliés/ennemis
+./librairies/general.py::??::newf > Ajouter les ruines et les cadavres
 ./librairies/general.py::??::newf > Charger les images data/modeles/birchc-1.png... pour faire un lod
 ./librairies/general.py::??::newf > Debugger la gestion de la gravité
 ./librairies/general.py::??::newf > Faire dépendre la vitesse du sprite selon l'angle du sol sur lequel il se déplace
+./librairies/general.py::??::newf > Finir le texturage via heightmap
+./librairies/general.py::??::newf > Gestion des types de destructions de sprite : fin de partie, joueur a perdu, noyade, incendie, ...
 ./librairies/general.py::??::newf > Il manque l'icone  pour l'affichage des message
 ./librairies/general.py::??::newf > Prise en compte des bateaux lors des calculs de déplacement
 ./librairies/general.py::??::newf > RÉactiver l'IA
+./librairies/general.py::??::newf > Sauvegarde des comportements unitaires de type :ai.AppelFonction
+./librairies/general.py::??::newf > Sauvegarde des comportements unitaires de type :ai.SuitChemin
+./librairies/general.py::??::newf > Sauvegarde des comportements unitaires de type :ai.VaVers
 ./librairies/general.py::??::newf > Sauvegarde du bulbevehicule
 ./librairies/general.py::??::newf > Support des objets non ponctuels
+./librairies/general.py::??::newf > Tester si le passage est toujours valide (changements géographiques,...) jusqu'au prochain point, recalculer si besoin est
 ./librairies/general.py::??::newf > Vérifier que l'angle soit calculé comme il devrait être
+./librairies/general.py::??::newf > ajouter une icone 'je réfléchit' au dessus des sprites qui calculent des trucs
 ./librairies/general.py::??::newf > voir pourquoi type=1 fait des jolies cartes et un mauvais texturage alors que type=0 a un texturage parfait, mais des cartes moches
 ./librairies/geoide.py::??::ajouteTextures > Finir le texturage via heightmap
 ./librairies/gui.py::??::fabrique > Ajouter au GUI l'onglet None

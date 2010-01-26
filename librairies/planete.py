@@ -63,7 +63,7 @@ class Planete:
     self.fini = False
     #On calcule la navigation pour l'intelligence artificielle
     self.aiNavigation = ai.AINavigation()
-    taskMgr.add(self.ping, "BouclePrincipale-planete")
+    taskMgr.add(self.pingPlanete, "BouclePrincipale-planete")
     
   def detruit(self):
     """Détruit la planète et tout ce qui lui est associé"""
@@ -334,7 +334,7 @@ class Planete:
   compteurMAJSpriteNonJoueur=0.0
   seuilMAJSpriteNonJoueur=3.0
   
-  def ping(self, task):
+  def pingPlanete(self, task):
     """Fonction appelée a chaque image, temps indique le temps écoulé depuis l'image précédente"""
     
     if self.lastPing==None:
@@ -389,7 +389,7 @@ class Planete:
       
     #Met à jour l'état des joueurs
     for joueur in self.joueurs:
-      joueur.ping(temps)
+      joueur.pingJoueur(temps)
       
     #Met à jour les états des sprites
     for sprite in self.spritesJoueur[:]:
@@ -397,7 +397,7 @@ class Planete:
         if general.ligneCroiseSphere(sprite.position, self.soleil.getPos(), (0.0,0.0,0.0), 1.0) != None:
           if not sprite.nocturne:
             sprite.tue("obscurite")
-      if not sprite.ping(temps):
+      if not sprite.pingSprite(temps):
         if sprite.joueur !=None:
           sprite.joueur.spriteMort(sprite)
         while sprite in self.spritesJoueur:
@@ -407,7 +407,7 @@ class Planete:
     self.compteurMAJSpriteNonJoueur+=temps
     if self.compteurMAJSpriteNonJoueur>self.seuilMAJSpriteNonJoueur:
       for sprite in self.spritesNonJoueur[:]:
-        if not sprite.ping(self.compteurMAJSpriteNonJoueur):
+        if not sprite.pingSprite(self.compteurMAJSpriteNonJoueur):
           if sprite.joueur !=None:
             sprite.joueur.spriteMort(sprite)
           while sprite in self.spritesNonJoueur:

@@ -177,9 +177,9 @@ class Cartographie:
           recur(face)
     image.save(os.path.join(".","data","cache","zoneombre.png"), "PNG")
     general.miniMapAchangee = True
-    if self.miniMap != None:
-      out = ImageMath.eval("int(float(a) * float(b))", a=self.miniMap, b=image)
-      out.save(os.path.join(".","data","cache","minimapombre.png"), "PNG")
+    #if self.miniMap != None:
+    #  out = ImageMath.eval("int(float(a) * float(b))", a=self.miniMap, b=image)
+    #  out.save(os.path.join(".","data","cache","minimapombre.png"), "PNG")
 
   @general.chrono
   def calculHeightMap(self, listeElements=None):
