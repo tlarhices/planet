@@ -373,6 +373,9 @@ if __name__=="__main__":
   #On dit à Panda d'utiliser le coeur le moins utilisé pour le moment et pas le coeur 1
   loadPrcFileData("",u"client-cpu-affinity -1")
   
+  #On coupe l'audio pour le moment
+  loadPrcFileData("",u"audio-library-name null")
+  
   import direct.directbase.DirectStart
   from direct.task import Task
 
