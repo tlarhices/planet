@@ -334,6 +334,7 @@ class Planete:
   compteurMAJSpriteNonJoueur=0.0
   seuilMAJSpriteNonJoueur=3.0
   
+  @general.chrono
   def pingPlanete(self, task):
     """Fonction appelée a chaque image, temps indique le temps écoulé depuis l'image précédente"""
     

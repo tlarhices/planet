@@ -402,9 +402,31 @@ class Geoide:
       
     self.tectonique = Tectonique()
 
+  vectricesEau = None
+  @general.chrono
   def animEau(self, temps):
     """Animation de l'eau via manipulation des vectrices"""
     geomNodeCollection = self.modeleEau.findAllMatches('**/+GeomNode')
+
+    if not self.vectricesEau:
+      self.vectricesEau = {}
+      for nodePath in geomNodeCollection:
+        geomNode = nodePath.node()
+        for i in range(geomNode.getNumGeoms()):
+          geom = geomNode.modifyGeom(i)
+          vdata = geom.modifyVertexData()
+
+          vertex = GeomVertexRewriter(vdata, 'vertex')
+          
+          idx=0
+          while not vertex.isAtEnd():
+            if idx not in self.vectricesEau.keys():
+              v=Vec3(*vertex.getData3f())
+              v.normalize()
+              self.vectricesEau[idx]=v
+            vertex.setData3f(v[0], v[1], v[2])
+            idx+=1
+    
     for nodePath in geomNodeCollection:
       geomNode = nodePath.node()
       for i in range(geomNode.getNumGeoms()):
@@ -412,12 +434,13 @@ class Geoide:
         vdata = geom.modifyVertexData()
 
         vertex = GeomVertexRewriter(vdata, 'vertex')
+        
+        idx=0
         while not vertex.isAtEnd():
-          v = vertex.getData3f()
-          v = Vec3(*v)
-          v.normalize()
+          v = self.vectricesEau[idx]
           v=v*self.ondulateur(v[0], v[1], v[2], temps)
           vertex.setData3f(v[0], v[1], v[2])
+          idx+=1
 
   def ondulateur(self, x, y, z, temps):
     """Fonction qui calcule les vagues de l'animation de l'eau (mode par vectrice)"""
@@ -656,6 +679,7 @@ class Geoide:
   # Fin Import / Export ------------------------------------------------
       
   lastPing = None
+  @general.chrono
   def pingGeoide(self, task):
     """Fonction appelée a chaque image, temps indique le temps écoulé depuis l'image précédente"""
     if self.lastPing==None:

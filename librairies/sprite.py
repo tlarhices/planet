@@ -153,12 +153,14 @@ class Sprite:
     if self.ai:
       self.ai.stop()
     
+  @general.chrono
   def pointeRacineSol(self):
     """Tourne la racine des éléments graphiques pour maintenir les "pieds" du sprite par terre"""
     #Positionne le modèle et le fait pointer vers le centre de la planète (Z pointant sur la planète)
     self.rac.setPos(*self.position)
     self.rac.lookAt(general.planete.geoide.racine,0,0,0)
     
+  @general.chrono
   def pingSprite(self, temps):
     """
     Appelé à chaque image, met à jour l'état de l'objet
@@ -201,6 +203,7 @@ class Sprite:
       
     return True
     
+  @general.chrono
   def majEchelle(self):
     """Recalcul le facteur d'échelle du sprite suivant son contenu"""
     facteur = 0.0
@@ -297,6 +300,7 @@ class Sprite:
     else:
       return 0
             
+  @general.chrono
   def blip(self):
     """Met à jour le point sur la carte"""
     if self.blipid!=None:
