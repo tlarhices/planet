@@ -784,30 +784,33 @@ class ListeCommandes(Pane):
     if self.liste==None:
       return
       
-    def ajouteActions(delta=0):
-      grp = self.add(Groupe(largeur=4, x=PAD, y=PAD*2+HAUTEUR_BOUTON+delta))
-      btn = grp.add(Icon("icones/gear.png"))
-      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Utiliser un truc")
-      btn.__onHover__ = btn.onHover
-      btn.onHover = general.interface.hover
-      btn = grp.add(Icon("icones/move.png"))
-      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Marcher vers")
-      btn.__onHover__ = btn.onHover
-      btn.onHover = general.interface.hover
-      btn = grp.add(Icon("icones/target.png"))
-      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Cibler")
-      btn.__onHover__ = btn.onHover
-      btn.onHover = general.interface.hover
-      btn = grp.add(Icon("icones/rangearrow.png"))
-      btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText("Attaquer")
-      btn.__onHover__ = btn.onHover
-      btn.onHover = general.interface.hover
+    def ajouteActions(listeActions, delta=0):
+      if len(listeActions)==0:
+        return
+      grp = self.add(Groupe(largeur=len(listeActions), x=PAD, y=PAD*2+HAUTEUR_BOUTON+delta))
+      for icone, texte, action in listeActions.values():
+        btn = grp.add(IconButton(icone))
+        btn.tooltip = general.i18n.getText("Action : %s...") %general.i18n.getText(texte)
+        btn.__onHover__ = btn.onHover
+        btn.onHover = general.interface.hover
+        btn.callback = action
+        btn.callbackParams = self.liste
+      
+    listeActions = {}
+    for sprite in self.liste:
+      if sprite.ai:
+        if sprite.ai.bulbe:
+          for icone, texte, action in sprite.ai.bulbe.listeActions:
+            listeActions[texte]=(icone, texte, action)
       
     if len(self.liste)==0:
       pass
     elif len(self.liste)==1:
       sprite = self.liste[0]
-      btn = self.add(Label(sprite.id, x=PAD, y=PAD))
+      if sprite.nom!=None:
+        btn = self.add(Label(sprite.nom, x=PAD, y=PAD))
+      else:
+        btn = self.add(Label(general.i18n.getText("Sprite non joueur"), x=PAD, y=PAD))
       btn.style = "DEFAULT"
       btn.width = LARGEUR_BOUTON
       grp = self.add(Groupe(largeur=3, x=PAD, y=PAD*2+HAUTEUR_BOUTON))
@@ -826,20 +829,21 @@ class ListeCommandes(Pane):
       btn.tooltip = general.i18n.getText("Vie : %i%%") %sprite.vie
       btn.__onHover__ = btn.onHover
       btn.onHover = general.interface.hover
-      btn = grp.add(Icon("icones/vegetable.png"))
-      btn.tooltip = general.i18n.getText("Métier : %s") %general.i18n.getText("Bucheron")
+      btn = grp.add(Icon(sprite.ai.bulbe._icone_))
+      btn.tooltip = general.i18n.getText("Métier : %s") %general.i18n.getText(sprite.ai.bulbe._nom_)
       btn.__onHover__ = btn.onHover
       btn.onHover = general.interface.hover
       btn = grp.add(Icon("icones/reinforcement.png"))
       btn.tooltip = general.i18n.getText("Activité : %s") %general.i18n.getText("Marche")
       btn.__onHover__ = btn.onHover
       btn.onHover = general.interface.hover
-      ajouteActions(TAILLE_ICONE+PAD*4)
+      
+      ajouteActions(listeActions, TAILLE_ICONE+PAD*4)
     else:
       btn = self.add(Label("Groupe", x=PAD, y=PAD))
       btn.style = "DEFAULT"
       btn.width = LARGEUR_BOUTON
-      ajouteActions()
+      ajouteActions(listeActions)
     
   def MAJ(self, temps):
     if self.liste != general.io.selection:

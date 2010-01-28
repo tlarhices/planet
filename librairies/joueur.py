@@ -51,6 +51,9 @@ class Joueur:
       print "Sprite inconnu",type, "->", fichier
     id = "{S:"+self.nom+"}"+id+"-"+str(len(self.sprites)+1)
     sprite = Sprite(id=id, position=position, fichierDefinition=fichier, joueur=self)
+    noms = open(os.path.join(".","data","noms","noms")).readlines()
+    prenoms = open(os.path.join(".","data","noms","prenoms")).readlines()
+    sprite.nom = random.choice(noms).strip()+" "+random.choice(prenoms).strip()
     general.planete.spritesJoueur.append(sprite)
     self.sprites.append(sprite)
     

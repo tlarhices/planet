@@ -18,6 +18,7 @@ from weakref import proxy
 class Sprite:
   """Un objet du monde"""
   id = None #Un identifiant (si possible unique) qui représente le sprite
+  nom = None #Un nom pour le fun
   position = None #La position dans l'espace de cet objet
   modele = None #Le modèle 3D de l'objet
   fichierModele = None #Le nom du fichier du modèle 3D (utilisé pour la sauvegarde)

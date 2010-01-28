@@ -14,10 +14,15 @@ class Bulbe:
   sprite = None
   
   attaquants = None
+  listeActions = None
+  
+  _icone_ = "icones/vegetable.png"
+  _nom_ = "Standard"
   
   def __init__(self, sprite):
     self.sprite = sprite
     self.attaquants = {}
+    self.listeActions = [("icones/move.png", "Stop", self.executeAction), ("icones/move.png", "Marcher vers", self.executeAction)]
     
   def pingBulbe(self, temps):
     finAttaque = []
@@ -51,4 +56,8 @@ class Bulbe:
     
   def stop(self):
     pass
+    
+  def executeAction(self, action, listeUnite):
+    general.TODO("Ajouter l'action %s pour le bulbe %s" %(action, self._classe_))
+    print action, listeUnite
     
