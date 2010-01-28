@@ -55,11 +55,11 @@ class Cartographie:
       if maxy-miny>ty*2.0/3.0:
         test=False
         if p1[1]==miny:
-          p1[1]=p1[1]+tz
+          p1[1]=p1[1]+ty
         if p2[1]==miny:
-          p2[1]=p2[1]+tz
+          p2[1]=p2[1]+ty
         if p3[1]==miny:
-          p3[1]=p3[1]+tz
+          p3[1]=p3[1]+ty
     
     return p1, p2, p3
     

@@ -47,11 +47,14 @@ class Tectonique:
       self.attracteurs.append(Attracteur(force))
       self.attracteurs.append(Attracteur(-force))
       
+  @general.chrono
   def pingTectonique(self, temps):
     for attracteur in self.attracteurs:
-      decal = attracteur.pingAttracteur(temps)
+      decal = attracteur.pingAttracteur(temps)*temps/20
       self.modifications[attracteur.position]+=decal
-      if abs(self.modifications[attracteur.position])>1.0:
+      if abs(self.modifications[attracteur.position])>2.0:
+        print "val",self.modifications[attracteur.position]
         altitude = general.planete.geoide.delta/10*self.modifications[attracteur.position]
+        print "modification du sommet",attracteur.position,"d'un facteur de",altitude
         general.planete.geoide.elevePoint(attracteur.position, altitude)
         self.modifications[attracteur.position] = 0.0

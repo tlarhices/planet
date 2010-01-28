@@ -151,7 +151,7 @@ class AINavigation:
       
   @general.chrono
   @general.accepts(None, int)
-  def maj(self, idxSommet):
+  def majGraphNavigation(self, idxSommet):
     """
     Met à jour les données après modifications d'un sommet
     """
@@ -311,8 +311,8 @@ class AI:
     #On calcul l'accélération et la direction du déplacement
     acceleration = self.comportement.steeringForce / self.sprite.masse
     self.sprite.inertieSteering = acceleration
-    self.sprite.direction = Vec3(self.comportement.steeringForce)
-    self.sprite.direction.normalize()
+    #self.sprite.direction = Vec3(self.comportement.steeringForce)
+    #self.sprite.direction.normalize()
     
     #On ping l'IA comportementale
     if self.bulbe != None:
@@ -354,6 +354,7 @@ class AIComportementUnitaire:
     general.TODO("Sauvegarde des comportements unitaires de type :"+str(self.__class__))
     return out
     
+  @general.chrono
   @general.accepts(None, float)
   def pingComportementUnitaire(self, temps):
     self.supprime()
@@ -419,8 +420,13 @@ class SuitChemin(AIComportementUnitaire):
       return general.planete.geoide.sommets[point]
     return point
     
+  @general.chrono
   @general.accepts(None, float)
   def pingComportementUnitaire(self, temps):
+    self.pingComportementUnitaireSuitChemin(temps)
+    
+  @general.chrono
+  def pingComportementUnitaireSuitChemin(self, temps):
     """Boucle de calcul"""
     
     if self.chemin == None:
@@ -490,8 +496,13 @@ class VaVers(AIComportementUnitaire):
     AIComportementUnitaire.__init__(self, comportement, priorite)
     self.cible = cible
     
+  @general.chrono
   @general.accepts(None, float)
-  def pingComportementUnitaire(self, temps):
+  def pingComportementUnitaireVaVers(self, temps):
+    self.pingComportementUnitaireSuitChemin(temps)
+    
+  @general.chrono
+  def pingComportementUnitaireVaVers(self, temps):
     """Boucle de calcul"""
     if self.cible == None:
       #on a nulle part où aller
@@ -540,8 +551,13 @@ class AppelFonction(AIComportementUnitaire):
     self.fonction = fonction
     self.dico = dico
     
+  @general.chrono
   @general.accepts(None, float)
   def pingComportementUnitaire(self, temps):
+    self.pingComportementUnitaireAppelFonction(temps)
+    
+  @general.chrono
+  def pingComportementUnitaireAppelFonction(self, temps):
     """Boucle de calcul"""
     if self.fini:
       return
@@ -575,8 +591,13 @@ class Routine(AIComportementUnitaire):
       self.comportement = self.comportementBC
     self.elements.append((element, cyclique, priorite))
     
+  @general.chrono
   @general.accepts(None, float)
   def pingComportementUnitaire(self, temps):
+    self.pingComportementUnitaireRoutine(temps)
+    
+  @general.chrono
+  def pingComportementUnitaireRoutine(self, temps):
     """La boucle de calcul"""
     if self.elements == None:
       #on a rien à faire
@@ -719,7 +740,7 @@ class AIComportement:
     strict : si True, alors le sprite retourné possédera tous les types de ressource demandé, sinon le plus proche qui en a au moins une
     DANGER : retourne une Socket
     """
-    if False: #Passer à False pour faciliter le debug (danger, fait toutes les recherches en bloquant)
+    if True: #Passer à False pour faciliter le debug (danger, fait toutes les recherches en bloquant)
       parent_conn, child_conn = Pipe()
       p = Process(target=self._chercheSpriteProche_thread, args=(child_conn, stock, ressources, joueur, strict))
       p.start()
@@ -732,7 +753,9 @@ class AIComportement:
   def _chercheSpriteProche_thread(self, conn, stock, ressources, joueur, strict):
     """A ne pas appeler directement, utiliser chercheSpriteProche"""
     proche = None
+    cheminProche = None
     distanceA = None
+    distanceplusproche = None
     
     #Regarde si les ressources correspondent à la requète
     def testeRessources(trouver, sprite, stock, strict=False):
@@ -750,27 +773,29 @@ class AIComportement:
             return False #Strict et il en manque au moin 1
       return True #Strict et on a tout trouvé
       
-    def testeSprite(sprite, stock, joueur, ressources, strict):
+    def testeSprite(sprite, stock, joueur, ressources, distanceMax, strict):
       if stock==-1 or stock==sprite.stock:
         if joueur==-1 or sprite.joueur==joueur or sprite.joueur.nom==joueur:
           if ressources==-1 or testeRessources(ressources, sprite, stock, strict):
-            chemin = general.planete.aiNavigation.aStar(general.planete.geoide.trouveSommet(self.ai.sprite.position), general.planete.geoide.trouveSommet(sprite.position))
-            return chemin
+            distance = (self.ai.sprite.position-sprite.position).lengthSquared()
+            if distanceMax==None or distance<=distanceMax:
+              chemin = general.planete.aiNavigation.aStar(general.planete.geoide.trouveSommet(self.ai.sprite.position), general.planete.geoide.trouveSommet(sprite.position))
+              return chemin, distance
+      return None, None
       
     #On cherche dans tous les sprites le sprite le plus proche (en longueur de chemin et pas à vol d'oiseau) qui correspond à la requète
     sprites = general.planete.spritesJoueur + general.planete.spritesNonJoueur
-    cheminProche = None
+    random.shuffle(sprites)
+    
     for sprite in sprites:
-      chemin = testeSprite(sprite, stock, joueur, ressources, strict)
-      if isinstance(chemin,list):
+      chemin, distance = testeSprite(sprite, stock, joueur, ressources, distanceplusproche, strict)
+      if chemin:
         distA=len(chemin)
-      else:
-        chemin=None
-      if chemin!=None:
         if distanceA==None or distanceA>distA:
           proche = sprite
           distanceA = distA
           cheminProche = chemin
+          distanceplusproche = distance
     if proche!=None:
       if conn!=None:
         conn.send(proche.id+"||"+str(cheminProche))

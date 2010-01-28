@@ -16,6 +16,7 @@ import zipfile
 from weakref import proxy
 
 from element import Element
+from tectonique import Tectonique
 import sprite
 
 from pandac.PandaModules import *
@@ -27,6 +28,7 @@ class Geoide:
   sommets = None #La liste des sommets
   elements = None #La liste des faces (indices des sommets)
   racine = None #Point (0,0,0) de la planète selon lequel tout est ajouté
+  tectonique = None
   
   voisinage = None #Dictionnaire associant a chaque sommet les indices des sommets auxquels il est connecté
                    #Construit par self.fabriqueVoisinage
@@ -397,6 +399,8 @@ class Geoide:
     self.racine.reparentTo(render)
     if general.configuration.getConfiguration("Debug", "Planete", "debug_analyse_scene", "f", bool):
       self.racine.analyze()
+      
+    self.tectonique = Tectonique()
 
   def animEau(self, temps):
     """Animation de l'eau via manipulation des vectrices"""
@@ -678,6 +682,8 @@ class Geoide:
       if self.lastMAJPosSoleil > self.dureeMAJPosSoleil:
         self.lastMAJPosSoleil=0.0
         general.cartographie.calculZoneOmbre((256, 128))
+        
+    self.tectonique.pingTectonique(temps)
     
     if not self.fini:
       return task.cont
@@ -850,7 +856,7 @@ class Geoide:
       element.normale = None #On a bougé un point, donc sa normale a changée
       
     if MAJ:
-      general.planete.aiNavigation.maj(idx)
+      general.planete.aiNavigation.majGraphNavigation(idx)
     
   def montagne(self, idxSommetCentre, rayon, delta):
     delta = delta/10
@@ -872,7 +878,7 @@ class Geoide:
       delta=deltas[sommet]
       self.elevePoint(sommet, delta, MAJ=False)
     for sommet in deltas:
-      general.planete.aiNavigation.maj(idx)
+      general.planete.aiNavigation.majGraphNavigation(idx)
       
   def elevePoint(self, idx, delta):
     """Déplace le sommet d'indice idx de delta unité et met à jour la géométrie qui en a besoin"""

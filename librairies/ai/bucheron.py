@@ -19,6 +19,7 @@ class Bulbe(std):
   def __init__(self, sprite):
     std.__init__(self, sprite)
     
+  @general.chrono
   def pingBulbe(self, temps):
     std.pingBulbe(self, temps)
     if self.rechercheSprite!=None:
@@ -65,6 +66,7 @@ class Bulbe(std):
     out = "bulbe-classe:"+self._classe_+":\r\n"
     return out
       
+  @general.chrono
   def ennui(self):
     #Quand un bûcheron s'ennuie, il va couper un arbre s'il a pas du ois plein les poches
     if self.rechercheSprite!=None:
