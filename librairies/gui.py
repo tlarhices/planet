@@ -870,6 +870,13 @@ class ListeCommandes(Pane):
       btn.style = "DEFAULT"
       btn.width = LARGEUR_BOUTON
       ajouteActions(listeActions)
+      
+  def efface(self, cible):
+    self.clear()
+    if isinstance(self.gui.menuCourant, EnJeu):
+      self.gui.menuCourant.listeCommandes = cible(self.gui)
+    else:
+      self.gui.menuCourant = cible(self.gui)
     
   def MAJ(self, temps):
     if self.liste != general.io.selection:
@@ -1018,7 +1025,8 @@ class EnJeu():
       self.zoneChat.clear()
       self.gui.remove(self.zoneChat)
     self.listeCommandes.clear()
-    self.gui.remove(self.listeCommandes)
+    if isinstance(self.listeCommandes, ListeCommandes):
+      self.gui.remove(self.listeCommandes)
     
   def changeMenu(self):
     if isinstance(self.listeCommandes, ListeCommandes):
@@ -1455,7 +1463,7 @@ class Interface:
   def quitter(self):
     """Quitte l'application"""
     if isinstance(self.menuCourant, MenuPrincipal):
-      sys.exit(0)
+      base.userExit()
     elif isinstance(self.menuCourant, EnJeu):
       self.menuCourant.changeMenu()
     else:

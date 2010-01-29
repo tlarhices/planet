@@ -115,8 +115,6 @@ class IO:
         for sprite in self.selection:
           sprite.selectionne()
       self._selection = self.selection[:]
-
-    
     
     if base.mouseWatcherNode !=None:
       #Teste de la position de la souris
@@ -323,6 +321,76 @@ class IO:
     self.actions["selectionne"] = (self.selectionne,None)
     self.actions["dragdrop"] = (self.dragDrop,None)
     self.actions["console"] = (self.afficheConsole,None)
+    self.actions["debug_fildefer"] = (base.toggleWireframe,None)
+    self.actions["debug_textures"] = (base.toggleTexture,None)
+    self.actions["debug_memoiretexture"] = (base.toggleTexMem,None)
+    self.actions["debug_vectrices"] = (base.toggleShowVertices,None)
+    self.actions["debug_backface"] = (base.toggleBackface,None)
+    self.actions["debug_afficheinfos"] = (self.afficheInfos,None)
+    
+  def afficheInfos(self):
+    base.printEnvDebugInfo()
+    import os
+    import time
+    import sys
+
+    unumber = os.getuid()
+    pnumber = os.getpid()
+    where = os.getcwd()
+    what = os.uname()
+    used = os.times()
+    now = time.time()
+    means = time.ctime(now)
+
+
+    print "Heure :",means
+    print "ID Utilisateur :",unumber
+    print "ID processus :",pnumber
+    print "Dossier courant :",where
+    print
+
+    print "Plateforme (%s) :" %(os.name),
+    plateforme = sys.platform
+    if plateforme=='win32':
+      res = sys.getwindowsversion()
+      type = res[0]
+      infos = res[1:]
+      if type==0:
+        type = "Win32s on Windows 3.1"
+      elif type==1:
+        type = "Windows 95/98/ME"
+      elif type==2:
+        type = "Windows NT/2000/XP/x64"
+      elif type==3:
+        type = "Windows CE"
+      else:
+        type = "Version de Windows inconnue :",type
+      print "Version de Windows :",type, infos
+    elif plateforme=='cygwin':
+      print "Windows/Cygwin", what
+    elif plateforme=='darwin':
+      print "Mac OS X", what
+    elif plateforme=='os2':
+      print "OS/2", what
+    elif plateforme=='os2emx':
+      print "OS/2 EMX", what
+    elif plateforme=='riscos':
+      print "RiscOS", what
+    elif plateforme=='atheos':
+      print "AtheOS", what
+    elif plateforme.startswith('linux'):
+      print "Linux", what
+    print
+    print "Type processeur :", sys.byteorder,"endian"
+    print "Informations :",used
+    print
+    print "Version python :", sys.version, sys.subversion
+    print "Encodage :", sys.getdefaultencoding()
+    print "Encodage systeme de fichier :", sys.getfilesystemencoding()
+    print "Python path :", sys.path
+    print "Modules :"
+    for module in sys.builtin_module_names:
+      print "-",module
     
   def appelFonction(self, fonction, parametres):
     """Appel la fonction fonction en lui passant les paramètres décris"""

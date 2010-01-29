@@ -379,6 +379,9 @@ if __name__=="__main__":
   import direct.directbase.DirectStart
   from direct.task import Task
 
+  #Comme on est dans l'espace, on dit que le fond est toujours noir
+  base.setBackgroundColor(0.0,0.0,0.0)
+  
   #Change le frontclip
   if base.camLens != None:
     base.camLens.setNear(0.001)
