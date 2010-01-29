@@ -320,13 +320,21 @@ class IO:
     self.actions["screenshot"] = (self.screenShot,None)
     self.actions["selectionne"] = (self.selectionne,None)
     self.actions["dragdrop"] = (self.dragDrop,None)
-    self.actions["console"] = (self.afficheConsole,None)
-    self.actions["debug_fildefer"] = (base.toggleWireframe,None)
-    self.actions["debug_textures"] = (base.toggleTexture,None)
-    self.actions["debug_memoiretexture"] = (base.toggleTexMem,None)
-    self.actions["debug_vectrices"] = (base.toggleShowVertices,None)
-    self.actions["debug_backface"] = (base.toggleBackface,None)
-    self.actions["debug_afficheinfos"] = (self.afficheInfos,None)
+    self.actions["console"] = (self.effaceTouches, (self.afficheConsole,None))
+    self.actions["debug_fildefer"] = (self.effaceTouches, (base.toggleWireframe,None))
+    self.actions["debug_textures"] = (self.effaceTouches, (base.toggleTexture,None))
+    self.actions["debug_memoiretexture"] = (self.effaceTouches, (base.toggleTexMem,None))
+    self.actions["debug_vectrices"] = (self.effaceTouches, (base.toggleShowVertices,None))
+    self.actions["debug_backface"] = (self.effaceTouches, (base.toggleBackface,None))
+    self.actions["debug_afficheinfos"] = (self.effaceTouches, (self.afficheInfos,None))
+    
+  def effaceTouches(self, fonction, parametres):
+    self.touches=[]
+    self.touchesControles=[]
+    if parametres:
+      fonction(*parametres)
+    else:
+      fonction()
     
   def afficheInfos(self):
     base.printEnvDebugInfo()
