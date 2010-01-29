@@ -707,7 +707,8 @@ class Geoide:
         self.lastMAJPosSoleil=0.0
         general.cartographie.calculZoneOmbre((256, 128))
         
-    self.tectonique.pingTectonique(temps)
+    if general.configuration.getConfiguration("planete","Regles","tectonique","t", bool):
+      self.tectonique.pingTectonique(temps)
     
     if not self.fini:
       return task.cont

@@ -196,6 +196,9 @@ class MenuCirculaire:
     elements[2].reverse()
     elements[3].reverse()
     return elements
+    
+  def fenetreAChangee(self):
+    self.anime(0.0)
 
   def anime(self, temps):
     """Déplacent les boutons selon l'heure pour produire l'animation"""
@@ -370,18 +373,23 @@ class Historique(Pane):
     for message in deb:
       self.remove(message[3])
     self.messages = self.messages[-self.tailleHistorique:]
+    
+    self.fenetreAChangee()
+    
+    if position!=None:
+      self.messages[-1][3].callback = general.io.placeCameraAuDessusDe
+      self.messages[-1][3].callbackParams = {"point":position}
+      
+  def fenetreAChangee(self):
+    self.y = base.win.getYSize() - TAILLE_ICONE*2 - PAD*2
+    self.style=None
+    self.width=base.win.getXSize()
+    self.height=TAILLE_ICONE+PAD*2
     pos=0
     for message in self.messages:
       message[3].x = pos
       message[3].y = 0
       pos+=TAILLE_ICONE
-    #self.clear()
-    #for msg in self.messages:
-    #  self.ajouteBas(self.fabriqueMessage(msg[1], msg[2], compact=True))
-      
-    if position!=None:
-      self.messages[-1][3].callback = general.io.placeCameraAuDessusDe
-      self.messages[-1][3].callbackParams = {"point":position}
     
   def fabriqueMessage(self, type, message):
     """
@@ -406,8 +414,10 @@ class Historique(Pane):
 class FondCarte:
   carte = None
   image = None
+  fini = None
   
   def __init__(self, tailleX, tailleY):
+    self.fini = False
     #La zone où on affiche l'image:
     cardMaker = CardMaker('sprite')
     cardMaker.setFrame(0.0, 1.0, 0.0, 1.0)
@@ -431,6 +441,7 @@ class FondCarte:
     self.node.removeNode()
     self.node = None
     self.carte = None
+    self.fini = True
   
   def resize(self, task):
     """ resize the window via panda3d internal events"""
@@ -445,7 +456,10 @@ class FondCarte:
     self.node.reparentTo(render2d)    
     self.carte.setPos(self.size[0]-self.tailleX, 0.0, 0.0)
     if task!=None:
-      return task.cont
+      if not self.fini:
+        return task.cont
+      else:
+        return task.done
     
   def draw(self, task=None):
     """ resize the window via panda3d internal events"""
@@ -455,7 +469,10 @@ class FondCarte:
     if self.image!=None:
       self.carte.setTexture(self.image)
     if task!=None:
-      return task.cont
+      if not self.fini:
+        return task.cont
+      else:
+        return task.done
     
   def setImage(self, image):
     self.image = image
@@ -505,6 +522,9 @@ class MiniMap(Pane):
     self.carte = FondCarte(self.tailleMiniMapX, self.tailleMiniMapY)
     
     taskMgr.add(self.pingMiniMap, "Boucle minimap")
+    
+  def fenetreAChangee(self):
+    pass
     
   def onClick(self):
     general.io.placeCameraAuDessusDe(general.cartographie.carteVersPoint3D(self.souris, (256, 128)))
@@ -656,6 +676,9 @@ class Chat(Pane):
     select.append(general.joueurLocal.nom)
     self.filtre=select
     self.fabrique()
+    
+  def fenetreAChangee(self):
+    self.fabrique()
       
   def fabrique(self):
     self.clear()
@@ -779,6 +802,9 @@ class ListeCommandes(Pane):
     self.height = HAUTEUR_DIALOGUE
     self.width = LARGEUR_BOUTON + PAD *2
 
+  def fenetreAChangee(self):
+    pass
+    
   def fabrique(self):
     self.clear()
     if self.liste==None:
@@ -808,7 +834,7 @@ class ListeCommandes(Pane):
     elif len(self.liste)==1:
       sprite = self.liste[0]
       if sprite.nom!=None:
-        btn = self.add(Label(sprite.nom, x=PAD, y=PAD))
+        btn = self.add(Label(genreal.i18n.utf8ise(sprite.nom), x=PAD, y=PAD))
       else:
         btn = self.add(Label(general.i18n.getText("Sprite non joueur"), x=PAD, y=PAD))
       btn.style = "DEFAULT"
@@ -869,6 +895,9 @@ class ListeUnite(Pane):
     self.style=None
     
     self.fabrique()
+    
+  def fenetreAChangee(self):
+    pass
     
   def fabrique(self):
     self.clear()
@@ -947,6 +976,12 @@ class EnJeu():
     self.listeCommandes = self.gui.add(ListeCommandes(self.gui))
     self.zoneChat = self.gui.add(Chat(self.gui))
     self.miniMap = self.gui.gui.add(MiniMap(self.gui))
+    
+  def fenetreAChangee(self):
+    self.listeUnite.fenetreAChangee()
+    self.listeCommandes.fenetreAChangee()
+    self.zoneChat.fenetreAChangee()
+    self.miniMap.fenetreAChangee()
     
   @general.accepts(None, ("joueur.JoueurLocal", "joueur.JoueurLocal", "joueur.JoueurDistant", "joueur.JoueurIA"), (str, unicode))
   def chat(self, joueur, message):
@@ -1397,6 +1432,12 @@ class Interface:
     self.tooltip = self.gui.add(Label("", x=0, y="bottom", width="100%"))
     self.tooltip.style="DEFAULT"
     self.makeMain()
+    base.accept("aspectRatioChanged", self.fenetreAChangee)
+    
+  def fenetreAChangee(self):
+    if self.historique != None:
+      self.historique.fenetreAChangee()
+    self.menuCourant.fenetreAChangee()
     
   def lanceInterface(self):
     self.removeMain()
