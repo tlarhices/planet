@@ -834,7 +834,7 @@ class ListeCommandes(Pane):
     elif len(self.liste)==1:
       sprite = self.liste[0]
       if sprite.nom!=None:
-        btn = self.add(Label(genreal.i18n.utf8ise(sprite.nom), x=PAD, y=PAD))
+        btn = self.add(Label(general.i18n.utf8ise(sprite.nom), x=PAD, y=PAD))
       else:
         btn = self.add(Label(general.i18n.getText("Sprite non joueur"), x=PAD, y=PAD))
       btn.style = "DEFAULT"

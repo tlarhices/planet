@@ -399,6 +399,8 @@ class IO:
     print "Modules :"
     for module in sys.builtin_module_names:
       print "-",module
+    print
+    print "Panda :",base.win.getType()
     
   def appelFonction(self, fonction, parametres):
     """Appel la fonction fonction en lui passant les paramètres décris"""
